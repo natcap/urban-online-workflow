@@ -21,9 +21,18 @@ export default class MapComponent extends React.PureComponent {
         new TileLayer({
           source: new OSM()
         }),
+        new VectorTileLayer({
+          source: new VectorTileSource({
+            format: new MVT(),
+            // access API key loaded from your private .env file using dotenv package
+            // because of vite, env variables are exposed through import.meta.env
+            // and must be prefixed with VITE_. https://vitejs.dev/guide/env-and-mode.html#env-files
+            url: 'https://api.mapbox.com/v4/emlys.san-antonio-parcels/{z}/{x}/{y}.mvt?access_token=' + import.meta.env.VITE_MAPBOX_API_KEY
+          }),
+        }),
       ],
       view: new View({
-        center: [-10964368.72, 3429876.58], // coords in the default view projection, EPSG:3857
+        center: [-10964368.72, 3429876.58], // San Antonio coords in the default view projection, EPSG:3857
         zoom: 12
       })
     });
