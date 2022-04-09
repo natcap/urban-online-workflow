@@ -35,6 +35,8 @@ function getCoords(geometry) {
 
 export default function MapComponent(props) {
 
+  const { toggleEditMenu } = props;
+
   const [popup, setPopup] = useState(undefined);
 
   // element refs: used to insert openlayers-controlled nodes into the dom
@@ -117,7 +119,8 @@ export default function MapComponent(props) {
             <Popup
               location={event.coordinate}
               message={message}
-              overlay={overlayRef.current} />
+              overlay={overlayRef.current}
+              toggleEditMenu={toggleEditMenu} />
           );
         } else {
           selectedFeature = undefined;
@@ -135,7 +138,7 @@ export default function MapComponent(props) {
 
   // render component
   return (
-    <div>
+    <div className="map-container">
       <div ref={mapElementRef} className="map-container" />
       <div ref={overlayElementRef} id="popup" className="ol-popup">
         { popup }

@@ -7,7 +7,8 @@ export default function PopupComponent(props) {
   const {
     location,
     message,
-    overlay
+    overlay,
+    toggleEditMenu
   } = props;
 
   const closerElement = useRef();
@@ -33,6 +34,13 @@ export default function PopupComponent(props) {
     <>
       <a ref={closerElement} href="#" id="popup-closer" className="ol-popup-closer"></a>
       <div ref={contentElement} id="popup-content"></div>
+      <button
+        onClick={() => {
+          console.log('button clicked');
+          toggleEditMenu()
+        }}>
+        Edit
+      </button>
     </>
   );
 }
