@@ -1,6 +1,6 @@
 import {toStringHDMS} from 'ol/coordinate';
 import {toLonLat} from 'ol/proj';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 
 
 export default function PopupComponent(props) {
@@ -11,26 +11,20 @@ export default function PopupComponent(props) {
     toggleEditMenu
   } = props;
 
-  const closerElement = useRef();
-
   useEffect(() => {
-    /**
-     * Add a click handler to hide the popup.
-     * @return {boolean} Don't follow the href.
-     */
-    closerElement.current.onclick = function () {
-      overlay.setPosition(undefined);
-      closerElement.current.blur();
-      return false;
-    };
-
     overlay.setPosition(location);
-
   });
 
   return (
     <>
-      <a ref={closerElement} href="#" id="popup-closer" className="ol-popup-closer"></a>
+      <button
+        onClick={() => {
+          overlay.setPosition(undefined);
+          return false;
+        }}
+        href="#"
+        id="popup-closer"
+        className="ol-popup-closer" />
       <div id="popup-content">{message}</div>
       <button
         onClick={() => {
