@@ -46,9 +46,8 @@ export default function MapComponent(props) {
   // object refs: used to pass values to child components
   const overlayRef = useRef()
 
-  // initialize map on first render - logic formerly put into componentDidMount
+  // useEffect with no dependencies: only runs after first render
   useEffect(() => {
-
     // Create an overlay to anchor the popup to the map.
     const overlay = new Overlay({
       element: overlayElementRef.current,
@@ -131,6 +130,12 @@ export default function MapComponent(props) {
     map.on(['click'], handleClick);
 
   }, []);
+
+  // useEffect with popupInfo dependency: runs when popupInfo changes
+  useEffect(() => {
+    // set location of the overlay popup
+    overlayRef.current.setPosition(popupInfo ? popupInfo.location : null);
+  }, [popupInfo]);
 
   let popup = <React.Fragment />;
   if (popupInfo) {
