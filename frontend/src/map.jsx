@@ -36,29 +36,17 @@ function getCoords(geometry) {
 export default function MapComponent(props) {
 
   const { toggleEditMenu } = props;
-
   const [popupInfo, setPopupInfo] = useState(null);
-
-  // element refs: used to insert openlayers-controlled nodes into the dom
+  // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
   const overlayElementRef = useRef();
-
-  // object refs: used to pass values to child components
+  // use ref for the overlay object to make it available across renders
   const overlayRef = useRef()
 
   // useEffect with no dependencies: only runs after first render
   useEffect(() => {
-    // Create an overlay to anchor the popup to the map.
-    const overlay = new Overlay({
-      element: overlayElementRef.current,
-      autoPan: {
-        animation: {
-          duration: 250,
-        },
-      },
-    });
-    overlayRef.current = overlay
-
+    // define map layers
+    const streetMapLayer = new TileLayer({ source: new OSM() })
     const parcelLayer = new VectorTileLayer({
       source: new VectorTileSource({
         format: new MVT(),
@@ -69,9 +57,7 @@ export default function MapComponent(props) {
       }),
       minZoom: 13  // don't display this layer below zoom level 14
     })
-
     let selectedFeature;
-    // Set up to display selected features
     const selectionLayer = new VectorTileLayer({
       renderMode: 'vector',
       source: parcelLayer.getSource(),
@@ -84,12 +70,22 @@ export default function MapComponent(props) {
       },
     });
 
+    // define map overlay: needed to anchor the popup to the map
+    const overlay = new Overlay({
+      element: overlayElementRef.current,
+      autoPan: {
+        animation: {
+          duration: 250,
+        },
+      }
+    });
+    overlayRef.current = overlay;
+
+    // define the map
     const map = new Map({
       target: mapElementRef.current,
       layers: [
-        new TileLayer({
-          source: new OSM()
-        }),
+        streetMapLayer,
         parcelLayer,
         selectionLayer
       ],
@@ -100,6 +96,7 @@ export default function MapComponent(props) {
       })
     });
 
+    // map click handler: visually select the clicked feature and save info in state
     const handleClick = async (event) => {
       await parcelLayer.getFeatures(event.pixel).then(async function (features) {
         const feature = features.length ? features[0] : undefined;
@@ -116,7 +113,6 @@ export default function MapComponent(props) {
           setPopupInfo({
             location: event.coordinate,
             message: message,
-            overlay: overlayRef.current,
           })
         } else {
           selectedFeature = undefined;
@@ -125,10 +121,7 @@ export default function MapComponent(props) {
         selectionLayer.changed();
       });
     }
-    // On click, visually select the clicked feature
-    // and log the coordinates of its geometry
     map.on(['click'], handleClick);
-
   }, []);
 
   // useEffect with popupInfo dependency: runs when popupInfo changes
@@ -137,13 +130,14 @@ export default function MapComponent(props) {
     overlayRef.current.setPosition(popupInfo ? popupInfo.location : null);
   }, [popupInfo]);
 
+
+  // pre-render logic
   let popup = <React.Fragment />;
   if (popupInfo) {
     popup = (
       <Popup
-        location={popupInfo.location}
         message={popupInfo.message}
-        overlay={popupInfo.overlay}
+        handleClose={() => overlayRef.current.setPosition(undefined)}
         toggleEditMenu={toggleEditMenu} />
     );
   }
