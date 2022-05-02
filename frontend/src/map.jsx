@@ -37,7 +37,7 @@ export default function MapComponent(props) {
 
   const { toggleEditMenu } = props;
 
-  const [popup, setPopup] = useState(undefined);
+  const [popupInfo, setPopupInfo] = useState(null);
 
   // element refs: used to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
@@ -101,7 +101,6 @@ export default function MapComponent(props) {
       })
     });
 
-    let popup = <React.Fragment />;
     const handleClick = async (event) => {
       await parcelLayer.getFeatures(event.pixel).then(async function (features) {
         const feature = features.length ? features[0] : undefined;
@@ -114,20 +113,17 @@ export default function MapComponent(props) {
 
           const parcelID = feature.get('OBJECTID');
           const parcelInfo = await getParcelInfo(parcelID);
-          const message = `<p>You clicked on parcel ${parcelID}</p> Info: ${parcelInfo}`;
-          popup = (
-            <Popup
-              location={event.coordinate}
-              message={message}
-              overlay={overlayRef.current}
-              toggleEditMenu={toggleEditMenu} />
-          );
+          const message = `You clicked on parcel ${parcelID}. Info: ${parcelInfo}`;
+          setPopupInfo({
+            location: event.coordinate,
+            message: message,
+            overlay: overlayRef.current,
+          })
         } else {
           selectedFeature = undefined;
-          popup = <React.Fragment />;
+          setPopupInfo(null);
         }
         selectionLayer.changed();
-        setPopup(popup);
       });
     }
     // On click, visually select the clicked feature
@@ -135,6 +131,17 @@ export default function MapComponent(props) {
     map.on(['click'], handleClick);
 
   }, []);
+
+  let popup = <React.Fragment />;
+  if (popupInfo) {
+    popup = (
+      <Popup
+        location={popupInfo.location}
+        message={popupInfo.message}
+        overlay={popupInfo.overlay}
+        toggleEditMenu={toggleEditMenu} />
+    );
+  }
 
   // render component
   return (

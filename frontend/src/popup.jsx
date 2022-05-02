@@ -12,7 +12,6 @@ export default function PopupComponent(props) {
   } = props;
 
   const closerElement = useRef();
-  const contentElement = useRef();
 
   useEffect(() => {
     /**
@@ -25,7 +24,6 @@ export default function PopupComponent(props) {
       return false;
     };
 
-    contentElement.current.innerHTML = message;
     overlay.setPosition(location);
 
   });
@@ -33,7 +31,7 @@ export default function PopupComponent(props) {
   return (
     <>
       <a ref={closerElement} href="#" id="popup-closer" className="ol-popup-closer"></a>
-      <div ref={contentElement} id="popup-content"></div>
+      <div id="popup-content">{message}</div>
       <button
         onClick={() => {
           console.log('button clicked');
