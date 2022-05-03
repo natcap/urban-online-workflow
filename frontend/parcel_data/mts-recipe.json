@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "layers": {
+    "san-antonio-parcels": {
+      "source": "mapbox://tileset-source/emlys/san-antonio-parcels-src",
+      "minzoom": 0,
+      "maxzoom": 16
+    }
+  }
+}
