@@ -9,7 +9,6 @@ import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
 
 import Popup from './popup';
-import { getParcelInfo } from './requests';
 
 // style for selected features
 const selectedStyle = new Style({
@@ -35,7 +34,7 @@ function getCoords(geometry) {
 
 export default function MapComponent(props) {
 
-  const { toggleEditMenu } = props;
+  const { toggleEditMenu, setSelectedParcel } = props;
   const [popupInfo, setPopupInfo] = useState(null);
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
@@ -55,7 +54,7 @@ export default function MapComponent(props) {
         // and must be prefixed with VITE_. https://vitejs.dev/guide/env-and-mode.html#env-files
         url: 'https://api.mapbox.com/v4/emlys.san-antonio-parcels/{z}/{x}/{y}.mvt?access_token=' + import.meta.env.VITE_MAPBOX_API_KEY,
       }),
-      minZoom: 13  // don't display this layer below zoom level 14
+      minZoom: 18  // don't display this layer below zoom level 17
     })
     let selectedFeature;
     const selectionLayer = new VectorTileLayer({
@@ -92,35 +91,37 @@ export default function MapComponent(props) {
       overlays: [overlay],
       view: new View({
         center: [-10964368.72, 3429876.58], // San Antonio coords in the default view projection, EPSG:3857
-        zoom: 16
+        zoom: 19
       })
     });
 
     // map click handler: visually select the clicked feature and save info in state
     const handleClick = async (event) => {
-      await parcelLayer.getFeatures(event.pixel).then(async function (features) {
+      await parcelLayer.getFeatures(event.pixel).then(async (features) => {
         const feature = features.length ? features[0] : undefined;
         if (feature) {
           selectedFeature = feature;
           // NOTE that a feature's geometry can change with the tile/zoom level and view position
           // and so its coordinates will change slightly.
           // for best precision, maybe don't get the coordinates on the client side
-          console.log('Selected feature coordinates:', getCoords(feature));
+          const coords = getCoords(feature);
+          console.log('Selected feature coordinates:', coords);
 
           const parcelID = feature.get('OBJECTID');
-          const parcelInfo = await getParcelInfo(parcelID);
-          const message = `You clicked on parcel ${parcelID}. Info: ${parcelInfo}`;
+          // const lulcTable = await getLULCInParcel(parcelID, coords);
+          const message = `You clicked on parcel ${parcelID}`;
           setPopupInfo({
             location: event.coordinate,
             message: message,
-          })
+          });
+          setSelectedParcel(coords);
         } else {
           selectedFeature = undefined;
           setPopupInfo(null);
         }
         selectionLayer.changed();
       });
-    }
+    };
     map.on(['click'], handleClick);
   }, []);
 
@@ -129,7 +130,6 @@ export default function MapComponent(props) {
     // set location of the overlay popup
     overlayRef.current.setPosition(popupInfo ? popupInfo.location : null);
   }, [popupInfo]);
-
 
   // pre-render logic
   let popup = <React.Fragment />;
