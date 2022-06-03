@@ -125,6 +125,7 @@ export default function EditMenu(props) {
           />
           <h4>Modify the landuse of the parcel by selecting a pattern:</h4>
           {wallpaperTable}
+          <br />
           <button type="submit">Submit</button>
         </form>
       </div>

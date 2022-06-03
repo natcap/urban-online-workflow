@@ -145,7 +145,7 @@ export default function MapComponent(props) {
   // render component
   return (
     <div className="map-container">
-      <div ref={mapElementRef} className="map-container" />
+      <div ref={mapElementRef} className="map-viewport" />
       <div ref={overlayElementRef} id="popup" className="ol-popup">
         { popup }
       </div>
