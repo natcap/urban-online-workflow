@@ -31,14 +31,16 @@ do
     /usr/bin/time --portability  python search-by-bounding-box.py "/vsigs/$BUCKET/$filename"
 done
 
-# Try out a VRT
-echo "\nVRT access via VSIGS"
-for filename in *.fgb
-do
-    VRT="$filename.vt"
-    gdalbuildvrt "$VRT" "/vsigs/$BUCKET/$filename"
-    /usr/bin/time --portability  python search-by-bounding-box.py "$VRT"
-done
+## Try out a VRT
+## gdalbuildvrt only supports rasters despite VRT being a supported vector
+## format.
+#echo "\nVRT access via VSIGS"
+#for filename in *.fgb
+#do
+#    VRT="$filename.vt"
+#    gdalbuildvrt "$VRT" "/vsigs/$BUCKET/$filename"
+#    /usr/bin/time --portability  python search-by-bounding-box.py "$VRT"
+#done
 
 
 # Time local accesses for reference.
