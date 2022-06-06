@@ -4,10 +4,14 @@ set -ex
 
 BUCKET=natcap-urban-online-datasets
 
-# Create FGB files and push to the bucket
-echo "Creating FGB files, ~1GB each"
-python create-flatgeobuf-randompoints.py
-gsutil cp ./*.fgb "gs://$BUCKET"
+# COMMENTING THIS BLOCK OUT BECAUSE IT TAKES A LONG TIME
+# UNCOMMENT IF YOU DO WANT TO REBUILD
+## Create FGB files and push to the bucket
+#echo "Creating FGB files, ~1GB each"
+#python create-flatgeobuf-randompoints.py
+#gsutil cp ./*.fgb "gs://$BUCKET"
+#ogr2ogr -f GPKG -progress random_global_points_WSI.gpkg random_global_points_WSI.fgb
+#gsutil cp ./*.gpkg "gs://$BUCKET"
 
 # Time local accesses for reference.
 echo "\nTiming local file accesses (base case)"
@@ -32,8 +36,6 @@ do
     /usr/bin/time --portability  python search-by-bounding-box.py "$VRT"
 done
 
-ogr2ogr -f GPKG -progress random_global_points_WSI.gpkg random_global_points_WSI.fgb
-gsutil cp ./*.gpkg "gs://$BUCKET"
 
 # Time local accesses for reference.
 echo "\nTiming local file accesses (base case)"
