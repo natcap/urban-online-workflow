@@ -55,11 +55,13 @@ do
     /usr/bin/time --portability  python search-by-bounding-box.py "/vsigs/$BUCKET/$filename"
 done
 
-# Try out a VRT
-echo "\nVRT access via VSIGS"
-for filename in *.gpkg
-do
-    VRT="$filename.vt"
-    gdalbuildvrt "$VRT" "/vsigs/$BUCKET/$filename"
-    /usr/bin/time --portability  python search-by-bounding-box.py "$VRT"
-done
+## Try out a VRT
+## VRTs are a supported vector format, but not apparently supported by
+## gdalbuildvrt.
+#echo "\nVRT access via VSIGS"
+#for filename in *.gpkg
+#do
+#    VRT="$filename.vt"
+#    gdalbuildvrt "$VRT" "/vsigs/$BUCKET/$filename"
+#    /usr/bin/time --portability  python search-by-bounding-box.py "$VRT"
+#done
