@@ -26,6 +26,8 @@ n_features = 0
 start_time = time.time()
 for feature in vector.ExecuteSQL(f"SELECT * FROM {basename}",
                                  spatialFilter=bounding_box):
+    if n_features == 0:
+        print(f"Took {time.time() - start_time} to initialize query")
     n_features += 1
     point_geom = feature.GetGeometryRef()
     latitude_sum += point_geom.GetX()
