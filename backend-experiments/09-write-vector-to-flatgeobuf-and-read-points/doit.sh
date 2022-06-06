@@ -29,6 +29,7 @@ echo "\nTiming access over the network"
 for filename in *.fgb
 do
     /usr/bin/time --portability  python search-by-bounding-box.py "/vsigs/$BUCKET/$filename"
+    /usr/bin/time --portability  python search-by-bounding-box.py "/vsigs/$BUCKET/$filename" --noverify
 done
 
 ## Try out a VRT
