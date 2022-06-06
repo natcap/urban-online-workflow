@@ -13,7 +13,9 @@ SRS.ImportFromEPSG(4326)
 LOGGER = logging.getLogger(__name__)
 
 
-def create_vector(target_filepath, n_random_features=1000000, options=[]):
+def create_vector(target_filepath, n_random_features=10000000, options=[],
+                  seed=time.time()):
+    random.seed(seed)
     start_time = time.time()
     driver = gdal.GetDriverByName('FlatGeobuf')
     vector = driver.Create(
@@ -46,12 +48,10 @@ def create_vector(target_filepath, n_random_features=1000000, options=[]):
     print(f'Created {target_filepath} in {time.time() - start_time}s')
 
 
-def time_search_by_bounding_box(vector_path):
-    pass
-
-
 if __name__ == '__main__':
     create_vector('random_global_points_NOSI.fgb',
-                  options=[])
+                  options=[],
+                  seed=1)
     create_vector('random_global_points_WSI.fgb',
-                  options=['SPATIAL_INDEX=YES'])
+                  options=['SPATIAL_INDEX=YES'],
+                  seed=1)
