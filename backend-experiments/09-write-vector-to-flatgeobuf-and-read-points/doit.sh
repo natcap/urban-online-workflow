@@ -9,8 +9,12 @@ BUCKET=natcap-urban-online-datasets
 ## Create FGB files and push to the bucket
 #echo "Creating FGB files, ~1GB each"
 #python create-flatgeobuf-randompoints.py
-#gsutil cp ./*.fgb "gs://$BUCKET"
 #ogr2ogr -f GPKG -progress random_global_points_WSI.gpkg random_global_points_WSI.fgb
+## NOTE: gsutil requires appropriate write permissions to the bucket.
+## NOTE: The default compute engine service account cannot write to buckets.
+## NOTE: A possible workaround is to log in to the VM with your personal email.
+## NOTE: To do this, `gcloud auth login "my_email@gmail.com"`.
+#gsutil cp ./*.fgb "gs://$BUCKET"
 #gsutil cp ./*.gpkg "gs://$BUCKET"
 
 # Time local accesses for reference.
