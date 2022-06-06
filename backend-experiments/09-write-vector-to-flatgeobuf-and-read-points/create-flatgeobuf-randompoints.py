@@ -43,9 +43,11 @@ def create_vector(target_filepath, n_random_features=10000000, options=[],
     layer.CommitTransaction()
     LOGGER.info(f'Transaction took {time.time() - transact_start_time}')
 
+    flush_start_time = time.time()
     layer = None
     vector = None
-    print(f'Created {target_filepath} in {time.time() - start_time}s')
+    LOGGER.info(f'Flusing took {time.time() - flush_start_time:.4s}s')
+    LOGGER.info(f'Created {target_filepath} in {time.time() - start_time}s')
 
 
 if __name__ == '__main__':
