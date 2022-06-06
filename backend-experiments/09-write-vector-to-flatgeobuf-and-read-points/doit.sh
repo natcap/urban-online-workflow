@@ -19,21 +19,21 @@ BUCKET=natcap-urban-online-datasets
 
 # Time local accesses for reference.
 echo "\nTiming local file accesses (base case)"
-for filename in ./*.fgb
+for filename in *.fgb
 do
     /usr/bin/time --portability  python search-by-bounding-box.py "$filename"
 done
 
 # time remote access
 echo "\nTiming access over the network"
-for filename in ./*.fgb
+for filename in *.fgb
 do
     /usr/bin/time --portability  python search-by-bounding-box.py "/vsigs/$BUCKET/$filename"
 done
 
 # Try out a VRT
 echo "\nVRT access via VSIGS"
-for filename in ./*.fgb
+for filename in *.fgb
 do
     VRT="$filename.vt"
     gdalbuildvrt "$VRT" "/vsigs/$BUCKET/$filename"
@@ -43,21 +43,21 @@ done
 
 # Time local accesses for reference.
 echo "\nTiming local file accesses (base case)"
-for filename in ./*.gpkg
+for filename in *.gpkg
 do
     /usr/bin/time --portability  python search-by-bounding-box.py "$filename"
 done
 
 # time remote access
 echo "\nTiming access over the network"
-for filename in ./*.gpkg
+for filename in *.gpkg
 do
     /usr/bin/time --portability  python search-by-bounding-box.py "/vsigs/$BUCKET/$filename"
 done
 
 # Try out a VRT
 echo "\nVRT access via VSIGS"
-for filename in ./*.gpkg
+for filename in *.gpkg
 do
     VRT="$filename.vt"
     gdalbuildvrt "$VRT" "/vsigs/$BUCKET/$filename"
