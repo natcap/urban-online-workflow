@@ -15,7 +15,7 @@ html, body, #root, .App {
 .map-container {
   /*flex-grow: 1;*/
   height: 100%;
-  width: 70%;
+  width: 60%;
   float: left;
 }
 
@@ -28,8 +28,13 @@ html, body, #root, .App {
 
 .menu-container {
   /*flex-grow: 1;*/
-  width: 30%;
+  width: 40%;
   float: right;
+  padding: 1rem;
+}
+
+.scenario-select {
+  display: inline;
 }
 
 .ol-popup {

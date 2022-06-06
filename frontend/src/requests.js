@@ -10,15 +10,21 @@
 // parcelID or with the parcel's geometry. Depends if we have
 // a complete parcel DB on the backend.
 export async function getLULCTableForParcel(geom, scene) {
+  if (scene && scene.table) {
+    Promise.resolve(scene.table);
+  }
   console.log(`Request LULC data for parcel`);
   // TODO: fetch with parcel geometry and scene, which contains
   // a reference to the LULC raster to build table from.
   const lulcTable = {
-    forest: 30,
-    'medium density': 120,
-    grass: 60,
-    orchard: '60',
+    [scene.name]: {
+      forest: window.crypto.getRandomValues(new Uint8Array(1))[0],
+      housing: window.crypto.getRandomValues(new Uint8Array(1))[0],
+      grass: window.crypto.getRandomValues(new Uint8Array(1))[0],
+      orchard: window.crypto.getRandomValues(new Uint8Array(1))[0],
+    }
   };
+  // scene.setTable(lulcTable);
   return Promise.resolve(lulcTable);
 }
 
