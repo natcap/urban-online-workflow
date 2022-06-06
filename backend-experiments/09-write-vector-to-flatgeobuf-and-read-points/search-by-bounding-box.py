@@ -13,11 +13,14 @@ latitude_sum = 0
 longitude_sum = 0
 
 vector_path = sys.argv[1]
-try:
-    if sys.argv[2] == '--noverify':
-        open_options = ['VERIFY_BUFFERS=NO']
-except IndexError:
-    open_options = ['VERIFY_BUFFERS=YES']  # default, but making explicit
+if vector_path.endswith('fgb'):
+    try:
+        if sys.argv[2] == '--noverify':
+            open_options = ['VERIFY_BUFFERS=NO']
+    except IndexError:
+        open_options = ['VERIFY_BUFFERS=YES']  # default, but making explicit
+else:
+    open_options = []
 
 vector = gdal.OpenEx(vector_path, open_options=open_options)
 basename = os.path.splitext(os.path.basename(vector_path))[0]
