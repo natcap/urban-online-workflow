@@ -8,75 +8,82 @@ import {
   RadioGroup,
 } from '@blueprintjs/core';
 
-import { wallpaper, getLULCTableForParcel } from './requests';
-import Scenario from './scenario';
+import {
+  doWallpaper,
+  makeScenario,
+  getLulcTableForParcel,
+  getWallpaperResults,
+  getStatus,
+} from './requests';
+import useInterval from './hooks/useInterval';
+import ScenarioTable from './scenarioTable';
+
+const LULC_TYPES = [
+  'forest',
+  'housing',
+  'grass',
+  'orchard'
+];
+const LULC_HEADER = (
+  <tr>
+    <td> </td>
+    {LULC_TYPES.map((type) => <td>{type}</td>)}
+  </tr>
+);
 
 function makeInfoTable(parcelTable) {
-  // parcelTable is [ {baseline: {}}, {pecan: {}}, ... ]
   const rows = [];
+  rows.push(LULC_HEADER);
   rows.push(
     <tr>
       <td> </td>
-      <td>forest</td>
-      <td>housing</td>
-      <td>grass</td>
-      <td>orchard</td>
+      {LULC_TYPES.map((type) => <td>{parcelTable[type]}</td>)}
     </tr>
   );
-  parcelTable.forEach((scen) => {
-    const name = Object.keys(scen)[0];
-    const values = Object.values(scen[name]);
-    rows.push(
-      <tr>
-        <td>{name}</td>
-        {values.map((val) => <td>{val}</td>)}
-      </tr>
-    );
-  });
   return (
-    <HTMLTable bordered striped>
-      <tbody>
-        {rows}
-      </tbody>
-    </HTMLTable>
+    <div>
+      <h4>Selected parcel contains:</h4>
+      <HTMLTable bordered striped>
+        <tbody>
+          {rows}
+        </tbody>
+      </HTMLTable>
+    </div>
   );
 }
 
 export default function EditMenu(props) {
   const {
     open,
-    selectedParcel, // coords
-    scenario, // handed down from App so this is 'baseline'
-    saveScenario,
+    parcelCoords,
+    parcelID,
     savedScenarios,
+    refreshSavedScenarios,
   } = props;
 
-  // const [baseScene, setBaseScene] = useState('');
-  // const [baseTable, setBaseTable] = useState(null);
-  // const [newScene, setNewScene] = useState(null);
-  // const [newTable, setNewTable] = useState(null);
   const [scenarioName, setScenarioName] = useState('');
+  const [scenarioID, setScenarioID] = useState(null);
   const [pattern, setPattern] = useState('');
-  const [selectedScenario, selectScenario] = useState('baseline');
-  const [parcelTable, setParcelTable] = useState([]);
+  // const [selectedScenario, selectScenario] = useState('baseline');
+  const [parcelTable, setParcelTable] = useState(null);
+  const [jobID, setJobID] = useState(null);
 
-  // useEffect(() => {
-  //   setBaseScene(scenario);
-  // }, [scenario]);
   useEffect(async () => {
-    if (selectedParcel) {
-      const tables = await Promise.all(savedScenarios.map((scen) => {
-        return getLULCTableForParcel(selectedParcel, scen);
-      }));
-      setParcelTable(tables);
-      // setBaseTable(await getLULCTableForParcel(selectedParcel, baseScene));
+    if (parcelID) {
+      const table = await getLulcTableForParcel(parcelCoords);
+      setParcelTable(table);
     }
-  }, [selectedParcel, savedScenarios]);
-  // useEffect(async () => {
-  //   if (newScene) {
-  //     setNewTable(await getLULCTableForParcel(selectedParcel, newScene));
-  //   }
-  // }, [selectedParcel, newScene]);
+  }, [parcelID]);
+
+  useInterval(async () => {
+    console.log('checking status for', jobID);
+    const status = await getStatus(jobID);
+    if (status === 'complete') {
+      const results = await getWallpaperResults(jobID);
+      setParcelTable(results);
+      setJobID(null);
+    }
+  }, jobID ? 1000 : null);
 
   async function handleSubmitNew(event) {
     event.preventDefault();
@@ -88,14 +95,33 @@ export default function EditMenu(props) {
       alert('no modification options selected; no changes to make');
       return;
     }
+    if (!parcelID) {
+      alert('no parcel was selected; no changes to make');
+      return;
+    }
     console.log(`creating ${scenarioName}`);
     console.log(`wallpapering with ${pattern}`);
-    const scene = new Scenario(scenarioName);
-    // TODO: request do wallpapering
-    // await wallpaper(selectedParcel, pattern, scene)
-    saveScenario(scene);
-    // setNewScene(scene);
-    selectScenario(scenarioName);
+    let sid = scenarioID;
+    if (!Object.values(savedScenarios).includes(scenarioName)) {
+      sid = await makeScenario(scenarioName, 'description');
+      setScenarioID(sid);
+    }
+    const jid = await doWallpaper(parcelCoords, pattern, sid);
+    setJobID(jid);
+    console.log(jid)
+    refreshSavedScenarios();
+    // const table = await getLULCTableForParcel(parcelCoords, scene);
+    // const feature = {
+    //   fid: parcelID,
+    //   geom: parcelCoords,
+    //   table: table,
+    // };
+    // await store.addFeature(feature, scenarioName);
+    // // scene.addFeature(parcelID, parcelCoords, table);
+    // // store.save(scene);
+    // // setNewScene(scene);
+    // setSavedScenarios(await store.getScenarioStore());
+    // selectScenario(scenarioName);
   }
 
   // TODO: does this need to be wrapped in useCallback? 
@@ -130,36 +156,34 @@ export default function EditMenu(props) {
     </RadioGroup>
   );
 
-    // <img src="/wallpaper_sample.png" />
-    // <img src="/wallpaper_sample.png" />
-    // <img src="/wallpaper_sample.png" />
-
   if (open) {
-    console.log(savedScenarios)
     return (
       <div className="menu-container">
-        <div>
+        {/*<div>
           <h4 className="scenario-select">Viewing scenario: </h4>
           <HTMLSelect
             className="scenario-select"
             value={selectedScenario}
-            options={savedScenarios.map(item => item.name)}
+            options={Object.keys(savedScenarios)}
             onChange={(event) => selectScenario(event.currentTarget.value)}
           />
+        </div>*/}
+        <div>
+          {(Object.keys(savedScenarios).length > 1)
+            ? <ScenarioTable scenarioLookup={savedScenarios} />
+            : <div />
+          }
         </div>
-        <h4>Select a parcel to modify</h4>
-        {(selectedParcel)
+        {(parcelTable)
           ? makeInfoTable(parcelTable)
-          : <div />}
-        {/*<h4>{`In new scenario: '${scenarioName}'`}</h4>
-        {newTable ? makeInfoTable(newTable) : <div />}*/}
+          : <h4>Select a parcel to modify</h4>}
         <form onSubmit={handleSubmitNew}>
           <br />
           {wallpaperTable}
           <br />
           <h4>Add this modification to existing scenario, or create a new scenario</h4>
           <datalist id="scenariolist">
-            {savedScenarios.map(item => <option key={item.name} value={item.name} />)}
+            {Object.values(savedScenarios).forEach(item => <option key={item} value={item} />)}
           </datalist>
           <input
             type="search"
@@ -169,9 +193,6 @@ export default function EditMenu(props) {
             onChange={(event) => setScenarioName(event.currentTarget.value)}
           />
           <br />
-{/*          <HTMLSelect
-            options={savedScenarios.map(item => item.name)}
-          />*/}
           <button type="submit">Submit</button>
         </form>
       </div>

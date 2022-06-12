@@ -37,6 +37,10 @@ html, body, #root, .App {
   display: inline;
 }
 
+.scenario-table {
+  padding-top:  1rem;
+}
+
 .ol-popup {
   position: absolute;
   background-color: white;
