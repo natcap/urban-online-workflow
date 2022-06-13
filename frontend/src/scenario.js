@@ -9,15 +9,11 @@ function newScenario(name) {
 }
 
 export default {
-
   getAllScenarios: async () => {
     const scenarioLookup = {};
     await scenarioStore.iterate((value, key, idx) => {
-      console.log(value);
-      console.log(key);
       scenarioLookup[key] = value.name;
     });
-    console.log(scenarioLookup);
     return scenarioLookup;
   },
 
@@ -26,17 +22,7 @@ export default {
   },
 
   save: async (id, scene) => {
-    console.log('save key', id)
-    console.log('save value', scene)
     await scenarioStore.setItem(id, scene);
-    // return Scenario.getScenarioStore();
-  },
-
-  addFeature: async (feature, scenarioName) => {
-    const scenario = await scenarioStore.getItem(scenarioName);
-    console.log('addfeature to ', scenario);
-    scenario.features[feature.fid] = feature;
-    await scenarioStore.setItem(scenarioName, scenario);
   },
 
   new: (name) => {
@@ -46,7 +32,6 @@ export default {
 
   getScenario: async (id) => {
     const scenario = await scenarioStore.getItem(id);
-    console.log(scenario);
     return scenario;
   }
 };
