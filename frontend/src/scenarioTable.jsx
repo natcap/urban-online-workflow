@@ -28,7 +28,7 @@ export default function ScenarioTable(props) {
   }, []);
 
   if (!scenarioData) {
-    return <div />;
+    return <p>No scenarios have been created</p>;
   }
 
   const lulcHeader = (

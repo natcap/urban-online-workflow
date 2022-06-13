@@ -18,6 +18,10 @@ export default function ParcelTable(props) {
     setLulcNames(Object.values(lulcCodes));
   }, []);
 
+  if (!parcelTable) {
+    return <h4>Select a parcel to modify</h4>;
+  }
+
   const lulcHeader = (
     <tr key="row1">
       <td key="col1"> </td>

@@ -4,6 +4,8 @@ import {
   HTMLTable,
   Radio,
   RadioGroup,
+  Tab,
+  Tabs,
 } from '@blueprintjs/core';
 
 import {
@@ -26,6 +28,7 @@ export default function EditMenu(props) {
     refreshSavedScenarios,
   } = props;
 
+  const [activeTab, setActiveTab] = useState('create');
   const [scenarioName, setScenarioName] = useState('');
   const [scenarioID, setScenarioID] = useState(null);
   const [pattern, setPattern] = useState('');
@@ -73,80 +76,68 @@ export default function EditMenu(props) {
     refreshSavedScenarios();
   }
 
-  // TODO: does this need to be wrapped in useCallback? 
-  // to memoize this function?
+  // TODO: do handlers  need to be wrapped in useCallback? 
+  // to memoize the function?
   const handleRadio = (event) => {
     setPattern(event.target.value);
   };
 
-  const wallpaperTable = (
-    <RadioGroup
-      inline={false}
-      // inline
-      label="Modify the landuse of this parcel by selecting a pattern:"
-      onChange={handleRadio}
-      selectedValue={pattern}
-    >
-      <br />
-      <Radio
-        value="orchard"
-        label="orchard"
-      />
-      <br />
-      <Radio
-        value="city park"
-        label="city park"
-      />
-      <br />
-      <Radio
-        value="housing"
-        label="housing"
-      />
-    </RadioGroup>
-  );
+  const handleTabChange = (tabID) => {
+    setActiveTab(tabID);
+  };
 
-  if (open) {
-    return (
-      <div className="menu-container">
-        {/*<div>
-          <h4 className="scenario-select">Viewing scenario: </h4>
-          <HTMLSelect
-            className="scenario-select"
-            value={selectedScenario}
-            options={Object.keys(savedScenarios)}
-            onChange={(event) => selectScenario(event.currentTarget.value)}
-          />
-        </div>*/}
-        <div>
-          {(Object.keys(savedScenarios).length > 1)
-            ? <ScenarioTable scenarioLookup={savedScenarios} />
-            : <div />
-          }
-        </div>
-        {(parcelTable)
-          ? <ParcelTable parcelTable={parcelTable} />
-          : <h4>Select a parcel to modify</h4>}
-        <form onSubmit={handleSubmitNew}>
-          <br />
-          {wallpaperTable}
-          <br />
-          <h4>Add this modification to existing scenario, or create a new scenario</h4>
-          <datalist id="scenariolist">
-            {Object.values(savedScenarios).forEach(item => <option key={item} value={item} />)}
-          </datalist>
-          <input
-            type="search"
-            id="scenarioName"
-            list="scenariolist"
-            value={scenarioName}
-            onChange={(event) => setScenarioName(event.currentTarget.value)}
-          />
-          <br />
-          <button type="submit">Submit</button>
-        </form>
-      </div>
-    );
-  } else {
-    return <div />
-  }
+  return (
+    <div className="menu-container">
+      <Tabs id="Tabs" onChange={handleTabChange} selectedTabId={activeTab}>
+        <Tab
+          id="create"
+          title="Create"
+          panel={(
+            <div>
+              <ParcelTable parcelTable={parcelTable} />
+              <br />
+              <form onSubmit={handleSubmitNew}>
+                <RadioGroup
+                  inline={false}
+                  label="Modify the landuse of this parcel by selecting a pattern:"
+                  onChange={handleRadio}
+                  selectedValue={pattern}
+                >
+                  <Radio
+                    value="orchard"
+                    label="orchard"
+                  />
+                  <Radio
+                    value="city park"
+                    label="city park"
+                  />
+                  <Radio
+                    value="housing"
+                    label="housing"
+                  />
+                </RadioGroup>
+                <h4>Add this modification to a scenario</h4>
+                <datalist id="scenariolist">
+                  {Object.values(savedScenarios).map(item => <option key={item} value={item} />)}
+                </datalist>
+                <input
+                  type="search"
+                  id="scenarioName"
+                  list="scenariolist"
+                  value={scenarioName}
+                  onChange={(event) => setScenarioName(event.currentTarget.value)}
+                />
+                <button type="submit">Submit</button>
+              </form>
+            </div>
+          )}
+        />
+        <Tab
+          id="explore"
+          title="Explore"
+          panel={<ScenarioTable scenarioLookup={savedScenarios} />}
+        />
+      </Tabs>
+    </div>
+  );
 }
