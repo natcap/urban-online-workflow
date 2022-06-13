@@ -15,15 +15,13 @@ export default function App() {
   };
 
   useEffect(async () => {
-    const scenarios = await getAllScenarios(); // [ { 'baseline': id }, { } ]
-    console.log('scenarios', scenarios);
+    const scenarios = await getAllScenarios();
     setSavedScenarios(scenarios);
   }, []);
 
   const refreshSavedScenarios = async () => {
     const scenarios = await getAllScenarios();
     setSavedScenarios(scenarios);
-    console.log(scenarios)
   };
 
   return (
@@ -34,7 +32,7 @@ export default function App() {
           setParcelCoords={setParcelCoords}
           setParcelID={setParcelID}
         />
-        {(savedScenarios) // at minimum will be 'baseline' scenario
+        {(savedScenarios)
           ? (
             <EditMenu
               open={true}

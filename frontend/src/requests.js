@@ -1,18 +1,10 @@
 import store from './scenario';
 
-export async function wallpaper(geom, pattern, scenarioID) {
-  console.log(`Wallpaper parcel with ${pattern}`);
-  // await requestWallpapering(geom, pattern, scenarioID);
-}
-
 export async function getAllScenarios() {
-  // const [sid, scenario] = store.new('baseline');
-  // await store.save(sid, scenario);
   return store.getAllScenarios();
 }
 
 export async function getScenario(id) {
-  console.log(id)
   return store.getScenario(id);
 }
 

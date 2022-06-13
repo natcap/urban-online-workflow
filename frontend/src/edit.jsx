@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
 import {
-  Button,
-  HTMLSelect,
   HTMLTable,
   Radio,
   RadioGroup,
@@ -17,40 +15,7 @@ import {
 } from './requests';
 import useInterval from './hooks/useInterval';
 import ScenarioTable from './scenarioTable';
-
-const LULC_TYPES = [
-  'forest',
-  'housing',
-  'grass',
-  'orchard'
-];
-const LULC_HEADER = (
-  <tr>
-    <td> </td>
-    {LULC_TYPES.map((type) => <td>{type}</td>)}
-  </tr>
-);
-
-function makeInfoTable(parcelTable) {
-  const rows = [];
-  rows.push(LULC_HEADER);
-  rows.push(
-    <tr>
-      <td> </td>
-      {LULC_TYPES.map((type) => <td>{parcelTable[type]}</td>)}
-    </tr>
-  );
-  return (
-    <div>
-      <h4>Selected parcel contains:</h4>
-      <HTMLTable bordered striped>
-        <tbody>
-          {rows}
-        </tbody>
-      </HTMLTable>
-    </div>
-  );
-}
+import ParcelTable from './parcelTable';
 
 export default function EditMenu(props) {
   const {
@@ -64,7 +29,6 @@ export default function EditMenu(props) {
   const [scenarioName, setScenarioName] = useState('');
   const [scenarioID, setScenarioID] = useState(null);
   const [pattern, setPattern] = useState('');
-  // const [selectedScenario, selectScenario] = useState('baseline');
   const [parcelTable, setParcelTable] = useState(null);
   const [jobID, setJobID] = useState(null);
 
@@ -99,8 +63,6 @@ export default function EditMenu(props) {
       alert('no parcel was selected; no changes to make');
       return;
     }
-    console.log(`creating ${scenarioName}`);
-    console.log(`wallpapering with ${pattern}`);
     let sid = scenarioID;
     if (!Object.values(savedScenarios).includes(scenarioName)) {
       sid = await makeScenario(scenarioName, 'description');
@@ -108,20 +70,7 @@ export default function EditMenu(props) {
     }
     const jid = await doWallpaper(parcelCoords, pattern, sid);
     setJobID(jid);
-    console.log(jid)
     refreshSavedScenarios();
-    // const table = await getLULCTableForParcel(parcelCoords, scene);
-    // const feature = {
-    //   fid: parcelID,
-    //   geom: parcelCoords,
-    //   table: table,
-    // };
-    // await store.addFeature(feature, scenarioName);
-    // // scene.addFeature(parcelID, parcelCoords, table);
-    // // store.save(scene);
-    // // setNewScene(scene);
-    // setSavedScenarios(await store.getScenarioStore());
-    // selectScenario(scenarioName);
   }
 
   // TODO: does this need to be wrapped in useCallback? 
@@ -175,7 +124,7 @@ export default function EditMenu(props) {
           }
         </div>
         {(parcelTable)
-          ? makeInfoTable(parcelTable)
+          ? <ParcelTable parcelTable={parcelTable} />
           : <h4>Select a parcel to modify</h4>}
         <form onSubmit={handleSubmitNew}>
           <br />
