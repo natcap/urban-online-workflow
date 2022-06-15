@@ -6,38 +6,34 @@ import { getAllScenarios } from './requests';
 
 export default function App() {
   const [editMenuIsOpen, setEditMenuIsOpen] = useState(false);
-  const [parcelCoords, setParcelCoords] = useState(null);
-  const [parcelID, setParcelID] = useState(null);
+  const [parcel, setParcel] = useState(null);
   const [savedScenarios, setSavedScenarios] = useState(null);
 
   const toggleEditMenu = () => {
     setEditMenuIsOpen((prev) => !prev);
   };
 
-  useEffect(async () => {
-    const scenarios = await getAllScenarios();
-    setSavedScenarios(scenarios);
-  }, []);
-
   const refreshSavedScenarios = async () => {
     const scenarios = await getAllScenarios();
     setSavedScenarios(scenarios);
   };
+
+  useEffect(async () => {
+    refreshSavedScenarios();
+  }, []);
 
   return (
     <div className="App">
       <div className="map-and-menu-container">
         <MapComponent
           toggleEditMenu={toggleEditMenu}
-          setParcelCoords={setParcelCoords}
-          setParcelID={setParcelID}
+          setParcel={setParcel}
         />
         {(savedScenarios)
           ? (
             <EditMenu
               open={true}
-              parcelCoords={parcelCoords}
-              parcelID={parcelID}
+              parcel={parcel}
               refreshSavedScenarios={refreshSavedScenarios}
               savedScenarios={savedScenarios}
             />

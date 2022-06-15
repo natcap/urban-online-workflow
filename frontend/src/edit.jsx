@@ -21,8 +21,7 @@ import ParcelTable from './parcelTable';
 export default function EditMenu(props) {
   const {
     open,
-    parcelCoords,
-    parcelID,
+    parcel,
     savedScenarios,
     refreshSavedScenarios,
   } = props;
@@ -35,11 +34,11 @@ export default function EditMenu(props) {
   const [jobID, setJobID] = useState(null);
 
   useEffect(async () => {
-    if (parcelID) {
-      const table = await getLulcTableForParcel(parcelCoords);
+    if (parcel) {
+      const table = await getLulcTableForParcel(parcel.coords);
       setParcelTable(table);
     }
-  }, [parcelID]);
+  }, [parcel]);
 
   useInterval(async () => {
     console.log('checking status for', jobID);
@@ -61,7 +60,7 @@ export default function EditMenu(props) {
       alert('no modification options selected; no changes to make');
       return;
     }
-    if (!parcelID) {
+    if (!parcel) {
       alert('no parcel was selected; no changes to make');
       return;
     }
@@ -70,7 +69,7 @@ export default function EditMenu(props) {
       sid = await makeScenario(scenarioName, 'description');
       setScenarioID(sid);
     }
-    const jid = await doWallpaper(parcelCoords, pattern, sid);
+    const jid = await doWallpaper(parcel.coords, pattern, sid);
     setJobID(jid);
     refreshSavedScenarios();
   }

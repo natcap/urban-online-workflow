@@ -34,7 +34,7 @@ function getCoords(geometry) {
 
 export default function MapComponent(props) {
 
-  const { toggleEditMenu, setParcelCoords, setParcelID } = props;
+  const { toggleEditMenu, setParcel } = props;
   const [popupInfo, setPopupInfo] = useState(null);
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
@@ -113,8 +113,7 @@ export default function MapComponent(props) {
             location: event.coordinate,
             message: message,
           });
-          setParcelCoords(coords);
-          setParcelID(parcelID);
+          setParcel({ id: parcelID, coords: coords });
         } else {
           selectedFeature = undefined;
           setPopupInfo(null);
