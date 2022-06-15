@@ -13,7 +13,7 @@ export default function ScenarioTable(props) {
   const { scenarioLookup } = props;
 
   const [scenarioData, setScenarioData] = useState(null);
-  const [lulcNames, setLulcNames] = useState(null);
+  const [lulcNames, setLulcNames] = useState([]);
 
   useEffect(async () => {
     const scenarios = await Promise.all(
