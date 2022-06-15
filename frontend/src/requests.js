@@ -41,8 +41,9 @@ export async function getLulcTableForParcel(geom) {
   // baseline LULC.
   const lulcTable = {
     forest: window.crypto.getRandomValues(new Uint8Array(1))[0],
-    housing: window.crypto.getRandomValues(new Uint8Array(1))[0],
     grass: window.crypto.getRandomValues(new Uint8Array(1))[0],
+    housing: window.crypto.getRandomValues(new Uint8Array(1))[0],
+    commericial: window.crypto.getRandomValues(new Uint8Array(1))[0],
     orchard: window.crypto.getRandomValues(new Uint8Array(1))[0],
   };
   return Promise.resolve(lulcTable);

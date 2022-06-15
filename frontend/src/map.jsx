@@ -108,7 +108,6 @@ export default function MapComponent(props) {
           console.log('Selected feature coordinates:', coords);
 
           const parcelID = feature.get('OBJECTID');
-          // const lulcTable = await getLULCInParcel(parcelID, coords);
           const message = `You clicked on parcel ${parcelID}`;
           setPopupInfo({
             location: event.coordinate,
