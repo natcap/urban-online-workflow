@@ -20,7 +20,6 @@ import ParcelTable from './parcelTable';
 
 export default function EditMenu(props) {
   const {
-    open,
     parcel,
     savedScenarios,
     refreshSavedScenarios,
