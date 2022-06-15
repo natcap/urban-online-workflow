@@ -63,12 +63,12 @@ export default function EditMenu(props) {
       alert('no parcel was selected; no changes to make');
       return;
     }
-    let sid = scenarioID;
+    let currentScenarioID = scenarioID;
     if (!Object.values(savedScenarios).includes(scenarioName)) {
-      sid = await makeScenario(scenarioName, 'description');
-      setScenarioID(sid);
+      currentScenarioID = await makeScenario(scenarioName, 'description');
+      setScenarioID(currentScenarioID);
     }
-    const jid = await doWallpaper(parcel.coords, pattern, sid);
+    const jid = await doWallpaper(parcel.coords, pattern, currentScenarioID);
     setJobID(jid);
     refreshSavedScenarios();
   }
