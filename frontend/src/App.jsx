@@ -7,7 +7,7 @@ import { getAllScenarios } from './requests';
 export default function App() {
   const [editMenuIsOpen, setEditMenuIsOpen] = useState(false);
   const [parcel, setParcel] = useState(null);
-  const [savedScenarios, setSavedScenarios] = useState(null);
+  const [savedScenarios, setSavedScenarios] = useState([]);
 
   const toggleEditMenu = () => {
     setEditMenuIsOpen((prev) => !prev);
@@ -29,16 +29,12 @@ export default function App() {
           toggleEditMenu={toggleEditMenu}
           setParcel={setParcel}
         />
-        {(savedScenarios)
-          ? (
-            <EditMenu
-              open={true}
-              parcel={parcel}
-              refreshSavedScenarios={refreshSavedScenarios}
-              savedScenarios={savedScenarios}
-            />
-          )
-          : <div />}
+        <EditMenu
+          open={true}
+          parcel={parcel}
+          refreshSavedScenarios={refreshSavedScenarios}
+          savedScenarios={savedScenarios}
+        />
       </div>
     </div>
   );
