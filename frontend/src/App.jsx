@@ -30,7 +30,6 @@ export default function App() {
           setParcel={setParcel}
         />
         <EditMenu
-          open={true}
           parcel={parcel}
           refreshSavedScenarios={refreshSavedScenarios}
           savedScenarios={savedScenarios}
