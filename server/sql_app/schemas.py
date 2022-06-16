@@ -27,7 +27,7 @@ class Scenario(ScenarioBase):
 
 
 class UserBase(BaseModel):
-    session_id: str
+    pass
 
 
 class UserCreate(UserBase):
@@ -37,6 +37,7 @@ class UserCreate(UserBase):
 class User(UserBase):
     """Pydantic model (schema) used when reading data, when returning it from API."""
     id: int
+    session_id: str
     last_active: datetime
     scenarios: list[Scenario] = []
 

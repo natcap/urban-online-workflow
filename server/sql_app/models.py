@@ -44,7 +44,7 @@ class User(Base):
 
 class Scenario(Base):
     """SQLAlchemy model."""
-    __tablename__ = "items"
+    __tablename__ = "scenarios"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
