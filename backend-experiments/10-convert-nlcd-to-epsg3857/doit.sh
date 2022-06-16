@@ -33,4 +33,9 @@ gdal_translate \
     -co "ADD_ALPHA=YES" \
     "$WARPED_NLCD" "$FINAL_NLCD"
 
+# Nonzero exit code if check fails.
+python ./cog_validator/validate_cloud_optimized_geotiff.py --full-check=yes "$FINAL_NLCD"
+
+gsutil cp "$FINAL_NLCD" "gs://natcap-urban-online-datasets-public/$FINAL_NLCD"
+
 rm "$WARPED_NLCD"
