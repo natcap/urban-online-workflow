@@ -3,19 +3,21 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+from datetime import datetime
+
 # Pydantic modles declare the types using ":", the new type annotation
 # syntax/type hints
 
-class ItemBase(BaseModel):
-    title: str
+class ScenarioBase(BaseModel):
+    name: str
     description: Optional[str] = None
 
 
-class ItemCreate(ItemBase):
+class ScenarioCreate(ScenarioBase):
     pass
 
 
-class Item(ItemBase):
+class Scenario(ScenarioBase):
     """Pydantic model (schema) used when reading data, when returning it from API."""
     id: int
     owner_id: int
@@ -25,18 +27,18 @@ class Item(ItemBase):
 
 
 class UserBase(BaseModel):
-    email: str
+    session_id: str
 
 
 class UserCreate(UserBase):
-    password: str
+    pass
 
 
 class User(UserBase):
     """Pydantic model (schema) used when reading data, when returning it from API."""
     id: int
-    is_active: bool
-    items: list[Item] = []
+    last_active: datetime
+    scenarios: list[Scenario] = []
 
     class Config:
         # Pydantic's 'orm_mode' will tell the Pydantic model to read the data
@@ -52,6 +54,7 @@ class User(UserBase):
 
 class JobBase(BaseModel):
     name: str
+    description: str
     status: str
 
 

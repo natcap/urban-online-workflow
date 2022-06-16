@@ -48,9 +48,9 @@ operation function and use that session.
 
 @app.post("/users/", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_email(db, email=user.email)
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
+    #db_user = crud.get_user_by_session_id(db, session_id=user.session_id)
+    #if db_user:
+    #    raise HTTPException(status_code=400, detail="Email already registered")
     # Notice that the values returned are SQLA models. But as all path operations
     # have a 'response_model' with Pydantic models / schemas using orm_mode,
     # the data declared in your Pydantic models will be extracted from them
@@ -64,25 +64,25 @@ def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return users
 
 
-@app.get("/users/{user_id}", response_model=schemas.User)
-def read_user(user_id: int, db: Session = Depends(get_db)):
-    db_user = crud.get_user(db, user_id=user_id)
+@app.get("/users/{session_id}", response_model=schemas.User)
+def read_user(session_id: str, db: Session = Depends(get_db)):
+    db_user = crud.get_user(db, session_id=session_id)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
 
-@app.post("/users/{user_id}/items/", response_model=schemas.Item)
-def create_item_for_user(
-    user_id: int, item: schemas.ItemCreate, db: Session = Depends(get_db)
+@app.post("/users/{sessin_id}/scenarios/", response_model=schemas.Scenario)
+def create_scenario_for_user(
+    session_id: str, scenario: schemas.ScenarioCreate, db: Session = Depends(get_db)
 ):
-    return crud.create_user_item(db=db, item=item, user_id=user_id)
+    return crud.create_user_scenario(db=db, scenario=scenario, session_id=session_id)
 
 
-@app.get("/items/", response_model=list[schemas.Item])
-def read_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    items = crud.get_items(db, skip=skip, limit=limit)
-    return items
+@app.get("/scenarios/", response_model=list[schemas.Scenario])
+def read_scenarios(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    scenarios = crud.get_scenarios(db, skip=skip, limit=limit)
+    return scenarios
 
 
 @app.post("/jobs/", response_model=schemas.Job)
