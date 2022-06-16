@@ -1,6 +1,11 @@
 #!/usr/bin/env sh
 set -ex
 
+# NOTE: this dataset was copied in to this CWD from google drive.  It's easier
+# to download the whole directory through the browser than to do it
+# programmatically here.
+# I'm using this GDrive folder: https://drive.google.com/drive/u/0/folders/1r_THYeYEYDdweDrycO_iEzfdU8BWS8AA
+
 NLCD=NLCD_2016_Land_Cover_L48_20190424.img
 
 # GDAL needs these files to be available at specific filenames
