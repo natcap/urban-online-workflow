@@ -28,7 +28,6 @@ gdal_translate \
     -co "BIGTIFF=YES" \
     -co "COMPRESS=DEFLATE" \
     -co "LEVEL=9" \
-    -co "COPY_SRC_OVERVIEWS=YES" \
     -co "NUM_THREADS=ALL_CPUS" \
     -co "ADD_ALPHA=YES" \
     "$WARPED_NLCD" "$FINAL_NLCD"
