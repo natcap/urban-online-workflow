@@ -32,9 +32,9 @@ export default function ScenarioTable(props) {
   }
 
   const lulcHeader = (
-    <tr>
-      <td> </td>
-      {lulcNames.map((type) => <td>{type}</td>)}
+    <tr key="header">
+      <td key="header"> </td>
+      {lulcNames.map((type) => <td key={type}>{type}</td>)}
     </tr>
   );
 
@@ -42,16 +42,16 @@ export default function ScenarioTable(props) {
   rows.push(lulcHeader);
   scenarioData.forEach((scen) => {
     rows.push(
-      <tr>
-        <td><em><b>{scen.name}</b></em></td>
-        {lulcNames.map((type) => <td> </td>)}
+      <tr key={scen.name}>
+        <td key={scen.name}><em><b>{scen.name}</b></em></td>
+        {lulcNames.map((type) => <td key={type}> </td>)}
       </tr>
     );
     Object.values(scen.features).forEach((feature) => {
       rows.push(
-        <tr>
-          <td>{feature.fid}</td>
-          {lulcNames.map((type) => <td>{feature.table[type]}</td>)}
+        <tr key={feature.fid}>
+          <td key={feature.fid}>{feature.fid}</td>
+          {lulcNames.map((type) => <td key={type}>{feature.table[type]}</td>)}
         </tr>
       );
     });
