@@ -7,26 +7,24 @@ from .database import SessionLocal, engine
 
 # Create the db tables
 models.Base.metadata.create_all(bind=engine)
-"""
-Normally you would probably initialize your db (create tables, etc) with
-Alembic. Would also use Alembic for "migrations" (that's its main job).
-A "migration" is the set of steps needed whenever you change the structure
-of your SQLA models, add a new attribute, etc. to replicate those changes
-in the db, add a new column, a new table, etc.
-"""
+
+# Normally you would probably initialize your db (create tables, etc) with
+# Alembic. Would also use Alembic for "migrations" (that's its main job).
+# A "migration" is the set of steps needed whenever you change the structure
+# of your SQLA models, add a new attribute, etc. to replicate those changes
+# in the db, add a new column, a new table, etc.
 
 app = FastAPI()
 
-"""
-We need to have an independent db session / connection (SessionLocal) per
-request, use the same session through all the request and then close it after
-the request is finished.
+# We need to have an independent db session / connection (SessionLocal) per
+# request, use the same session through all the request and then close it after
+# the request is finished.
 
-Then a new session will be created for the next request.
+# Then a new session will be created for the next request.
 
-Our dependency will create a new SQLA SessionLocal that will be used in a
-single request, and then close it once the request is finished.
-"""
+# Our dependency will create a new SQLA SessionLocal that will be used in a
+# single request, and then close it once the request is finished.
+
 # Dependency
 def get_db():
     db = SessionLocal()
@@ -35,16 +33,14 @@ def get_db():
     finally:
         db.close()
 
-"""
-We are creating the db session before each request in the dependency with 
-'yield', and then closing it afterwards.
+# We are creating the db session before each request in the dependency with 
+# 'yield', and then closing it afterwards.
 
-Then we can create the required dependency in the path operation function, 
-to get that session directly.
+# Then we can create the required dependency in the path operation function, 
+# to get that session directly.
 
-With that, we can just call crud.get_user directly from inside of the path 
-operation function and use that session.
-"""
+# With that, we can just call crud.get_user directly from inside of the path 
+# operation function and use that session.
 
 @app.post("/users/", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
@@ -72,7 +68,7 @@ def read_user(session_id: str, db: Session = Depends(get_db)):
     return db_user
 
 
-@app.post("/users/{sessin_id}/scenarios/", response_model=schemas.Scenario)
+@app.post("/users/{session_id}/scenarios/", response_model=schemas.Scenario)
 def create_scenario_for_user(
     session_id: str, scenario: schemas.ScenarioCreate, db: Session = Depends(get_db)
 ):
@@ -83,6 +79,14 @@ def create_scenario_for_user(
 def read_scenarios(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     scenarios = crud.get_scenarios(db, skip=skip, limit=limit)
     return scenarios
+
+
+@app.get("/scenarios/{session_id}/{scenario_id}", response_model=schemas.Scenario)
+def read_scenario(session_id: str, db: Session = Depends(get_db)):
+    db_user = crud.get_user(db, session_id=session_id)
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return db_user
 
 
 @app.post("/jobs/", response_model=schemas.Job)
@@ -97,7 +101,7 @@ def read_jobs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     jobs = crud.get_jobs(db, skip=skip, limit=limit)
     return jobs
 
-### Testing
+### Testing ideas from tutorial ###
 
 client = TestClient(app)
 

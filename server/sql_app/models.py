@@ -29,16 +29,14 @@ class User(Base):
     session_id = Column(String, unique=True, index=True)
     last_active = Column(DateTime(timezone=True), server_default=func.now())
 
-    """
-    'relationship' a "magic" attribute that will contain the values from
-    other tables related to this one.
-    When accessing the attribute 'items' in a User, as in 'my_user.items',
-    it will have a list of Item SQLAlchemy models (from the 'items' table)
-    that have a foreign key pointing to this record in the 'users' table.
+    # 'relationship' a "magic" attribute that will contain the values from
+    # other tables related to this one.
+    # When accessing the attribute 'items' in a User, as in 'my_user.items',
+    # it will have a list of Item SQLAlchemy models (from the 'items' table)
+    # that have a foreign key pointing to this record in the 'users' table.
 
-    When you access 'my_user.items', SQLA will actually go and fetch the items
-    from the db in the 'items' table and populate them here.
-    """
+    # When you access 'my_user.items', SQLA will actually go and fetch the items
+    # from the db in the 'items' table and populate them here.
     scenarios = relationship("Scenario", back_populates="owner")
 
 
@@ -46,9 +44,9 @@ class Scenario(Base):
     """SQLAlchemy model."""
     __tablename__ = "scenarios"
 
-    id = Column(Integer, primary_key=True, index=True)
+    scenario_id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     description = Column(String, index=True)
-    owner_id = Column(Integer, ForeignKey("users.session_id"))
+    owner_id = Column(String, ForeignKey("users.session_id"))
 
     owner = relationship("User", back_populates="scenarios")

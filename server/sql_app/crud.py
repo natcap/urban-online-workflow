@@ -5,21 +5,19 @@ from . import models, schemas
 
 import uuid
 
-"""
-By creating functions that are only dedicated to interacting with the
-database (get a user or an item) independent of your path operation function,
-you can more easily reuse them in multiple parts and also add unit tests for
-them.
-"""
+# By creating functions that are only dedicated to interacting with the
+# database (get a user or an item) independent of your path operation function,
+# you can more easily reuse them in multiple parts and also add unit tests for
+# them.
 
 # read a single user by ID
-def get_user(db: Session, user_id: int):
-    return db.query(models.User).filter(models.User.id == user_id).first()
+def get_user(db: Session, session_id: str):
+    return db.query(models.User).filter(models.User.session_id == session_id).first()
 
 
 # read a single user by email
-def get_user_by_session_id(db: Session, session_id: str):
-    return db.query(models.User).filter(models.User.session_id == session_id).first()
+#def get_user_by_session_id(db: Session, session_id: str):
+#    return db.query(models.User).filter(models.User.session_id == session_id).first()
 
 # read multiple users
 def get_users(db: Session, skip: int = 0, limit: int = 100):
