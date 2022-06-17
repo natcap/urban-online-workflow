@@ -1,22 +1,34 @@
 import MapComponent from './map';
 import EditMenu from './edit';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-export default function App () {
+import { getAllScenarios } from './requests';
 
-  const [editMenuIsOpen, setEditMenuIsOpen] = useState(false);
+export default function App() {
+  const [parcel, setParcel] = useState(null);
+  const [savedScenarios, setSavedScenarios] = useState([]);
 
-  const toggleEditMenu = () => {
-    setEditMenuIsOpen((prev) => !prev);
-  }
+  const refreshSavedScenarios = async () => {
+    const scenarios = await getAllScenarios();
+    setSavedScenarios(scenarios);
+  };
 
-  console.log('render', editMenuIsOpen);
+  useEffect(async () => {
+    refreshSavedScenarios();
+  }, []);
+
   return (
     <div className="App">
       <div className="map-and-menu-container">
-        <MapComponent toggleEditMenu={toggleEditMenu} />
-        <EditMenu open={editMenuIsOpen} />
+        <MapComponent
+          setParcel={setParcel}
+        />
+        <EditMenu
+          parcel={parcel}
+          refreshSavedScenarios={refreshSavedScenarios}
+          savedScenarios={savedScenarios}
+        />
       </div>
     </div>
-  )
+  );
 }
