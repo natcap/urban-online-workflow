@@ -8,7 +8,11 @@ import TileLayer from 'ol/layer/Tile';
 import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
 
+import { applyStyle } from 'ol-mapbox-style';
+import MapboxVectorLayer from 'ol/layer/MapboxVector';
+
 import Popup from './popup';
+import lulcLayer from './map/lulcLayer';
 
 // style for selected features
 const selectedStyle = new Style({
@@ -42,10 +46,15 @@ export default function MapComponent(props) {
   // use ref for the overlay object to make it available across renders
   const overlayRef = useRef();
 
+  console.log(import.meta.env.VITE_DAVES_MAPBOX_TOKEN)
   // useEffect with no dependencies: only runs after first render
   useEffect(() => {
     // define map layers
-    const streetMapLayer = new TileLayer({ source: new OSM() });
+    // const streetMapLayer = new TileLayer({ source: new OSM() });
+    const streetMapLayer = new MapboxVectorLayer({
+      styleUrl: 'mapbox://styles/mapbox/light-v10',
+      accessToken: import.meta.env.VITE_DAVES_MAPBOX_TOKEN
+    });
     const parcelLayer = new VectorTileLayer({
       source: new VectorTileSource({
         format: new MVT(),
@@ -85,13 +94,18 @@ export default function MapComponent(props) {
       target: mapElementRef.current,
       layers: [
         streetMapLayer,
-        parcelLayer,
-        selectionLayer,
+        // parcelLayer,
+        // selectionLayer,
+        lulcLayer,
       ],
       overlays: [overlay],
+      // view: lulcLayer.getSource().getView(),
       view: new View({
         center: [-10964368.72, 3429876.58], // San Antonio, EPSG:3857
-        zoom: 19,
+        projection: 'EPSG:3857',
+        zoom: 15,
+        // center: [-125, 38],
+        // projection: 'EPSG:4326'
       }),
     });
 
