@@ -53,7 +53,7 @@ def create_scenario(db: Session, scenario: schemas.ScenarioCreate, session_id: s
     db.refresh(db_scenario)
     return db_scenario
 
-def update_scenario(db: Session, scenario: schemas.ScenarioCreate, scenario_id: str):
+def update_scenario(db: Session, scenario: schemas.ScenarioCreate, scenario_id: int):
     db_scenario = db.query(models.Scenario).filter(models.Scenario.scenario_id == scenario_id).first()
 
     if not db_scenario:
@@ -65,6 +65,18 @@ def update_scenario(db: Session, scenario: schemas.ScenarioCreate, scenario_id: 
     db.add(db_scenario)
     db.commit()
     db.refresh(db_scenario)
+    #return db_scenario
+    return "success"
+
+
+def delete_scenario(db: Session, scenario_id: int):
+    db_scenario = db.query(models.Scenario).filter(models.Scenario.scenario_id == scenario_id).first()
+
+    if not db_scenario:
+        raise HTTPException(status_code=404, detail="Scenario not found")
+
+    db.delete(db_scenario)
+    db.commit()
     #return db_scenario
     return "success"
 

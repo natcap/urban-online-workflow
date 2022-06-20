@@ -90,11 +90,17 @@ def create_scenario(
 
 @app.patch("/scenario/{scenario_id}", status_code=200)
 def update_scenario(
-    scenario_id: str, scenario: schemas.ScenarioCreate,
+    scenario_id: int, scenario: schemas.ScenarioCreate,
     db: Session = Depends(get_db)
 ):
     return crud.update_scenario(
         db=db, scenario=scenario, scenario_id=scenario_id)
+
+
+@app.delete("/scenario/{scenario_id}", status_code=200)
+def delete_scenario(scenario_id: int, db: Session = Depends(get_db)):
+    return crud.delete_scenario(db=db, scenario_id=scenario_id)
+
 
 @app.get("/scenarios/", response_model=list[schemas.Scenario])
 def read_scenarios(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
@@ -103,8 +109,8 @@ def read_scenarios(skip: int = 0, limit: int = 100, db: Session = Depends(get_db
 
 
 @app.get("/scenario/{scenario_id}", response_model=schemas.Scenario)
-def read_scenario(scenario_id: str, db: Session = Depends(get_db)):
-    db_scenario = crud.get_scenarios(db, scenario_id=session_id)
+def read_scenario(scenario_id: id, db: Session = Depends(get_db)):
+    db_scenario = crud.get_scenarios(db, scenario_id=scenario_id)
     if db_scenario is None:
         raise HTTPException(status_code=404, detail="Scenario not found")
     return db_scenario
