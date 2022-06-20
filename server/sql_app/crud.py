@@ -1,5 +1,6 @@
 """CRUD: Create, Read, Update, and Delete"""
 from sqlalchemy.orm import Session
+from fastapi import HTTPException
 
 from . import models, schemas
 
@@ -51,6 +52,21 @@ def create_scenario(db: Session, scenario: schemas.ScenarioCreate, session_id: s
     db.commit()
     db.refresh(db_scenario)
     return db_scenario
+
+def update_scenario(db: Session, scenario: schemas.ScenarioCreate, scenario_id: str):
+    db_scenario = db.query(models.Scenario).filter(models.Scenario.scenario_id == scenario_id).first()
+
+    if not db_scenario:
+        raise HTTPException(status_code=404, detail="Scenario not found")
+    scenario_data = scenario.dict(exclude_unset=True)
+    for key, value in scenario_data.items():
+        setattr(db_scenario, key, value)
+
+    db.add(db_scenario)
+    db.commit()
+    db.refresh(db_scenario)
+    #return db_scenario
+    return "success"
 
 # read a single scenario by ID
 def get_scenario(db: Session, scenario_id: int):

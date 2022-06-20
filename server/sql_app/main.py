@@ -42,6 +42,9 @@ def get_db():
 # With that, we can just call crud.get_user directly from inside of the path
 # operation function and use that session.
 
+
+### User / Session Endpoints ###
+
 #def create_user(schemas.UserCreate, db: Session = Depends(get_db)):
 @app.post("/users/", response_model=schemas.UserOut)
 def create_user(db: Session = Depends(get_db)):
@@ -74,6 +77,7 @@ def read_user(session_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
+### Scenario Endpoints ###
 
 @app.post("/scenario/{session_id}", response_model=schemas.ScenarioOut)
 def create_scenario(
@@ -83,6 +87,14 @@ def create_scenario(
     return crud.create_scenario(
         db=db, scenario=scenario, session_id=session_id)
 
+
+@app.patch("/scenario/{scenario_id}", status_code=200)
+def update_scenario(
+    scenario_id: str, scenario: schemas.ScenarioCreate,
+    db: Session = Depends(get_db)
+):
+    return crud.update_scenario(
+        db=db, scenario=scenario, scenario_id=scenario_id)
 
 @app.get("/scenarios/", response_model=list[schemas.Scenario])
 def read_scenarios(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
