@@ -33,17 +33,18 @@ def get_db():
     finally:
         db.close()
 
-# We are creating the db session before each request in the dependency with 
+# We are creating the db session before each request in the dependency with
 # 'yield', and then closing it afterwards.
 
-# Then we can create the required dependency in the path operation function, 
+# Then we can create the required dependency in the path operation function,
 # to get that session directly.
 
-# With that, we can just call crud.get_user directly from inside of the path 
+# With that, we can just call crud.get_user directly from inside of the path
 # operation function and use that session.
 
-@app.post("/users/", response_model=schemas.User)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+#def create_user(schemas.UserCreate, db: Session = Depends(get_db)):
+@app.post("/users/", response_model=schemas.UserOut)
+def create_user(db: Session = Depends(get_db)):
     #db_user = crud.get_user_by_session_id(db, session_id=user.session_id)
     #if db_user:
     #    raise HTTPException(status_code=400, detail="Email already registered")
@@ -51,9 +52,15 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     # have a 'response_model' with Pydantic models / schemas using orm_mode,
     # the data declared in your Pydantic models will be extracted from them
     # and returned to the client, w/ all the normal filtering and validation.
-    return crud.create_user(db=db, user=user)
+    return crud.create_user(db=db)
 
 
+# Type annotations in the function arguments will give you editor support
+# inside of your function, with error checks, completion, etc.
+# So, with that type declaration, FastAPI gives you automatic request "parsing".
+# With the same Python type declaration, FastAPI gives you data validation.
+# All the data validation is performed under the hood by Pydantic, so you get
+# all the benefits from it.
 @app.get("/users/", response_model=list[schemas.User])
 def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     users = crud.get_users(db, skip=skip, limit=limit)

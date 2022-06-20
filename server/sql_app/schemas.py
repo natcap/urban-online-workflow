@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from datetime import datetime
 
-# Pydantic modles declare the types using ":", the new type annotation
+# Pydantic models declare the types using ":", the new type annotation
 # syntax/type hints
 
 class ScenarioBase(BaseModel):
@@ -24,6 +24,13 @@ class Scenario(ScenarioBase):
 
     class Config:
         orm_mode = True
+
+
+class UserOut(BaseModel):
+    session_id: str
+
+    class Config:
+            orm_mode = True
 
 
 class UserBase(BaseModel):

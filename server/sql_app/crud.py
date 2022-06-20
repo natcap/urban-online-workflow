@@ -24,7 +24,8 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.User).offset(skip).limit(limit).all()
 
 # create user data
-def create_user(db: Session, user: schemas.UserCreate):
+#def create_user(db: Session, user: schemas.UserCreate):
+def create_user(db: Session):
     session_uuid = uuid.uuid4()
     session_id = str(session_uuid)
 
