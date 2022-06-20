@@ -75,11 +75,13 @@ def read_user(session_id: str, db: Session = Depends(get_db)):
     return db_user
 
 
-@app.post("/users/{session_id}/scenarios/", response_model=schemas.Scenario)
-def create_scenario_for_user(
-    session_id: str, scenario: schemas.ScenarioCreate, db: Session = Depends(get_db)
+@app.post("/scenario/{session_id}", response_model=schemas.ScenarioOut)
+def create_scenario(
+    session_id: str, scenario: schemas.ScenarioCreate,
+    db: Session = Depends(get_db)
 ):
-    return crud.create_user_scenario(db=db, scenario=scenario, session_id=session_id)
+    return crud.create_scenario(
+        db=db, scenario=scenario, session_id=session_id)
 
 
 @app.get("/scenarios/", response_model=list[schemas.Scenario])
@@ -88,12 +90,12 @@ def read_scenarios(skip: int = 0, limit: int = 100, db: Session = Depends(get_db
     return scenarios
 
 
-@app.get("/scenarios/{session_id}/{scenario_id}", response_model=schemas.Scenario)
-def read_scenario(session_id: str, db: Session = Depends(get_db)):
-    db_user = crud.get_user(db, session_id=session_id)
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return db_user
+@app.get("/scenario/{scenario_id}", response_model=schemas.Scenario)
+def read_scenario(scenario_id: str, db: Session = Depends(get_db)):
+    db_scenario = crud.get_scenarios(db, scenario_id=session_id)
+    if db_scenario is None:
+        raise HTTPException(status_code=404, detail="Scenario not found")
+    return db_scenario
 
 
 @app.post("/jobs/", response_model=schemas.Job)

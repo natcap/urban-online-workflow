@@ -41,19 +41,20 @@ def create_user(db: Session):
     db.refresh(db_user)
     return db_user
 
-
 # read multiple scenarios
 def get_scenarios(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Scenario).offset(skip).limit(limit).all()
 
-
-def create_user_scenario(db: Session, scenario: schemas.ScenarioCreate, session_id: str):
+def create_scenario(db: Session, scenario: schemas.ScenarioCreate, session_id: str):
     db_scenario = models.Scenario(**scenario.dict(), owner_id=session_id)
     db.add(db_scenario)
     db.commit()
     db.refresh(db_scenario)
     return db_scenario
 
+# read a single scenario by ID
+def get_scenario(db: Session, scenario_id: int):
+    return db.query(models.Scenario).filter(models.Scenario.scenario_id == scenario_id).first()
 
 # read multiple jobs
 def get_jobs(db: Session, skip: int = 0, limit: int = 100):

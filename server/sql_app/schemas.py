@@ -26,8 +26,8 @@ class Scenario(ScenarioBase):
         orm_mode = True
 
 
-class UserOut(BaseModel):
-    session_id: str
+class ScenarioOut(BaseModel):
+    scenario_id: int
 
     class Config:
             orm_mode = True
@@ -58,6 +58,13 @@ class User(UserBase):
         # With this, Pydantic model is compatible with ORMs, and you can
         # declare it in the 'response_model' argument in your path operations
         orm_mode = True
+
+
+class UserOut(BaseModel):
+    session_id: str
+
+    class Config:
+            orm_mode = True
 
 
 class JobBase(BaseModel):
