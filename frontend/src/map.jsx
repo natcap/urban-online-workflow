@@ -2,16 +2,12 @@ import { Map, View } from 'ol';
 import { Fill, Stroke, Style } from 'ol/style';
 import MVT from 'ol/format/MVT';
 import OSM from 'ol/source/OSM';
-import Overlay from 'ol/Overlay';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import TileLayer from 'ol/layer/Tile';
 import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
-
-import { applyStyle } from 'ol-mapbox-style';
 import MapboxVectorLayer from 'ol/layer/MapboxVector';
 
-import Popup from './popup';
 import lulcLayer from './map/lulcLayer';
 
 // style for selected features
@@ -38,13 +34,9 @@ function getCoords(geometry) {
 }
 
 export default function MapComponent(props) {
-  const { toggleEditMenu, setParcel } = props;
-  const [popupInfo, setPopupInfo] = useState(null);
+  const { setParcel } = props;
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
-  const overlayElementRef = useRef();
-  // use ref for the overlay object to make it available across renders
-  const overlayRef = useRef();
 
   console.log(import.meta.env.VITE_DAVES_MAPBOX_TOKEN)
   // useEffect with no dependencies: only runs after first render
@@ -78,17 +70,6 @@ export default function MapComponent(props) {
       },
     });
 
-    // define map overlay: needed to anchor the popup to the map
-    const overlay = new Overlay({
-      element: overlayElementRef.current,
-      autoPan: {
-        animation: {
-          duration: 250,
-        },
-      },
-    });
-    overlayRef.current = overlay;
-
     // define the map
     const map = new Map({
       target: mapElementRef.current,
@@ -98,8 +79,6 @@ export default function MapComponent(props) {
         // selectionLayer,
         lulcLayer,
       ],
-      overlays: [overlay],
-      // view: lulcLayer.getSource().getView(),
       view: new View({
         center: [-10964368.72, 3429876.58], // San Antonio, EPSG:3857
         projection: 'EPSG:3857',
@@ -119,17 +98,10 @@ export default function MapComponent(props) {
           // and so its coordinates will change slightly.
           // for best precision, maybe don't get the coordinates on the client side
           const coords = getCoords(feature);
-
           const parcelID = feature.get('OBJECTID');
-          const message = `You clicked on parcel ${parcelID}`;
-          setPopupInfo({
-            location: event.coordinate,
-            message: message,
-          });
           setParcel({ id: parcelID, coords: coords });
         } else {
           selectedFeature = undefined;
-          setPopupInfo(null);
         }
         selectionLayer.changed();
       });
@@ -137,31 +109,10 @@ export default function MapComponent(props) {
     map.on(['click'], handleClick);
   }, []);
 
-  // useEffect with popupInfo dependency: runs when popupInfo changes
-  useEffect(() => {
-    // set location of the overlay popup
-    overlayRef.current.setPosition(popupInfo ? popupInfo.location : null);
-  }, [popupInfo]);
-
-  // pre-render logic
-  let popup = <React.Fragment />;
-  if (popupInfo) {
-    popup = (
-      <Popup
-        message={popupInfo.message}
-        handleClose={() => overlayRef.current.setPosition(undefined)}
-        toggleEditMenu={toggleEditMenu}
-      />
-    );
-  }
-
   // render component
   return (
     <div className="map-container">
       <div ref={mapElementRef} className="map-viewport" />
-      <div ref={overlayElementRef} id="popup" className="ol-popup">
-        { popup }
-      </div>
     </div>
   );
 }

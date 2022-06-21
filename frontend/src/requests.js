@@ -28,6 +28,7 @@ export async function getWallpaperResults(jobID) {
     forest: window.crypto.getRandomValues(new Uint8Array(1))[0],
     housing: window.crypto.getRandomValues(new Uint8Array(1))[0],
     grass: window.crypto.getRandomValues(new Uint8Array(1))[0],
+    commercial: window.crypto.getRandomValues(new Uint8Array(1))[0],
     orchard: window.crypto.getRandomValues(new Uint8Array(1))[0],
   };
   return Promise.resolve(lulcTable);
@@ -43,7 +44,7 @@ export async function getLulcTableForParcel(geom) {
     forest: window.crypto.getRandomValues(new Uint8Array(1))[0],
     grass: window.crypto.getRandomValues(new Uint8Array(1))[0],
     housing: window.crypto.getRandomValues(new Uint8Array(1))[0],
-    commericial: window.crypto.getRandomValues(new Uint8Array(1))[0],
+    commercial: window.crypto.getRandomValues(new Uint8Array(1))[0],
     orchard: window.crypto.getRandomValues(new Uint8Array(1))[0],
   };
   return Promise.resolve(lulcTable);
