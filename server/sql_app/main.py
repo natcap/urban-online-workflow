@@ -102,18 +102,18 @@ def delete_scenario(scenario_id: int, db: Session = Depends(get_db)):
     return crud.delete_scenario(db=db, scenario_id=scenario_id)
 
 
-@app.get("/scenarios/", response_model=list[schemas.Scenario])
-def read_scenarios(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    scenarios = crud.get_scenarios(db, skip=skip, limit=limit)
-    return scenarios
-
-
 @app.get("/scenario/{scenario_id}", response_model=schemas.Scenario)
-def read_scenario(scenario_id: id, db: Session = Depends(get_db)):
-    db_scenario = crud.get_scenarios(db, scenario_id=scenario_id)
+def read_scenario(scenario_id: int, db: Session = Depends(get_db)):
+    db_scenario = crud.get_scenario(db, scenario_id=scenario_id)
     if db_scenario is None:
         raise HTTPException(status_code=404, detail="Scenario not found")
     return db_scenario
+
+
+@app.get("/scenarios/", response_model=list[schemas.ScenarioAll])
+def read_scenarios(session_id: str, db: Session = Depends(get_db)):
+    scenarios = crud.get_scenarios(db, session_id=session_id)
+    return scenarios
 
 
 @app.post("/jobs/", response_model=schemas.Job)

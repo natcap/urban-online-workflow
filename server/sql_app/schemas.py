@@ -33,6 +33,13 @@ class ScenarioOut(BaseModel):
             orm_mode = True
 
 
+class ScenarioAll(BaseModel):
+    scenario_id: int
+    name: str
+
+    class Config:
+            orm_mode = True
+
 class UserBase(BaseModel):
     pass
 

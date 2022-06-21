@@ -43,8 +43,8 @@ def create_user(db: Session):
     return db_user
 
 # read multiple scenarios
-def get_scenarios(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Scenario).offset(skip).limit(limit).all()
+def get_scenarios(db: Session, session_id: str):
+    return db.query(models.Scenario).filter(models.Scenario.owner_id == session_id).all()
 
 def create_scenario(db: Session, scenario: schemas.ScenarioCreate, session_id: str):
     db_scenario = models.Scenario(**scenario.dict(), owner_id=session_id)
