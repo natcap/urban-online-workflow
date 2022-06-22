@@ -42,11 +42,11 @@ export default function MapComponent(props) {
   // useEffect with no dependencies: only runs after first render
   useEffect(() => {
     // define map layers
-    // const streetMapLayer = new TileLayer({ source: new OSM() });
-    const streetMapLayer = new MapboxVectorLayer({
-      styleUrl: 'mapbox://styles/mapbox/light-v10',
-      accessToken: import.meta.env.VITE_DAVES_MAPBOX_TOKEN
-    });
+    const streetMapLayer = new TileLayer({ source: new OSM() });
+    // const streetMapLayer = new MapboxVectorLayer({
+    //   styleUrl: 'mapbox://styles/mapbox/light-v10',
+    //   accessToken: import.meta.env.VITE_DAVES_MAPBOX_TOKEN
+    // });
     const parcelLayer = new VectorTileLayer({
       source: new VectorTileSource({
         format: new MVT(),
@@ -82,9 +82,7 @@ export default function MapComponent(props) {
       view: new View({
         center: [-10964368.72, 3429876.58], // San Antonio, EPSG:3857
         projection: 'EPSG:3857',
-        zoom: 15,
-        // center: [-125, 38],
-        // projection: 'EPSG:4326'
+        zoom: 17,
       }),
     });
 

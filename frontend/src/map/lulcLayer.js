@@ -1,19 +1,27 @@
 import GeoTIFF from 'ol/source/GeoTIFF';
 import TileLayer from 'ol/layer/WebGLTile';
 
+import lulcColors from './lulcColors';
+
 const source = new GeoTIFF({
   sources: [{
-    // url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/2020/S2A_36QWD_20200701_0_L2A/TCI.tif',
-    // url: 'https://storage.googleapis.com/natcap-urban-online-datasets-public/global_dem_cog.tif',
-    // projection: 'EPSG:4326',
-    url: 'https://storage.googleapis.com/natcap-urban-online-datasets-public/NLCD_2016_epsg3857.tif',
+    // url: 'https://storage.googleapis.com/natcap-urban-online-datasets-public/NLCD_2016_epsg3857.tif',
+    // projection: 'EPSG:3857',
+    url: '/nlcd_extract.tif',
     projection: 'EPSG:3857',
   }],
+  interpolate: false,
 });
 
 export default new TileLayer({
   source: source,
   style: {
-    color: []
+    // https://openlayers.org/en/latest/apidoc/module-ol_style_expressions.html#~ExpressionValue
+    // https://github.com/openlayers/openlayers/blob/main/test/rendering/cases/webgl-palette/main.js
+    color: [
+      'palette',
+      ['*', ['band', 1], 255],
+      lulcColors,
+    ]
   }
 });

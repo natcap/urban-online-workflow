@@ -3,12 +3,13 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "start": "vite",
+    "start": "vite --force",
     "build": "vite build",
     "serve": "vite preview"
   },
   "dependencies": {
     "@blueprintjs/core": "^4.4.0",
+    "colormap": "^2.3.2",
     "dotenv": "^16.0.0",
     "localforage": "^1.10.0",
     "ol": "latest",
