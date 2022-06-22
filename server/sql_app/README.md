@@ -1,7 +1,7 @@
 #FastAPI setup (using Python 3.9+)
 
 > `pip install fastapi`
-> `pip install "uvicorn[standard]`
+> `pip install "uvicorn[standard]"`
 
 #Run the server
 
