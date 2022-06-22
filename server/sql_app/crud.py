@@ -24,6 +24,7 @@ def get_user(db: Session, session_id: str):
 def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.User).offset(skip).limit(limit).all()
 
+
 # create user data
 #def create_user(db: Session, user: schemas.UserCreate):
 def create_user(db: Session):
@@ -42,9 +43,11 @@ def create_user(db: Session):
     db.refresh(db_user)
     return db_user
 
+
 # read multiple scenarios
 def get_scenarios(db: Session, session_id: str):
     return db.query(models.Scenario).filter(models.Scenario.owner_id == session_id).all()
+
 
 def create_scenario(db: Session, scenario: schemas.ScenarioCreate, session_id: str):
     db_scenario = models.Scenario(**scenario.dict(), owner_id=session_id)
@@ -52,6 +55,7 @@ def create_scenario(db: Session, scenario: schemas.ScenarioCreate, session_id: s
     db.commit()
     db.refresh(db_scenario)
     return db_scenario
+
 
 def update_scenario(db: Session, scenario: schemas.ScenarioCreate, scenario_id: int):
     db_scenario = db.query(models.Scenario).filter(models.Scenario.scenario_id == scenario_id).first()
@@ -80,13 +84,20 @@ def delete_scenario(db: Session, scenario_id: int):
     #return db_scenario
     return "success"
 
+
 # read a single scenario by ID
 def get_scenario(db: Session, scenario_id: int):
     return db.query(models.Scenario).filter(models.Scenario.scenario_id == scenario_id).first()
 
+
 # read multiple jobs
 def get_jobs(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Job).offset(skip).limit(limit).all()
+
+
+# read job by ID
+def get_job(db: Session, job_id: int):
+    return db.query(models.Job).filter(models.Job.job_id == job_id).firts()
 
 
 def create_job(db: Session, job: schemas.JobCreate):
@@ -95,3 +106,42 @@ def create_job(db: Session, job: schemas.JobCreate):
     db.commit()
     db.refresh(db_job)
     return db_job
+
+
+def create_pattern(db: Session, session_id: str, pattern: schemas.Pattern):
+    #TODO: Implement
+    #job_db = models.Job(name=f"create-pattern-job", status="running")
+    #create_job(db, job_db)
+
+    #db_pattern = models.Pattern(**pattern.dict(), url="temp-pattern-url.tif")
+
+    #db.add(db_pattern)
+    #db.commit()
+    #db.refresh(db_pattern)
+    #return db_pattern
+    pass
+
+
+def lulc_under_parcel_summary(session_id: str, db: Session = Depends(get_db), wkt_parcel: str):
+    #TODO: Implement
+    #job_db = models.Job(name=f"lulc-summary-job", status="running")
+    #create_job(db, job_db)
+
+    #summary = {'4': 20, '1': 11, '3': 17}
+    #return summary
+    pass
+
+
+def wallpaper(session_id: str, scenario_id: int, db: Session = Depends(get_db)):
+    #TODO: Implement run wallpapering
+    pass
+
+
+def get_wallpaper_results(db: Session = Depends(get_db), job_id: int):
+    #TODO: Implement
+    #job_db = get_job(db, job_id)
+
+    #results = {'cog_URL': 'temp-url.tif', 'lulc_summary': {'4': 20, '1': 11, '3': 17}}
+    #return results
+    pass
+

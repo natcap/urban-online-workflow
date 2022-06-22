@@ -71,7 +71,7 @@ class UserOut(BaseModel):
     session_id: str
 
     class Config:
-            orm_mode = True
+        orm_mode = True
 
 
 class JobBase(BaseModel):
@@ -83,10 +83,39 @@ class JobBase(BaseModel):
 class JobCreate(JobBase):
     pass
 
-
+#TODO: will we need to periodically clean up completed / failed jobs?
+# If so, we should make sure the frontend has what it needs to get removed job
+# results.
 class Job(JobBase):
     """Pydantic model (schema) used when reading data, when returning it from API."""
     id: int
+
+    class Config:
+        orm_mode = True
+
+
+class JobStatus(BaseModel):
+    status: str
+
+    class Config:
+        orm_mode = True
+
+
+class Pattern(BaseModel):
+    """Pydantic model (schema) used when reading data, when returning it from API."""
+    pattern_id: int
+    name: str
+    description: str
+    wkt: str
+    owner_id: str
+
+    class Config:
+        orm_mode = True
+
+
+class PatternJob(BaseModel):
+    pattern_id: int
+    job_id: int
 
     class Config:
         orm_mode = True

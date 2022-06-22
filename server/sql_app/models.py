@@ -38,6 +38,7 @@ class User(Base):
     # When you access 'my_user.items', SQLA will actually go and fetch the items
     # from the db in the 'items' table and populate them here.
     scenarios = relationship("Scenario", back_populates="owner")
+    patterns = relationship("Pattern", back_populates="owner")
 
 
 class Scenario(Base):
@@ -50,3 +51,17 @@ class Scenario(Base):
     owner_id = Column(String, ForeignKey("users.session_id"))
 
     owner = relationship("User", back_populates="scenarios")
+
+
+class Pattern(Base):
+    """SQLAlchemy model."""
+    __tablename__ = "patterns"
+
+    pattern_id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    description = Column(String, index=True)
+    wkt = Column(String, index=True)
+    url = Column(String, index=True)
+    owner_id = Column(String, ForeignKey("users.session_id"))
+
+    owner = relationship("User", back_populates="patterns")

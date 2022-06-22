@@ -64,6 +64,9 @@ def create_user(db: Session = Depends(get_db)):
 # With the same Python type declaration, FastAPI gives you data validation.
 # All the data validation is performed under the hood by Pydantic, so you get
 # all the benefits from it.
+
+### User / Session Endpoints ###
+
 @app.get("/users/", response_model=list[schemas.User])
 def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     users = crud.get_users(db, skip=skip, limit=limit)
@@ -116,6 +119,8 @@ def read_scenarios(session_id: str, db: Session = Depends(get_db)):
     return scenarios
 
 
+### Job Endpoints ###
+
 @app.post("/jobs/", response_model=schemas.Job)
 def create_job(
     job: schemas.JobCreate, db: Session = Depends(get_db)
@@ -123,10 +128,47 @@ def create_job(
     return crud.create_job(db=db, job=job)
 
 
+@app.get("/job/{job_id}", response_model=schemas.JobStatus)
+def read_job(job_id: int, db: Session = Depends(get_db)):
+    db_job = crud.get_job(db, job_id=job_id)
+    if db_job is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return db_job
+
 @app.get("/jobs/", response_model=list[schemas.Job])
 def read_jobs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     jobs = crud.get_jobs(db, skip=skip, limit=limit)
     return jobs
+
+
+### Task Endpoints ###
+
+@app.get("/pattern/{session_id}", response_model=list[schemas.PatternJob])
+def create_pattern(session_id: str, db: Session = Depends(get_db), pattern: schemas.Pattern):
+    #pattern_job = crud.create_pattern(db=db, session_id=session_id, pattern=pattern)
+    #return pattern_job
+    pass
+
+
+@app.get("/lulc-table/{session_id}")
+def lulc_under_parcel_summary(session_id: str, db: Session = Depends(get_db), wkt_parcel: str):
+    #lulc_summary_table = crud.lulc_under_parcel_summary(db=db, session_id=session_id, pattern=pattern)
+    #return lulc_summary_table
+    pass
+
+
+@app.get("/wallpapering/{session_id}/{scenario_id}")
+def run_wallpapering(session_id: str, scenario_id: int, db: Session = Depends(get_db)):
+    #wallpaper = crud.run_wallpaper(db=db, session_id=session_id, scenario_id=scenario_id)
+    #return wallpaper
+    pass
+
+@app.get("/wallpapering/{job_id}")
+def read_wallpapering_results(job_id: int, db: Session = Depends(get_db)):
+    #wallpaper_results = crud.get_wallpaper_results(db=db, job_id=job_id)
+    #return wallpaper_results
+    pass
+
 
 ### Testing ideas from tutorial ###
 
