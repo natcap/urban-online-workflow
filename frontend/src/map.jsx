@@ -6,6 +6,15 @@ import React, { useEffect, useRef } from 'react';
 import TileLayer from 'ol/layer/Tile';
 import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
+import { Vector as VectorSource } from 'ol/source';
+import { Vector as VectorLayer } from 'ol/layer';
+import Feature from 'ol/Feature';
+import { Polygon } from 'ol/geom';
+import {
+  Select,
+  Translate,
+  defaults as defaultInteractions,
+} from 'ol/interaction';
 
 // style for selected features
 const selectedStyle = new Style({
@@ -28,6 +37,11 @@ function getCoords(geometry) {
       return result;
     }, []);
   return pairedCoords;
+}
+
+// get width and height in CRS corresponding to pixel size at given zoom
+function pixelSizeToCoods(x, zoom) {
+
 }
 
 export default function MapComponent(props) {
@@ -62,6 +76,38 @@ export default function MapComponent(props) {
       },
     });
 
+    const wallpaperPickerBox = new Feature(
+      new Polygon([
+        [
+          [-10964368.72, 3429876.58],
+          [-10964368.72, 3429977.59],
+          [-10964469.73, 3429977.59],
+          [-10964469.73, 3429876.58],
+          [-10964368.72, 3429876.58],
+        ],
+      ]),
+    );
+    const wallpaperPickerLayer = new VectorLayer({
+      source: new VectorSource({
+        features: [
+          wallpaperPickerBox,
+        ],
+      }),
+      style: new Style({
+        stroke: new Stroke({
+          width: 3,
+          color: [255, 0, 0, 1],
+        }),
+        fill: new Fill({
+          color: [0, 0, 255, 0.6],
+        }),
+      }),
+    });
+
+    const translate = new Translate({
+      layers: [wallpaperPickerLayer],
+    });
+
     // define the map
     const map = new Map({
       target: mapElementRef.current,
@@ -69,11 +115,13 @@ export default function MapComponent(props) {
         streetMapLayer,
         parcelLayer,
         selectionLayer,
+        wallpaperPickerLayer,
       ],
       view: new View({
         center: [-10964368.72, 3429876.58], // San Antonio, EPSG:3857
         zoom: 19,
       }),
+      interactions: defaultInteractions().extend([translate]),
     });
 
     // map click handler: visually select the clicked feature and save info in state
