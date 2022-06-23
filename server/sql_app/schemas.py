@@ -13,10 +13,6 @@ class ScenarioBase(BaseModel):
     description: Optional[str] = None
 
 
-class ScenarioCreate(ScenarioBase):
-    pass
-
-
 class Scenario(ScenarioBase):
     """Pydantic model (schema) used when reading data, when returning it from API."""
     scenario_id: int
@@ -40,15 +36,8 @@ class ScenarioAll(BaseModel):
     class Config:
             orm_mode = True
 
-class UserBase(BaseModel):
-    pass
 
-
-class UserCreate(UserBase):
-    pass
-
-
-class User(UserBase):
+class User(BaseModel):
     """Pydantic model (schema) used when reading data, when returning it from API."""
     id: int
     session_id: str
@@ -79,9 +68,6 @@ class JobBase(BaseModel):
     description: str
     status: str
 
-
-class JobCreate(JobBase):
-    pass
 
 #TODO: will we need to periodically clean up completed / failed jobs?
 # If so, we should make sure the frontend has what it needs to get removed job

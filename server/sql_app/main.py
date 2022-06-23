@@ -48,9 +48,6 @@ def get_db():
 #def create_user(schemas.UserCreate, db: Session = Depends(get_db)):
 @app.post("/users/", response_model=schemas.UserOut)
 def create_user(db: Session = Depends(get_db)):
-    #db_user = crud.get_user_by_session_id(db, session_id=user.session_id)
-    #if db_user:
-    #    raise HTTPException(status_code=400, detail="Email already registered")
     # Notice that the values returned are SQLA models. But as all path operations
     # have a 'response_model' with Pydantic models / schemas using orm_mode,
     # the data declared in your Pydantic models will be extracted from them
@@ -84,7 +81,7 @@ def read_user(session_id: str, db: Session = Depends(get_db)):
 
 @app.post("/scenario/{session_id}", response_model=schemas.ScenarioOut)
 def create_scenario(
-    session_id: str, scenario: schemas.ScenarioCreate,
+    session_id: str, scenario: schemas.ScenarioBase,
     db: Session = Depends(get_db)
 ):
     return crud.create_scenario(
@@ -93,7 +90,7 @@ def create_scenario(
 
 @app.patch("/scenario/{scenario_id}", status_code=200)
 def update_scenario(
-    scenario_id: int, scenario: schemas.ScenarioCreate,
+    scenario_id: int, scenario: schemas.ScenarioBase,
     db: Session = Depends(get_db)
 ):
     return crud.update_scenario(
@@ -123,7 +120,7 @@ def read_scenarios(session_id: str, db: Session = Depends(get_db)):
 
 @app.post("/jobs/", response_model=schemas.Job)
 def create_job(
-    job: schemas.JobCreate, db: Session = Depends(get_db)
+    job: schemas.JobBase, db: Session = Depends(get_db)
 ):
     return crud.create_job(db=db, job=job)
 
@@ -144,14 +141,14 @@ def read_jobs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
 ### Task Endpoints ###
 
 @app.get("/pattern/{session_id}", response_model=list[schemas.PatternJob])
-def create_pattern(session_id: str, db: Session = Depends(get_db), pattern: schemas.Pattern):
+def create_pattern(session_id: str, pattern: schemas.Pattern, ndb: Session = Depends(get_db)):
     #pattern_job = crud.create_pattern(db=db, session_id=session_id, pattern=pattern)
     #return pattern_job
     pass
 
 
 @app.get("/lulc-table/{session_id}")
-def lulc_under_parcel_summary(session_id: str, db: Session = Depends(get_db), wkt_parcel: str):
+def lulc_under_parcel_summary(session_id: str, wkt_parcel: str, db: Session = Depends(get_db)):
     #lulc_summary_table = crud.lulc_under_parcel_summary(db=db, session_id=session_id, pattern=pattern)
     #return lulc_summary_table
     pass

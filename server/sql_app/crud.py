@@ -1,10 +1,10 @@
 """CRUD: Create, Read, Update, and Delete"""
-from sqlalchemy.orm import Session
 from fastapi import HTTPException
+from sqlalchemy.orm import Session
+import uuid
 
 from . import models, schemas
 
-import uuid
 
 # By creating functions that are only dedicated to interacting with the
 # database (get a user or an item) independent of your path operation function,
@@ -16,23 +16,33 @@ def get_user(db: Session, session_id: str):
     return db.query(models.User).filter(models.User.session_id == session_id).first()
 
 
-# read a single user by email
-#def get_user_by_session_id(db: Session, session_id: str):
-#    return db.query(models.User).filter(models.User.session_id == session_id).first()
-
 # read multiple users
 def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.User).offset(skip).limit(limit).all()
 
 
-# create user data
-#def create_user(db: Session, user: schemas.UserCreate):
+# create user session
 def create_user(db: Session):
-    session_uuid = uuid.uuid4()
-    session_id = str(session_uuid)
+
+    # It is unlikely that a UUID would be duplicated but we can do three
+    # attempts in case it does happen. After the three attempts if a unique
+    # UUID still has not been found then we'll return a HTTPException
+    unique_session = False
+    for attempt in range(0,3):
+        session_uuid = uuid.uuid4()
+        session_id = str(session_uuid)
+
+        session = get_user(db, session_id)
+
+        # If no session is found then we're duplicate safe
+        if not session:
+            unique_session = True
+            break
+
+    if not unique_session:
+        raise HTTPException(status_code=404, detail="Unique session could not be created.")
 
     # create SQLA model instance with your data
-    #db_user = models.User(email=user.email, hashed_password=fake_hashed_password)
     db_user = models.User(session_id=session_id)
     # add instance object to your db session
     db.add(db_user)
@@ -49,7 +59,7 @@ def get_scenarios(db: Session, session_id: str):
     return db.query(models.Scenario).filter(models.Scenario.owner_id == session_id).all()
 
 
-def create_scenario(db: Session, scenario: schemas.ScenarioCreate, session_id: str):
+def create_scenario(db: Session, scenario: schemas.Scenario, session_id: str):
     db_scenario = models.Scenario(**scenario.dict(), owner_id=session_id)
     db.add(db_scenario)
     db.commit()
@@ -57,7 +67,7 @@ def create_scenario(db: Session, scenario: schemas.ScenarioCreate, session_id: s
     return db_scenario
 
 
-def update_scenario(db: Session, scenario: schemas.ScenarioCreate, scenario_id: int):
+def update_scenario(db: Session, scenario: schemas.Scenario, scenario_id: int):
     db_scenario = db.query(models.Scenario).filter(models.Scenario.scenario_id == scenario_id).first()
 
     if not db_scenario:
@@ -100,7 +110,7 @@ def get_job(db: Session, job_id: int):
     return db.query(models.Job).filter(models.Job.job_id == job_id).firts()
 
 
-def create_job(db: Session, job: schemas.JobCreate):
+def create_job(db: Session, job: schemas.JobBase):
     db_job = models.Job(**job.dict())
     db.add(db_job)
     db.commit()
@@ -122,7 +132,7 @@ def create_pattern(db: Session, session_id: str, pattern: schemas.Pattern):
     pass
 
 
-def lulc_under_parcel_summary(session_id: str, db: Session = Depends(get_db), wkt_parcel: str):
+def lulc_under_parcel_summary(session_id: str, wkt_parcel: str, db: Session):
     #TODO: Implement
     #job_db = models.Job(name=f"lulc-summary-job", status="running")
     #create_job(db, job_db)
@@ -132,12 +142,12 @@ def lulc_under_parcel_summary(session_id: str, db: Session = Depends(get_db), wk
     pass
 
 
-def wallpaper(session_id: str, scenario_id: int, db: Session = Depends(get_db)):
+def wallpaper(session_id: str, scenario_id: int, db: Session):
     #TODO: Implement run wallpapering
     pass
 
 
-def get_wallpaper_results(db: Session = Depends(get_db), job_id: int):
+def get_wallpaper_results(job_id: int, db: Session):
     #TODO: Implement
     #job_db = get_job(db, job_id)
 
