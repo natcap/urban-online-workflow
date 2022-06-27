@@ -1,10 +1,21 @@
 """CRUD: Create, Read, Update, and Delete"""
+import asyncio
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 import uuid
+import sys
+import logging
 
 from . import models, schemas
 
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format=(
+        '%(asctime)s (%(relativeCreated)d) %(levelname)s %(name)s'
+        ' [%(funcName)s:%(lineno)d] %(message)s'),
+    stream=sys.stdout)
+LOGGER = logging.getLogger(__name__)
 
 # By creating functions that are only dedicated to interacting with the
 # database (get a user or an item) independent of your path operation function,
@@ -116,6 +127,23 @@ def create_job(db: Session, job: schemas.JobBase):
     db.commit()
     db.refresh(db_job)
     return db_job
+
+def update_job(db: Session, job: schemas.Job, job_id: int):
+    LOGGER.debug("CRUD: update_job")
+    LOGGER.debug(f'job id: {job_id}')
+    db_job = db.query(models.Job).filter(models.Job.job_id == job_id).first()
+
+    if not db_job:
+        raise HTTPException(status_code=404, detail="job not found")
+    job_data = job.dict(exclude_unset=True)
+    for key, value in job_data.items():
+        setattr(db_job, key, value)
+
+    db.add(db_job)
+    db.commit()
+    db.refresh(db_job)
+    #return db_job
+    return "success"
 
 
 def create_pattern(db: Session, session_id: str, pattern: schemas.Pattern):

@@ -74,7 +74,7 @@ class JobBase(BaseModel):
 # results.
 class Job(JobBase):
     """Pydantic model (schema) used when reading data, when returning it from API."""
-    id: int
+    job_id: int
 
     class Config:
         orm_mode = True
