@@ -1,10 +1,12 @@
 """CRUD: Create, Read, Update, and Delete"""
 import asyncio
+import logging
+import sys
+import time
+
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 import uuid
-import sys
-import logging
 
 from . import models, schemas
 
@@ -145,6 +147,14 @@ def update_job(db: Session, job: schemas.Job, job_id: int):
     #return db_job
     return "success"
 
+# Normally blocking call (InVEST model, PGP call, wallpapering, ...)
+def test_job_task(job_details):
+    LOGGER.debug('Running job operation')
+
+    sleep_time = job_details['param']
+    # Sleep for the "sleep_time" seconds.
+    time.sleep(sleep_time)
+    LOGGER.debug(f'Done sleeping for {sleep_time} seconds')
 
 def create_pattern(db: Session, session_id: str, pattern: schemas.Pattern):
     #TODO: Implement
