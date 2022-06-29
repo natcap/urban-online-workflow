@@ -14,6 +14,7 @@ const source = new GeoTIFF({
 });
 
 export default new TileLayer({
+  title: 'Landcover',
   source: source,
   style: {
     // https://openlayers.org/en/latest/apidoc/module-ol_style_expressions.html#~ExpressionValue

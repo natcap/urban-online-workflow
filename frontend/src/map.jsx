@@ -9,6 +9,8 @@ import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
 import MapboxVectorLayer from 'ol/layer/MapboxVector';
 
+import LayerSwitcher from 'ol-layerswitcher';
+
 import lulcLayer from './map/lulcLayer';
 
 const styleParcel = (zoom) => {
@@ -64,17 +66,24 @@ export default function MapComponent(props) {
         zoom: 19,
       }),
     });
+    const layerSwitcher = new LayerSwitcher({
+      reverse: true,
+    });
+    map.addControl(layerSwitcher);
 
     // const streetMapLayer = new TileLayer({ source: new OSM() });
     const lightMapLayer = new MapboxVectorLayer({
       styleUrl: 'mapbox://styles/mapbox/light-v10',
       accessToken: import.meta.env.VITE_DAVES_MAPBOX_TOKEN
     });
+    lightMapLayer.set('title', 'Light Streets');
     const streetMapLayer = new MapboxVectorLayer({
       styleUrl: 'mapbox://styles/mapbox/streets-v11',
       accessToken: import.meta.env.VITE_DAVES_MAPBOX_TOKEN
     });
+    streetMapLayer.set('title', 'Streets1');
     const parcelLayer = new VectorTileLayer({
+      title: 'Parcels',
       source: new VectorTileSource({
         format: new MVT(),
         // access API key loaded from your private .env file using dotenv package
@@ -87,6 +96,7 @@ export default function MapComponent(props) {
     });
     let selectedFeature;
     const selectionLayer = new VectorTileLayer({
+      title: 'Selected Parcels',
       renderMode: 'vector',
       source: parcelLayer.getSource(),
       style: (feature) => {
