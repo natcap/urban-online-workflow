@@ -1,14 +1,30 @@
+import React, { useEffect, useRef, useState } from 'react';
+
 import { Map, View } from 'ol';
 import { Fill, Stroke, Style } from 'ol/style';
 import MVT from 'ol/format/MVT';
 import OSM from 'ol/source/OSM';
-import React, { useEffect, useRef } from 'react';
 import TileLayer from 'ol/layer/Tile';
 import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
 import MapboxVectorLayer from 'ol/layer/MapboxVector';
 
 import lulcLayer from './map/lulcLayer';
+
+const styleParcel = (zoom) => {
+  const style = new Style({
+    stroke: new Stroke({
+      color: 'rgba(0, 0, 0, 0.8)',
+      width: (zoom > 18) ? 1 : 0.3,
+    }),
+    // even if we want no fill, must use one to enable
+    // click-to-select feature
+    fill: new Fill({
+      color: 'rgba(0, 0, 0, 0)',
+    }),
+  });
+  return style;
+};
 
 // style for selected features
 const selectedStyle = new Style({
@@ -38,15 +54,26 @@ export default function MapComponent(props) {
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
 
-  console.log(import.meta.env.VITE_DAVES_MAPBOX_TOKEN)
   // useEffect with no dependencies: only runs after first render
   useEffect(() => {
-    // define map layers
-    const streetMapLayer = new TileLayer({ source: new OSM() });
-    // const streetMapLayer = new MapboxVectorLayer({
-    //   styleUrl: 'mapbox://styles/mapbox/light-v10',
-    //   accessToken: import.meta.env.VITE_DAVES_MAPBOX_TOKEN
-    // });
+    const map = new Map({
+      target: mapElementRef.current,
+      view: new View({
+        center: [-10964368.72, 3429876.58], // San Antonio, EPSG:3857
+        projection: 'EPSG:3857',
+        zoom: 19,
+      }),
+    });
+
+    // const streetMapLayer = new TileLayer({ source: new OSM() });
+    const lightMapLayer = new MapboxVectorLayer({
+      styleUrl: 'mapbox://styles/mapbox/light-v10',
+      accessToken: import.meta.env.VITE_DAVES_MAPBOX_TOKEN
+    });
+    const streetMapLayer = new MapboxVectorLayer({
+      styleUrl: 'mapbox://styles/mapbox/streets-v11',
+      accessToken: import.meta.env.VITE_DAVES_MAPBOX_TOKEN
+    });
     const parcelLayer = new VectorTileLayer({
       source: new VectorTileSource({
         format: new MVT(),
@@ -55,7 +82,8 @@ export default function MapComponent(props) {
         // and must be prefixed with VITE_. https://vitejs.dev/guide/env-and-mode.html#env-files
         url: 'https://api.mapbox.com/v4/emlys.san-antonio-parcels/{z}/{x}/{y}.mvt?access_token=' + import.meta.env.VITE_MAPBOX_API_KEY,
       }),
-      minZoom: 18, // don't display this layer below zoom level 17
+      style: styleParcel(map.getView().getZoom()),
+      minZoom: 15, // don't display this layer below zoom level 14
     });
     let selectedFeature;
     const selectionLayer = new VectorTileLayer({
@@ -70,21 +98,11 @@ export default function MapComponent(props) {
       },
     });
 
-    // define the map
-    const map = new Map({
-      target: mapElementRef.current,
-      layers: [
-        streetMapLayer,
-        // parcelLayer,
-        // selectionLayer,
-        lulcLayer,
-      ],
-      view: new View({
-        center: [-10964368.72, 3429876.58], // San Antonio, EPSG:3857
-        projection: 'EPSG:3857',
-        zoom: 17,
-      }),
-    });
+    map.addLayer(streetMapLayer);
+    map.addLayer(lightMapLayer);
+    map.addLayer(lulcLayer);
+    map.addLayer(parcelLayer);
+    map.addLayer(selectionLayer);
 
     // map click handler: visually select the clicked feature and save info in state
     const handleClick = async (event) => {
@@ -105,9 +123,17 @@ export default function MapComponent(props) {
       });
     };
     map.on(['click'], handleClick);
+
+    let currentZoom = map.getView().getZoom();
+    map.on(['moveend'], () => {
+      const newZoom = map.getView().getZoom();
+      if (currentZoom !== newZoom) {
+        currentZoom = newZoom;
+        parcelLayer.setStyle(styleParcel(newZoom));
+      }
+    });
   }, []);
 
-  // render component
   return (
     <div className="map-container">
       <div ref={mapElementRef} className="map-viewport" />
