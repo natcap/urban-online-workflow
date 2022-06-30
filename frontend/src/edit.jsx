@@ -14,6 +14,7 @@ import {
   getLulcTableForParcel,
   getWallpaperResults,
   getStatus,
+  getPatterns,
   createPattern
 } from './requests';
 import useInterval from './hooks/useInterval';
@@ -27,10 +28,8 @@ export default function EditMenu(props) {
     refreshSavedScenarios,
     patternSelectMode,
     togglePatternSelectMode,
-    patternSelectionBox,
+    patternSelectionWKT,
   } = props;
-
-  console.log(patternSelectMode);
 
   const [activeTab, setActiveTab] = useState('create');
   const [scenarioName, setScenarioName] = useState('');
@@ -38,6 +37,13 @@ export default function EditMenu(props) {
   const [pattern, setPattern] = useState('');
   const [parcelTable, setParcelTable] = useState(null);
   const [jobID, setJobID] = useState(null);
+  const [patterns, setPatterns] = useState([]);
+  const [newPatternName, setNewPatternName] = useState("New Pattern 1");
+
+  // On first render, get the list of available patterns
+  useEffect(async () => {
+    setPatterns(await getPatterns());
+  }, []);
 
   useEffect(async () => {
     if (parcel) {
@@ -90,15 +96,31 @@ export default function EditMenu(props) {
     setActiveTab(tabID);
   };
 
-  const handlePatternNameChange = (event) => {
-
+  const handleSamplePattern = async (event) => {
+    event.preventDefault();
+    console.log('create pattern');
+    await createPattern(patternSelectionWKT, newPatternName);
+    setPatterns(await getPatterns());
+    togglePatternSelectMode();
   }
 
-  const createPattern = (event) => {
-    createPattern(patternSelectionBox);
-  }
-
-  const patterns = ["orchard", "city park", "housing"];
+  const patternSampleForm = (
+    <>
+    <p>Drag the box over the area to sample.</p>
+    <form onSubmit={handleSamplePattern}>
+      <button type="submit">
+        <Icon icon="camera" />
+        Sample this pattern
+      </button>
+      as
+      <input
+        type="text"
+        value={newPatternName}
+        onChange={(event) => setNewPatternName(event.target.value)}
+      />
+    </form>
+    </>
+  );
 
   return (
     <div className="menu-container">
@@ -142,16 +164,9 @@ export default function EditMenu(props) {
             <div>
               <Switch
                 checked={patternSelectMode}
-                labelElement={<strong>Pattern creation mode</strong>}
+                labelElement={<strong>Pattern sampling mode</strong>}
                 onChange={togglePatternSelectMode} />
-              <p>Drag the box over the area to sample.</p>
-              <form onSubmit={createPattern}>
-                <input type="text" />
-                <button type="submit">
-                  <Icon icon="camera" />
-                  Sample this pattern
-                </button>
-              </form>
+              {patternSelectMode ? patternSampleForm : <React.Fragment />}
             </div>
           }
         />
