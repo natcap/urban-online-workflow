@@ -8,6 +8,7 @@ export default function App() {
   const [parcel, setParcel] = useState(null);
   const [savedScenarios, setSavedScenarios] = useState([]);
   const [patternSelectMode, setPatternSelectMode] = useState(false);
+  const [patternSelectionBox, setPatternSelectionBox] = useState(null);
 
   const refreshSavedScenarios = async () => {
     const scenarios = await getAllScenarios();
@@ -18,12 +19,17 @@ export default function App() {
     refreshSavedScenarios();
   }, []);
 
-  const enterPatternSelectMode = () => {
-    setPatternSelectMode(true);
-    console.log('entered pattern select mode');
+  const togglePatternSelectMode = () => {
+    console.log('toggle pattern select mode');
+    setPatternSelectMode(patternSelectMode => !patternSelectMode);
+  }
+
+  const getPatternGeom = () => {
+
   }
 
   console.log('rendering app');
+  console.log('pattern box', patternSelectionBox);
 
   return (
     <div className="App">
@@ -31,12 +37,15 @@ export default function App() {
         <MapComponent
           setParcel={setParcel}
           patternSelectMode={patternSelectMode}
+          setPatternSelectionBox={setPatternSelectionBox}
         />
         <EditMenu
           parcel={parcel}
           refreshSavedScenarios={refreshSavedScenarios}
           savedScenarios={savedScenarios}
-          enterPatternSelectMode={enterPatternSelectMode}
+          patternSelectMode={patternSelectMode}
+          togglePatternSelectMode={togglePatternSelectMode}
+          patternSelectionBox={patternSelectionBox}
         />
       </div>
     </div>

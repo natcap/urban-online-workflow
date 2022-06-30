@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Icon, IconSize } from "@blueprintjs/core";
+import { Icon, IconSize, Switch } from "@blueprintjs/core";
 
 import {
   Radio,
@@ -14,6 +14,7 @@ import {
   getLulcTableForParcel,
   getWallpaperResults,
   getStatus,
+  createPattern
 } from './requests';
 import useInterval from './hooks/useInterval';
 import ScenarioTable from './scenarioTable';
@@ -24,8 +25,12 @@ export default function EditMenu(props) {
     parcel,
     savedScenarios,
     refreshSavedScenarios,
-    enterPatternSelectMode
+    patternSelectMode,
+    togglePatternSelectMode,
+    patternSelectionBox,
   } = props;
+
+  console.log(patternSelectMode);
 
   const [activeTab, setActiveTab] = useState('create');
   const [scenarioName, setScenarioName] = useState('');
@@ -85,6 +90,16 @@ export default function EditMenu(props) {
     setActiveTab(tabID);
   };
 
+  const handlePatternNameChange = (event) => {
+
+  }
+
+  const createPattern = (event) => {
+    createPattern(patternSelectionBox);
+  }
+
+  const patterns = ["orchard", "city park", "housing"];
+
   return (
     <div className="menu-container">
       <Tabs id="Tabs" onChange={handleTabChange} selectedTabId={activeTab}>
@@ -102,18 +117,7 @@ export default function EditMenu(props) {
                   onChange={handleRadio}
                   selectedValue={pattern}
                 >
-                  <Radio
-                    value="orchard"
-                    label="orchard"
-                  />
-                  <Radio
-                    value="city park"
-                    label="city park"
-                  />
-                  <Radio
-                    value="housing"
-                    label="housing"
-                  />
+                  {patterns.map(pattern => <Radio value={pattern} label={pattern} />)}
                 </RadioGroup>
                 <h4>Add this modification to a scenario</h4>
                 <datalist id="scenariolist">
@@ -132,19 +136,22 @@ export default function EditMenu(props) {
           )}
         />
         <Tab
-          id="wallpaper"
-          title="Wallpaper"
+          id="patterns"
+          title="Patterns"
           panel={
             <div>
-              <button type="button" onClick={enterPatternSelectMode}>
-                <Icon icon="add" />
-                 Create a new pattern
-              </button>
+              <Switch
+                checked={patternSelectMode}
+                labelElement={<strong>Pattern creation mode</strong>}
+                onChange={togglePatternSelectMode} />
               <p>Drag the box over the area to sample.</p>
-              <button type="button" onClick={enterPatternSelectMode}>
-                <Icon icon="camera" />
-                Sample this pattern
-              </button>
+              <form onSubmit={createPattern}>
+                <input type="text" />
+                <button type="submit">
+                  <Icon icon="camera" />
+                  Sample this pattern
+                </button>
+              </form>
             </div>
           }
         />

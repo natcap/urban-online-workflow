@@ -41,7 +41,7 @@ function getCoords(geometry) {
 
 
 export default function MapComponent(props) {
-  const { setParcel, patternSelectMode } = props;
+  const { setParcel, patternSelectMode, setPatternSelectionBox } = props;
   console.log('rendering map');
   console.log(patternSelectMode);
   // refs for elements to insert openlayers-controlled nodes into the dom
@@ -92,6 +92,51 @@ export default function MapComponent(props) {
 
     setMap(map);
 
+    const patternSelectorBoxWidth = 100; // box dimensions in map CRS units
+    const [mapCenterX, mapCenterY] = map.getView().getCenter();
+    const patternSelectorFeature = new Feature(
+      new Polygon([
+        [
+          [mapCenterX - patternSelectorBoxWidth / 2, mapCenterY - patternSelectorBoxWidth / 2],
+          [mapCenterX - patternSelectorBoxWidth / 2, mapCenterY + patternSelectorBoxWidth / 2],
+          [mapCenterX + patternSelectorBoxWidth / 2, mapCenterY + patternSelectorBoxWidth / 2],
+          [mapCenterX + patternSelectorBoxWidth / 2, mapCenterY - patternSelectorBoxWidth / 2],
+          [mapCenterX - patternSelectorBoxWidth / 2, mapCenterY - patternSelectorBoxWidth / 2],
+        ],
+      ]),
+    );
+    const patternSelectorLayer = new VectorLayer({
+      source: new VectorSource({
+        features: [
+          patternSelectorFeature,
+        ],
+      }),
+      style: new Style({
+        stroke: new Stroke({
+          width: 3,
+        }),
+        fill: new Fill({
+          color: [255, 255, 255, 0.4],
+        }),
+      }),
+      visible: false,
+    });
+
+    const translate = new Translate({
+      layers: [patternSelectorLayer],
+    });
+
+    translate.on(
+      'translateend',
+      () => {
+        console.log('finished translation');
+        console.log(patternSelectorFeature.getGeometry().getCoordinates());
+        setPatternSelectionBox(patternSelectorFeature.getGeometry().getCoordinates());
+      }
+    );
+    map.addLayer(patternSelectorLayer);
+    map.addInteraction(translate);
+
     // map click handler: visually select the clicked feature and save info in state
     const handleClick = async (event) => {
       await parcelLayer.getFeatures(event.pixel).then(async (features) => {
@@ -115,46 +160,8 @@ export default function MapComponent(props) {
 
   useEffect(() => {
     if (map) {
-      const patternSelectorBoxWidth = 100
-      const [mapCenterX, mapCenterY] = map.getView().getCenter();
-      const patternSelectorBox = new Feature(
-          new Polygon([
-            [
-              [mapCenterX - patternSelectorBoxWidth / 2, mapCenterY - patternSelectorBoxWidth / 2],
-              [mapCenterX - patternSelectorBoxWidth / 2, mapCenterY + patternSelectorBoxWidth / 2],
-              [mapCenterX + patternSelectorBoxWidth / 2, mapCenterY + patternSelectorBoxWidth / 2],
-              [mapCenterX + patternSelectorBoxWidth / 2, mapCenterY - patternSelectorBoxWidth / 2],
-              [mapCenterX - patternSelectorBoxWidth / 2, mapCenterY - patternSelectorBoxWidth / 2],
-            ],
-          ]),
-        );
-        const patternSelectorLayer = new VectorLayer({
-          source: new VectorSource({
-            features: [
-              patternSelectorBox,
-            ],
-          }),
-          style: new Style({
-            stroke: new Stroke({
-              width: 3,
-              color: [255, 0, 0, 1],
-            }),
-            fill: new Fill({
-              color: [0, 0, 255, 0.6],
-            }),
-          }),
-        });
-
-        const translate = new Translate({
-          layers: [patternSelectorLayer],
-        });
-
-      if (patternSelectMode) {
-        map.addLayer(patternSelectorLayer);
-        map.addInteraction(translate);
-      } else {
-        map.removeLayer(patternSelectorLayer);
-      }
+      const patternSelectorLayer = map.getLayers().getArray()[3];
+      patternSelectorLayer.setVisible(patternSelectMode);
     }
   }, [patternSelectMode]);
 
