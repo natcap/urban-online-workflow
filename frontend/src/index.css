@@ -41,13 +41,18 @@ html, body, #root, .App {
   padding-top:  1rem;
 }
 
-.layer-switcher {
-  left: 0.5em;
-  right: unset;
-  margin-top: 0.5rem;
+.layers-control {
+  position: absolute;
+  top: 3.5rem;
 }
 
-.layer-switcher button {
-  background-position: center;
-  background-size: contain;
+.layers-panel .hidden {
+  visibility: hidden;
+}
+
+.layers-checklist {
+  background-color: white;
+  list-style-type: none;
+  padding: 0.5rem;
+  margin: 0;
 }

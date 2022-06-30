@@ -10,9 +10,10 @@ import VectorTileSource from 'ol/source/VectorTile';
 import MapboxVectorLayer from 'ol/layer/MapboxVector';
 import { defaults } from 'ol/control';
 
-import LayerSwitcher from 'ol-layerswitcher';
+import { Button, Icon } from '@blueprintjs/core';
 
 import lulcLayer from './map/lulcLayer';
+import LayerPanel from './map/LayerPanel';
 
 const styleParcel = (zoom) => {
   const style = new Style({
@@ -54,8 +55,22 @@ function getCoords(geometry) {
 
 export default function MapComponent(props) {
   const { setParcel } = props;
+  const [layers, setLayers] = useState([]);
+  const [showLayerControl, setShowLayerControl] = useState(true);
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
+
+  const setVisibility = (lyr, visible) => {
+    lyr.setVisible(visible);
+  };
+
+  const toggleLayerControl = () => {
+    if (showLayerControl) {
+      setShowLayerControl(false);
+    } else {
+      setShowLayerControl(true);
+    }
+  };
 
   // useEffect with no dependencies: only runs after first render
   useEffect(() => {
@@ -71,10 +86,6 @@ export default function MapComponent(props) {
         attribution: true,
       }),
     });
-    const layerSwitcher = new LayerSwitcher({
-      reverse: true,
-    });
-    map.addControl(layerSwitcher);
 
     // const streetMapLayer = new TileLayer({ source: new OSM() });
     const lightMapLayer = new MapboxVectorLayer({
@@ -87,7 +98,7 @@ export default function MapComponent(props) {
       styleUrl: 'mapbox://styles/mapbox/streets-v11',
       accessToken: import.meta.env.VITE_DAVES_MAPBOX_TOKEN
     });
-    streetMapLayer.set('title', 'Streets1');
+    streetMapLayer.set('title', 'Streets');
     streetMapLayer.set('type', 'base');
     const parcelLayer = new VectorTileLayer({
       title: 'Parcels',
@@ -120,6 +131,7 @@ export default function MapComponent(props) {
     map.addLayer(lulcLayer);
     map.addLayer(parcelLayer);
     map.addLayer(selectionLayer);
+    setLayers(map.getLayers().getArray());
 
     // map click handler: visually select the clicked feature and save info in state
     const handleClick = async (event) => {
@@ -154,6 +166,19 @@ export default function MapComponent(props) {
   return (
     <div className="map-container">
       <div ref={mapElementRef} className="map-viewport" />
+      <div className="layers-control">
+        <Button
+          onClick={toggleLayerControl}
+        >
+          <Icon icon="layers" />
+        </Button>
+        <LayerPanel
+          className="layers-panel"
+          show={showLayerControl}
+          layers={layers}
+          setVisibility={setVisibility}
+        />
+      </div>
     </div>
   );
 }
