@@ -61,3 +61,7 @@ export async function getLulcCodes() {
   };
   return Promise.resolve(table);
 }
+
+export async function createPattern(geom, name) {
+  return Promise.resolve(window.crypto.getRandomValues(new Uint8Array(1))[0]);
+}

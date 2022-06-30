@@ -2,7 +2,7 @@ import { Map, View } from 'ol';
 import { Fill, Stroke, Style } from 'ol/style';
 import MVT from 'ol/format/MVT';
 import OSM from 'ol/source/OSM';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import TileLayer from 'ol/layer/Tile';
 import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
@@ -39,15 +39,15 @@ function getCoords(geometry) {
   return pairedCoords;
 }
 
-// get width and height in CRS corresponding to pixel size at given zoom
-function pixelSizeToCoods(x, zoom) {
-
-}
 
 export default function MapComponent(props) {
-  const { setParcel } = props;
+  const { setParcel, patternSelectMode } = props;
+  console.log('rendering map');
+  console.log(patternSelectMode);
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
+
+  const [map, setMap] = useState(undefined);
 
   // useEffect with no dependencies: only runs after first render
   useEffect(() => {
@@ -76,38 +76,6 @@ export default function MapComponent(props) {
       },
     });
 
-    const wallpaperPickerBox = new Feature(
-      new Polygon([
-        [
-          [-10964368.72, 3429876.58],
-          [-10964368.72, 3429977.59],
-          [-10964469.73, 3429977.59],
-          [-10964469.73, 3429876.58],
-          [-10964368.72, 3429876.58],
-        ],
-      ]),
-    );
-    const wallpaperPickerLayer = new VectorLayer({
-      source: new VectorSource({
-        features: [
-          wallpaperPickerBox,
-        ],
-      }),
-      style: new Style({
-        stroke: new Stroke({
-          width: 3,
-          color: [255, 0, 0, 1],
-        }),
-        fill: new Fill({
-          color: [0, 0, 255, 0.6],
-        }),
-      }),
-    });
-
-    const translate = new Translate({
-      layers: [wallpaperPickerLayer],
-    });
-
     // define the map
     const map = new Map({
       target: mapElementRef.current,
@@ -115,14 +83,14 @@ export default function MapComponent(props) {
         streetMapLayer,
         parcelLayer,
         selectionLayer,
-        wallpaperPickerLayer,
       ],
       view: new View({
         center: [-10964368.72, 3429876.58], // San Antonio, EPSG:3857
         zoom: 19,
       }),
-      interactions: defaultInteractions().extend([translate]),
     });
+
+    setMap(map);
 
     // map click handler: visually select the clicked feature and save info in state
     const handleClick = async (event) => {
@@ -144,6 +112,51 @@ export default function MapComponent(props) {
     };
     map.on(['click'], handleClick);
   }, []);
+
+  useEffect(() => {
+    if (map) {
+      const patternSelectorBoxWidth = 100
+      const [mapCenterX, mapCenterY] = map.getView().getCenter();
+      const patternSelectorBox = new Feature(
+          new Polygon([
+            [
+              [mapCenterX - patternSelectorBoxWidth / 2, mapCenterY - patternSelectorBoxWidth / 2],
+              [mapCenterX - patternSelectorBoxWidth / 2, mapCenterY + patternSelectorBoxWidth / 2],
+              [mapCenterX + patternSelectorBoxWidth / 2, mapCenterY + patternSelectorBoxWidth / 2],
+              [mapCenterX + patternSelectorBoxWidth / 2, mapCenterY - patternSelectorBoxWidth / 2],
+              [mapCenterX - patternSelectorBoxWidth / 2, mapCenterY - patternSelectorBoxWidth / 2],
+            ],
+          ]),
+        );
+        const patternSelectorLayer = new VectorLayer({
+          source: new VectorSource({
+            features: [
+              patternSelectorBox,
+            ],
+          }),
+          style: new Style({
+            stroke: new Stroke({
+              width: 3,
+              color: [255, 0, 0, 1],
+            }),
+            fill: new Fill({
+              color: [0, 0, 255, 0.6],
+            }),
+          }),
+        });
+
+        const translate = new Translate({
+          layers: [patternSelectorLayer],
+        });
+
+      if (patternSelectMode) {
+        map.addLayer(patternSelectorLayer);
+        map.addInteraction(translate);
+      } else {
+        map.removeLayer(patternSelectorLayer);
+      }
+    }
+  }, [patternSelectMode]);
 
   // render component
   return (

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Icon, IconSize } from "@blueprintjs/core";
 
 import {
   Radio,
@@ -23,6 +24,7 @@ export default function EditMenu(props) {
     parcel,
     savedScenarios,
     refreshSavedScenarios,
+    enterPatternSelectMode
   } = props;
 
   const [activeTab, setActiveTab] = useState('create');
@@ -128,6 +130,23 @@ export default function EditMenu(props) {
               </form>
             </div>
           )}
+        />
+        <Tab
+          id="wallpaper"
+          title="Wallpaper"
+          panel={
+            <div>
+              <button type="button" onClick={enterPatternSelectMode}>
+                <Icon icon="add" />
+                 Create a new pattern
+              </button>
+              <p>Drag the box over the area to sample.</p>
+              <button type="button" onClick={enterPatternSelectMode}>
+                <Icon icon="camera" />
+                Sample this pattern
+              </button>
+            </div>
+          }
         />
         <Tab
           id="explore"
