@@ -8,6 +8,7 @@ import TileLayer from 'ol/layer/Tile';
 import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
 import MapboxVectorLayer from 'ol/layer/MapboxVector';
+import { defaults } from 'ol/control';
 
 import LayerSwitcher from 'ol-layerswitcher';
 
@@ -65,6 +66,10 @@ export default function MapComponent(props) {
         projection: 'EPSG:3857',
         zoom: 19,
       }),
+      controls: defaults({
+        rotate: false,
+        attribution: true,
+      }),
     });
     const layerSwitcher = new LayerSwitcher({
       reverse: true,
@@ -77,11 +82,13 @@ export default function MapComponent(props) {
       accessToken: import.meta.env.VITE_DAVES_MAPBOX_TOKEN
     });
     lightMapLayer.set('title', 'Light Streets');
+    lightMapLayer.set('type', 'base');
     const streetMapLayer = new MapboxVectorLayer({
       styleUrl: 'mapbox://styles/mapbox/streets-v11',
       accessToken: import.meta.env.VITE_DAVES_MAPBOX_TOKEN
     });
     streetMapLayer.set('title', 'Streets1');
+    streetMapLayer.set('type', 'base');
     const parcelLayer = new VectorTileLayer({
       title: 'Parcels',
       source: new VectorTileSource({

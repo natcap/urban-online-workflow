@@ -41,11 +41,13 @@ html, body, #root, .App {
   padding-top:  1rem;
 }
 
-.layer-slider {
-  padding: 1rem;
-  padding-right: 5rem;
-  padding-left: 5rem;
-  position: absolute;
-  bottom: 0;
-  width: inherit;
+.layer-switcher {
+  left: 0.5em;
+  right: unset;
+  margin-top: 0.5rem;
+}
+
+.layer-switcher button {
+  background-position: center;
+  background-size: contain;
 }
