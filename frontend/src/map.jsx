@@ -8,6 +8,7 @@ import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
 import { Vector as VectorSource } from 'ol/source';
 import { Vector as VectorLayer } from 'ol/layer';
+import WKT from 'ol/format/WKT';
 import Feature from 'ol/Feature';
 import { Polygon } from 'ol/geom';
 import {
@@ -41,7 +42,7 @@ function getCoords(geometry) {
 
 
 export default function MapComponent(props) {
-  const { setParcel, patternSelectMode, setPatternSelectionBox } = props;
+  const { setParcel, patternSelectMode, setPatternSelectionWKT } = props;
   console.log('rendering map');
   console.log(patternSelectMode);
   // refs for elements to insert openlayers-controlled nodes into the dom
@@ -126,13 +127,16 @@ export default function MapComponent(props) {
       layers: [patternSelectorLayer],
     });
 
+    const wkt = new WKT();
+    // when the box appears, or when the user finishes dragging the box,
+    // update state with its new location
     translate.on(
       'translateend',
-      () => {
-        console.log('finished translation');
-        console.log(patternSelectorFeature.getGeometry().getCoordinates());
-        setPatternSelectionBox(patternSelectorFeature.getGeometry().getCoordinates());
-      }
+      () => setPatternSelectionWKT(wkt.writeFeature(patternSelectorFeature))
+    );
+    patternSelectorLayer.on(
+      'change:visible',
+      () => setPatternSelectionWKT(wkt.writeFeature(patternSelectorFeature))
     );
     map.addLayer(patternSelectorLayer);
     map.addInteraction(translate);

@@ -8,7 +8,7 @@ export default function App() {
   const [parcel, setParcel] = useState(null);
   const [savedScenarios, setSavedScenarios] = useState([]);
   const [patternSelectMode, setPatternSelectMode] = useState(false);
-  const [patternSelectionBox, setPatternSelectionBox] = useState(null);
+  const [patternSelectionWKT, setPatternSelectionWKT] = useState(null);
 
   const refreshSavedScenarios = async () => {
     const scenarios = await getAllScenarios();
@@ -29,7 +29,7 @@ export default function App() {
   }
 
   console.log('rendering app');
-  console.log('pattern box', patternSelectionBox);
+  console.log('pattern box', patternSelectionWKT);
 
   return (
     <div className="App">
@@ -37,7 +37,7 @@ export default function App() {
         <MapComponent
           setParcel={setParcel}
           patternSelectMode={patternSelectMode}
-          setPatternSelectionBox={setPatternSelectionBox}
+          setPatternSelectionWKT={setPatternSelectionWKT}
         />
         <EditMenu
           parcel={parcel}
@@ -45,7 +45,7 @@ export default function App() {
           savedScenarios={savedScenarios}
           patternSelectMode={patternSelectMode}
           togglePatternSelectMode={togglePatternSelectMode}
-          patternSelectionBox={patternSelectionBox}
+          patternSelectionWKT={patternSelectionWKT}
         />
       </div>
     </div>
