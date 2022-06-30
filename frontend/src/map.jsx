@@ -42,9 +42,7 @@ function getCoords(geometry) {
 
 
 export default function MapComponent(props) {
-  const { setParcel, patternSelectMode, setPatternSelectionWKT } = props;
-  console.log('rendering map');
-  console.log(patternSelectMode);
+  const { setParcel, patternSamplingMode, setPatternSampleWKT } = props;
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
 
@@ -93,23 +91,23 @@ export default function MapComponent(props) {
 
     setMap(map);
 
-    const patternSelectorBoxWidth = 100; // box dimensions in map CRS units
+    const patternSamplerBoxWidth = 100; // box dimensions in map CRS units
     const [mapCenterX, mapCenterY] = map.getView().getCenter();
-    const patternSelectorFeature = new Feature(
+    const patternSamplerFeature = new Feature(
       new Polygon([
         [
-          [mapCenterX - patternSelectorBoxWidth / 2, mapCenterY - patternSelectorBoxWidth / 2],
-          [mapCenterX - patternSelectorBoxWidth / 2, mapCenterY + patternSelectorBoxWidth / 2],
-          [mapCenterX + patternSelectorBoxWidth / 2, mapCenterY + patternSelectorBoxWidth / 2],
-          [mapCenterX + patternSelectorBoxWidth / 2, mapCenterY - patternSelectorBoxWidth / 2],
-          [mapCenterX - patternSelectorBoxWidth / 2, mapCenterY - patternSelectorBoxWidth / 2],
+          [mapCenterX - patternSamplerBoxWidth / 2, mapCenterY - patternSamplerBoxWidth / 2],
+          [mapCenterX - patternSamplerBoxWidth / 2, mapCenterY + patternSamplerBoxWidth / 2],
+          [mapCenterX + patternSamplerBoxWidth / 2, mapCenterY + patternSamplerBoxWidth / 2],
+          [mapCenterX + patternSamplerBoxWidth / 2, mapCenterY - patternSamplerBoxWidth / 2],
+          [mapCenterX - patternSamplerBoxWidth / 2, mapCenterY - patternSamplerBoxWidth / 2],
         ],
       ]),
     );
-    const patternSelectorLayer = new VectorLayer({
+    const patternSamplerLayer = new VectorLayer({
       source: new VectorSource({
         features: [
-          patternSelectorFeature,
+          patternSamplerFeature,
         ],
       }),
       style: new Style({
@@ -124,7 +122,7 @@ export default function MapComponent(props) {
     });
 
     const translate = new Translate({
-      layers: [patternSelectorLayer],
+      layers: [patternSamplerLayer],
     });
 
     const wkt = new WKT();
@@ -132,13 +130,13 @@ export default function MapComponent(props) {
     // update state with its new location
     translate.on(
       'translateend',
-      () => setPatternSelectionWKT(wkt.writeFeature(patternSelectorFeature))
+      () => setPatternSampleWKT(wkt.writeFeature(patternSamplerFeature))
     );
-    patternSelectorLayer.on(
+    patternSamplerLayer.on(
       'change:visible',
-      () => setPatternSelectionWKT(wkt.writeFeature(patternSelectorFeature))
+      () => setPatternSampleWKT(wkt.writeFeature(patternSamplerFeature))
     );
-    map.addLayer(patternSelectorLayer);
+    map.addLayer(patternSamplerLayer);
     map.addInteraction(translate);
 
     // map click handler: visually select the clicked feature and save info in state
@@ -164,10 +162,10 @@ export default function MapComponent(props) {
 
   useEffect(() => {
     if (map) {
-      const patternSelectorLayer = map.getLayers().getArray()[3];
-      patternSelectorLayer.setVisible(patternSelectMode);
+      const patternSamplerLayer = map.getLayers().getArray()[3];
+      patternSamplerLayer.setVisible(patternSamplingMode);
     }
-  }, [patternSelectMode]);
+  }, [patternSamplingMode]);
 
   // render component
   return (

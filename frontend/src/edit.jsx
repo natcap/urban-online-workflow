@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Icon, IconSize, Switch } from "@blueprintjs/core";
+import { Icon, Switch } from "@blueprintjs/core";
 
 import {
   Radio,
@@ -26,9 +26,9 @@ export default function EditMenu(props) {
     parcel,
     savedScenarios,
     refreshSavedScenarios,
-    patternSelectMode,
-    togglePatternSelectMode,
-    patternSelectionWKT,
+    patternSamplingMode,
+    togglePatternSamplingMode,
+    patternSampleWKT,
   } = props;
 
   const [activeTab, setActiveTab] = useState('create');
@@ -98,10 +98,9 @@ export default function EditMenu(props) {
 
   const handleSamplePattern = async (event) => {
     event.preventDefault();
-    console.log('create pattern');
-    await createPattern(patternSelectionWKT, newPatternName);
+    await createPattern(patternSampleWKT, newPatternName);
     setPatterns(await getPatterns());
-    togglePatternSelectMode();
+    togglePatternSamplingMode();
   }
 
   const patternSampleForm = (
@@ -163,10 +162,10 @@ export default function EditMenu(props) {
           panel={
             <div>
               <Switch
-                checked={patternSelectMode}
+                checked={patternSamplingMode}
                 labelElement={<strong>Pattern sampling mode</strong>}
-                onChange={togglePatternSelectMode} />
-              {patternSelectMode ? patternSampleForm : <React.Fragment />}
+                onChange={togglePatternSamplingMode} />
+              {patternSamplingMode ? patternSampleForm : <React.Fragment />}
             </div>
           }
         />
