@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 
-import { Checkbox } from '@blueprintjs/core';
+import {
+  Checkbox,
+  Radio,
+  RadioGroup,
+} from '@blueprintjs/core';
 
 function LayerCheckbox(props) {
   const { layer, label, setVisibility } = props;
@@ -22,27 +26,53 @@ function LayerCheckbox(props) {
 
 export default function LayerPanel(props) {
   const { layers, setVisibility, show } = props;
-  console.log(show)
+  const [basemap, setBasemap] = useState('Streets');
   if (!show) {
     return null;
   }
+
+  const changeBasemap = (event) => {
+    const title = event.target.value;
+    setBasemap(title);
+    layers.forEach((layer) => {
+      if (layer.get('type') === 'base') {
+        setVisibility(layer, layer.get('title') === title);
+      }
+    });
+  };
+
   const checkboxes = [];
+  const radios = [];
   layers.forEach((layer) => {
-    checkboxes.push(
-      <li key={layer.get('title')}>
+    if (layer.get('type') === 'base') {
+      const title = layer.get('title');
+      radios.push(
+        <Radio
+          key={title}
+          label={title}
+          value={title}
+        />
+      );
+    } else {
+      checkboxes.push(
         <LayerCheckbox
+          key={layer.get('title')}
           layer={layer}
           label={layer.get('title')}
           setVisibility={setVisibility}
         />
-      </li>
-    );
+      );
+    }
   });
   return (
-    <div>
-      <ul className="layers-checklist">
-        {checkboxes}
-      </ul>
+    <div className="layers-panel">
+      {checkboxes}
+      <RadioGroup
+        onChange={changeBasemap}
+        selectedValue={basemap}
+      >
+        {radios}
+      </RadioGroup>
     </div>
   );
 }

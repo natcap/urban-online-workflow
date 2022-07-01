@@ -44,15 +44,19 @@ html, body, #root, .App {
 .layers-control {
   position: absolute;
   top: 3.5rem;
+  left: 0.5rem;
 }
 
-.layers-panel .hidden {
-  visibility: hidden;
+.layers-control button {
+  min-width: 24px;
+  min-height: 24px;
 }
 
-.layers-checklist {
+.layers-panel {
   background-color: white;
   list-style-type: none;
   padding: 0.5rem;
   margin: 0;
+  filter: drop-shadow(2px 2px 2px grey);
 }
+

@@ -56,8 +56,7 @@ function getCoords(geometry) {
 export default function MapComponent(props) {
   const { setParcel } = props;
   const [layers, setLayers] = useState([]);
-  const [showLayerControl, setShowLayerControl] = useState(true);
-  // refs for elements to insert openlayers-controlled nodes into the dom
+  const [showLayerControl, setShowLayerControl] = useState(false);
   const mapElementRef = useRef();
 
   const setVisibility = (lyr, visible) => {
@@ -90,13 +89,14 @@ export default function MapComponent(props) {
     // const streetMapLayer = new TileLayer({ source: new OSM() });
     const lightMapLayer = new MapboxVectorLayer({
       styleUrl: 'mapbox://styles/mapbox/light-v10',
-      accessToken: import.meta.env.VITE_DAVES_MAPBOX_TOKEN
+      accessToken: import.meta.env.VITE_DAVES_MAPBOX_TOKEN,
+      visible: false,
     });
     lightMapLayer.set('title', 'Light Streets');
     lightMapLayer.set('type', 'base');
     const streetMapLayer = new MapboxVectorLayer({
       styleUrl: 'mapbox://styles/mapbox/streets-v11',
-      accessToken: import.meta.env.VITE_DAVES_MAPBOX_TOKEN
+      accessToken: import.meta.env.VITE_DAVES_MAPBOX_TOKEN,
     });
     streetMapLayer.set('title', 'Streets');
     streetMapLayer.set('type', 'base');
@@ -153,6 +153,7 @@ export default function MapComponent(props) {
     };
     map.on(['click'], handleClick);
 
+    // Some layers have style dependent on zoom level
     let currentZoom = map.getView().getZoom();
     map.on(['moveend'], () => {
       const newZoom = map.getView().getZoom();
@@ -173,9 +174,8 @@ export default function MapComponent(props) {
           <Icon icon="layers" />
         </Button>
         <LayerPanel
-          className="layers-panel"
           show={showLayerControl}
-          layers={layers}
+          layers={[...layers].reverse()} // copy array & reverse it
           setVisibility={setVisibility}
         />
       </div>
