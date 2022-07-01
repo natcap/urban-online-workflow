@@ -17,6 +17,9 @@ class Scenario(ScenarioBase):
     """Pydantic model (schema) used when reading data, when returning it from API."""
     scenario_id: int
     owner_id: str
+    wkt: str
+    lulc_result: str
+    lulc_base: str
 
     class Config:
         orm_mode = True
