@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Icon, Switch } from "@blueprintjs/core";
+import { Button, FormGroup, InputGroup, Icon, Switch, FocusStyleManager } from "@blueprintjs/core";
 
 import {
   Radio,
@@ -20,6 +20,8 @@ import {
 import useInterval from './hooks/useInterval';
 import ScenarioTable from './scenarioTable';
 import ParcelTable from './parcelTable';
+
+FocusStyleManager.onlyShowFocusOnTabs();
 
 export default function EditMenu(props) {
   const {
@@ -106,18 +108,17 @@ export default function EditMenu(props) {
   const patternSampleForm = (
     <>
     <p>Drag the box over the area to sample.</p>
-    <form onSubmit={handleSamplePattern}>
-      <button type="submit">
-        <Icon icon="camera" />
-        Sample this pattern
-      </button>
-      as
-      <input
-        type="text"
+    <FormGroup label="Name" labelFor="text-input">
+      <InputGroup
+        id="text-input"
+        placeholder="Placeholder text"
         value={newPatternName}
-        onChange={(event) => setNewPatternName(event.target.value)}
-      />
-    </form>
+        onChange={(event) => setNewPatternName(event.target.value)} />
+    </FormGroup>
+    <Button
+      icon="camera"
+      text="Sample this pattern"
+      onClick={handleSamplePattern} />
     </>
   );
 
@@ -138,7 +139,7 @@ export default function EditMenu(props) {
                   onChange={handleRadio}
                   selectedValue={pattern}
                 >
-                  {patterns.map(pattern => <Radio value={pattern} label={pattern} />)}
+                  {patterns.map(pattern => <Radio key={pattern} value={pattern} label={pattern} />)}
                 </RadioGroup>
                 <h4>Add this modification to a scenario</h4>
                 <datalist id="scenariolist">
