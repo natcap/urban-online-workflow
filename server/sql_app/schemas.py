@@ -69,9 +69,6 @@ class JobBase(BaseModel):
     status: str
 
 
-#TODO: will we need to periodically clean up completed / failed jobs?
-# If so, we should make sure the frontend has what it needs to get removed job
-# results.
 class Job(JobBase):
     """Pydantic model (schema) used when reading data, when returning it from API."""
     job_id: int
@@ -82,6 +79,13 @@ class Job(JobBase):
 
 class JobStatus(BaseModel):
     status: str
+
+    class Config:
+        orm_mode = True
+
+
+class JobOut(BaseModel):
+    job_id: int
 
     class Config:
         orm_mode = True

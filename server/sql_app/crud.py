@@ -148,10 +148,10 @@ def update_job(db: Session, job: schemas.Job, job_id: int):
     return "success"
 
 # Normally blocking call (InVEST model, PGP call, wallpapering, ...)
-def test_job_task(job_details):
+def test_job_task(job_param):
     LOGGER.debug('Running job operation')
 
-    sleep_time = job_details['param']
+    sleep_time = job_param
     # Sleep for the "sleep_time" seconds.
     time.sleep(sleep_time)
     LOGGER.debug(f'Done sleeping for {sleep_time} seconds')

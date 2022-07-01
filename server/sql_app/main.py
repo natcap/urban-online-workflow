@@ -73,6 +73,21 @@ def handle_result(fut):
 
 # Our worker to run tasks
 async def worker(name, queue):
+    """Handle jobs in the priority queue.
+
+    Args:
+        name (string) - name for the asyncio worker task
+        queue (asyncio.PriorityQueue) - priority queue to get jobs from where
+            the returned queue item is a tuple of: (priority (int), job (dict))
+            The job dictionary has keys of:
+                'job' (object) - a function to call
+                'param' (object) - parameters to pass to `job`.
+                'name' (string) - name of job
+                'description' (string) - job description
+                'status' (int) - job status [0 | 1 | 2 | 3]
+                'job_id' (int) - database job ID
+                'db' (database reference) - db session
+    """
     while True:
         # Get a "work item" out of the queue.
         job_priority, job_details = await queue.get()
@@ -81,32 +96,39 @@ async def worker(name, queue):
         # I had a try/except here before adding the `add_done_callback` because
         # there was an exception happening that I was never seeing in the console
         try:
-            job_schema = schemas.JobBase(**{"name": "my-job", "description": "my-desc", "status": 1})
-            LOGGER.debug('Update job')
-            crud.update_job(db=job_details['db'], job=job_schema, job_id=job_details['job_id'])
+            # Update the job status in the DB to "running"
+            job_schema = schemas.JobBase(**{
+                'name': job_details['name'],
+                'description': job_details['description'],
+                'status': 1})
+            LOGGER.debug('Update job status')
+            crud.update_job(
+                db=job_details['db'], job=job_schema, job_id=job_details['job_id'])
         except Exception as err:
             LOGGER.error(f'Error: {err}')
 
-        # Sleep for the "sleep_for" seconds.
-        #await asyncio.sleep(sleep_for)
         run_op = job_details['job']
         # 'gather' and 'to_thread' allows us to await blocking calls for
         # I/O bound or CPU bound processes.
         await asyncio.gather(
-            asyncio.to_thread(run_op, job_details))
+            asyncio.to_thread(run_op, job_details['param']))
 
         # Notify the queue that the "work item" has been processed.
         queue.task_done()
-        job_schema = schemas.JobBase(**{"name": "my-job", "description": "my-desc", "status": 2})
-        LOGGER.debug('Update job')
-        crud.update_job(db=job_details['db'], job=job_schema, job_id=job_details['job_id'])
+        # Update job status to "success"
+        job_schema = schemas.JobBase(**{
+            'name': job_details['name'],
+            'description': job_details['description'],
+            'status': 2})
+        LOGGER.debug('Update job status')
+        crud.update_job(
+            db=job_details['db'], job=job_schema, job_id=job_details['job_id'])
 
-        LOGGER.debug(f'{name} has slept for {job_details["param"]} seconds')
+        LOGGER.debug(f'JOB: {job_details["name"]} has completed')
 
 
 ### User / Session Endpoints ###
 
-#def create_user(schemas.UserCreate, db: Session = Depends(get_db)):
 @app.post("/users/", response_model=schemas.UserOut)
 def create_user(db: Session = Depends(get_db)):
     # Notice that the values returned are SQLA models. But as all path operations
@@ -179,20 +201,28 @@ def read_scenarios(session_id: str, db: Session = Depends(get_db)):
 
 ### Job Endpoints ###
 
-@app.get("/test-async-job/{sleep_time}")
+@app.get("/test-async-job/{sleep_time}", response_model=schemas.JobOut)
 async def test_async_job(sleep_time: int, db: Session = Depends(get_db)):
-    job_schema = schemas.JobBase(**{"name": "my-job", "description": "my-desc", "status": 0})
+    job_schema = schemas.JobBase(
+        **{"name": "sleep", "description": "sleep for a few seconds.",
+           "status": 0})
+    # Add the job to the DB
     job_db = crud.create_job(db, job_schema)
 
-    job_task = {'job': crud.test_job_task, 'param': sleep_time, 'job_id': job_db.job_id, 'db': db}
+    # Set up job package
+    job_task = {
+        **job_schema.dict(), 'job': crud.test_job_task, 'param': sleep_time,
+        'job_id': job_db.job_id, 'db': db}
     priority = 2
 
     QUEUE.put_nowait((priority, job_task))
     task = asyncio.create_task(worker(f'worker-{len(TASKS)+1}', QUEUE))
+    # This helps catch any exceptions that might have happened in our worker
     task.add_done_callback(handle_result)
     TASKS.append(task)
-    LOGGER.debug('return job added')
-    return "job added"
+    LOGGER.debug(f'Job {job_db.job_id} added')
+    # Return the job_id in the response
+    return {'job_id': job_db.job_id}
 
 
 @app.post("/jobs/", response_model=schemas.Job)
