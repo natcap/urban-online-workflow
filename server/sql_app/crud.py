@@ -120,7 +120,7 @@ def get_jobs(db: Session, skip: int = 0, limit: int = 100):
 
 # read job by ID
 def get_job(db: Session, job_id: int):
-    return db.query(models.Job).filter(models.Job.job_id == job_id).firts()
+    return db.query(models.Job).filter(models.Job.job_id == job_id).first()
 
 
 def create_job(db: Session, job: schemas.JobBase):
