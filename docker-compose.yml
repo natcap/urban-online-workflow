@@ -1,0 +1,7 @@
+services:
+    api:
+        build: server
+        ports:
+            - 8000:8000
+        volumes:
+            - ./server:/opt/server
