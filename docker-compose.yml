@@ -5,3 +5,8 @@ services:
             - 8000:8000
         volumes:
             - ./server:/opt/server
+    worker:
+        build: backend-worker
+        volumes:
+            - ./backend-worker:/opt/worker
+
