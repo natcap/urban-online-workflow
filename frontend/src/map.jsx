@@ -55,18 +55,6 @@ const parcelLayer = new VectorTileLayer({
   }),
   minZoom: 18, // don't display this layer below zoom level 17
 });
-let selectedFeature;
-const selectionLayer = new VectorTileLayer({
-  renderMode: 'vector',
-  source: parcelLayer.getSource(),
-  style: (feature) => {
-    // have to compare feature ids, not the feature objects, because tiling
-    // will split some features in to multiple objects with the same id
-    if (selectedFeature && feature.getId() === selectedFeature.getId()) {
-      return selectedFeatureStyle;
-    }
-  },
-});
 
 const patternSamplerFeature = new Feature();
 const patternSamplerLayer = new VectorLayer({
@@ -84,6 +72,23 @@ const translate = new Translate({
   layers: [patternSamplerLayer],
 });
 
+const selectedParcel = {
+  feature: undefined,
+  coords: undefined,
+};
+
+const selectionLayer = new VectorTileLayer({
+  renderMode: 'vector',
+  source: parcelLayer.getSource(),
+  style: (feature) => {
+    // have to compare feature ids, not the feature objects, because tiling
+    // will split some features in to multiple objects with the same id
+    if (selectedParcel.feature && feature.getId() === selectedParcel.feature.getId()) {
+      return selectedFeatureStyle;
+    }
+  },
+});
+
 // define the map
 const map = new Map({
   layers: [
@@ -98,6 +103,26 @@ const map = new Map({
   }),
   interactions: defaultInteractions().extend([translate]),
 });
+
+// map click handler: visually select the clicked feature and save info in state
+const handleClick = async (event) => {
+  parcelLayer.getFeatures(event.pixel).then((features) => {
+    const feature = features.length ? features[0] : undefined;
+    let coords = undefined;
+    let parcelID = undefined;
+    if (feature) {
+      // NOTE that a feature's geometry can change with the tile/zoom level and view position
+      // and so its coordinates will change slightly.
+      // for best precision, maybe don't get the coordinates on the client side
+      coords = getCoords(feature);
+      parcelID = feature.get('OBJECTID');
+    }
+    selectionLayer.changed();
+    selectedParcel.feature = feature;
+    selectedParcel.coords = coords
+  });
+};
+map.on(['click'], handleClick);
 
 export default function MapComponent(props) {
   const { setParcel, patternSamplingMode, setPatternSampleWKT } = props;
@@ -136,22 +161,7 @@ export default function MapComponent(props) {
   }, [patternSamplingMode]);
 
   // map click handler: visually select the clicked feature and save info in state
-  const handleClick = async (event) => {
-    await parcelLayer.getFeatures(event.pixel).then(async (features) => {
-      const feature = features.length ? features[0] : undefined;
-      selectedFeature = feature;
-      if (feature) {
-        // NOTE that a feature's geometry can change with the tile/zoom level and view position
-        // and so its coordinates will change slightly.
-        // for best precision, maybe don't get the coordinates on the client side
-        const coords = getCoords(feature);
-        const parcelID = feature.get('OBJECTID');
-        setParcel({ id: parcelID, coords: coords });
-      }
-      selectionLayer.changed();
-    });
-  };
-  map.on(['click'], handleClick);
+  map.on(['click'], () => setParcel(selectedParcel));
 
   // render component
   return (
