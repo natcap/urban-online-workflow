@@ -3,17 +3,20 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Map, View } from 'ol';
 import { Fill, Stroke, Style } from 'ol/style';
 import MVT from 'ol/format/MVT';
-import OSM from 'ol/source/OSM';
-import TileLayer from 'ol/layer/Tile';
 import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
-import MapboxVectorLayer from 'ol/layer/MapboxVector';
 import { defaults } from 'ol/control';
 
 import { Button, Icon } from '@blueprintjs/core';
 
 import lulcLayer from './map/lulcLayer';
 import LayerPanel from './map/LayerPanel';
+import {
+  satelliteLayer,
+  lightMapLayer,
+  streetMapLayer,
+  labelLayer,
+} from './map/baseLayers';
 
 const styleParcel = (zoom) => {
   const style = new Style({
@@ -86,20 +89,6 @@ export default function MapComponent(props) {
       }),
     });
 
-    // const streetMapLayer = new TileLayer({ source: new OSM() });
-    const lightMapLayer = new MapboxVectorLayer({
-      styleUrl: 'mapbox://styles/mapbox/light-v10',
-      accessToken: import.meta.env.VITE_DAVES_MAPBOX_TOKEN,
-      visible: false,
-    });
-    lightMapLayer.set('title', 'Light Streets');
-    lightMapLayer.set('type', 'base');
-    const streetMapLayer = new MapboxVectorLayer({
-      styleUrl: 'mapbox://styles/mapbox/streets-v11',
-      accessToken: import.meta.env.VITE_DAVES_MAPBOX_TOKEN,
-    });
-    streetMapLayer.set('title', 'Streets');
-    streetMapLayer.set('type', 'base');
     const parcelLayer = new VectorTileLayer({
       title: 'Parcels',
       source: new VectorTileSource({
@@ -126,11 +115,13 @@ export default function MapComponent(props) {
       },
     });
 
+    map.addLayer(satelliteLayer);
     map.addLayer(streetMapLayer);
     map.addLayer(lightMapLayer);
     map.addLayer(lulcLayer);
     map.addLayer(parcelLayer);
     map.addLayer(selectionLayer);
+    map.addLayer(labelLayer);
     setLayers(map.getLayers().getArray());
 
     // map click handler: visually select the clicked feature and save info in state

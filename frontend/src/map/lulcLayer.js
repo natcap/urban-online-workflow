@@ -23,6 +23,8 @@ export default new TileLayer({
       'palette',
       ['*', ['band', 1], 255],
       lulcColors,
-    ]
+    ],
+    saturation: -0.3,
+    contrast: -0.4,
   }
 });
