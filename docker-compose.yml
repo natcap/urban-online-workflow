@@ -4,7 +4,7 @@ services:
         ports:
             - 3000:3000
         volumes:
-            - ./frontend:/opt/frontend
+            - ./frontend/src:/opt/frontend/src
     api:
         build: server
         ports:
