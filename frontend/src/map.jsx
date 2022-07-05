@@ -30,7 +30,8 @@ function getCoords(geometry) {
   return pairedCoords;
 }
 
-function centeredSquare(centerX, centerY, width) {
+function centeredPatternSamplerGeom(centerX, centerY) {
+  const width = 100; // box dimensions in map CRS units
   return new Polygon([
     [
       [centerX - width / 2, centerY - width / 2],
@@ -67,7 +68,6 @@ const selectionLayer = new VectorTileLayer({
   },
 });
 
-const patternSamplerBoxWidth = 100; // box dimensions in map CRS units
 const patternSamplerFeature = new Feature();
 const patternSamplerLayer = new VectorLayer({
   source: new VectorSource({
@@ -128,7 +128,7 @@ export default function MapComponent(props) {
         // recenter the sampler box in the current view
         const [mapCenterX, mapCenterY] = map.getView().getCenter();
         patternSamplerFeature.setGeometry(
-          centeredSquare(mapCenterX, mapCenterY, patternSamplerBoxWidth)
+          centeredPatternSamplerGeom(mapCenterX, mapCenterY)
         );
       }
       patternSamplerLayer.setVisible(patternSamplingMode);
