@@ -72,10 +72,7 @@ const translate = new Translate({
   layers: [patternSamplerLayer],
 });
 
-const selectedParcel = {
-  feature: undefined,
-  coords: undefined,
-};
+let selectedFeature = null;
 
 const selectionLayer = new VectorTileLayer({
   renderMode: 'vector',
@@ -83,7 +80,7 @@ const selectionLayer = new VectorTileLayer({
   style: (feature) => {
     // have to compare feature ids, not the feature objects, because tiling
     // will split some features in to multiple objects with the same id
-    if (selectedParcel.feature && feature.getId() === selectedParcel.feature.getId()) {
+    if (selectedFeature && feature.getId() === selectedFeature.getId()) {
       return selectedFeatureStyle;
     }
   },
@@ -104,26 +101,6 @@ const map = new Map({
   interactions: defaultInteractions().extend([translate]),
 });
 
-// map click handler: visually select the clicked feature and save info in state
-const handleClick = async (event) => {
-  parcelLayer.getFeatures(event.pixel).then((features) => {
-    const feature = features.length ? features[0] : undefined;
-    let coords = undefined;
-    let parcelID = undefined;
-    if (feature) {
-      // NOTE that a feature's geometry can change with the tile/zoom level and view position
-      // and so its coordinates will change slightly.
-      // for best precision, maybe don't get the coordinates on the client side
-      coords = getCoords(feature);
-      parcelID = feature.get('OBJECTID');
-    }
-    selectionLayer.changed();
-    selectedParcel.feature = feature;
-    selectedParcel.coords = coords
-  });
-};
-map.on(['click'], handleClick);
-
 export default function MapComponent(props) {
   const { setParcel, patternSamplingMode, setPatternSampleWKT } = props;
   // refs for elements to insert openlayers-controlled nodes into the dom
@@ -143,6 +120,23 @@ export default function MapComponent(props) {
       'change:visible',
       () => setPatternSampleWKT(wkt.writeFeature(patternSamplerFeature))
     );
+
+    // map click handler: visually select the clicked feature and save info in state
+    map.on(['click'], async (event) => {
+      parcelLayer.getFeatures(event.pixel).then((features) => {
+        const feature = features.length ? features[0] : undefined;
+        let coords = undefined;
+        if (feature) {
+          // NOTE that a feature's geometry can change with the tile/zoom level and view position
+          // and so its coordinates will change slightly.
+          // for best precision, maybe don't get the coordinates on the client side
+          coords = getCoords(feature);
+        }
+        selectedFeature = feature;
+        selectionLayer.changed();
+        setParcel({coords: coords});
+      });
+    });
   }, []);
 
   // toggle pattern sampler visibility according to the pattern sampling mode
@@ -159,9 +153,6 @@ export default function MapComponent(props) {
       patternSamplerLayer.setVisible(patternSamplingMode);
     }
   }, [patternSamplingMode]);
-
-  // map click handler: visually select the clicked feature and save info in state
-  map.on(['click'], () => setParcel(selectedParcel));
 
   // render component
   return (
