@@ -82,6 +82,7 @@ const parcelLayer = new VectorTileLayer({
   }),
   minZoom: 18, // don't display this layer below zoom level 17
 });
+parcelLayer.set('title', 'Parcels');
 
 const patternSamplerFeature = new Feature();
 const patternSamplerLayer = new VectorLayer({
@@ -100,7 +101,6 @@ const translate = new Translate({
 });
 
 let selectedFeature = null;
-
 const selectionLayer = new VectorTileLayer({
   renderMode: 'vector',
   source: parcelLayer.getSource(),
@@ -112,14 +112,19 @@ const selectionLayer = new VectorTileLayer({
     }
   },
 });
+selectionLayer.set('title', 'Selected Parcels');
 
 // define the map
 const map = new Map({
   layers: [
+    satelliteLayer,
     streetMapLayer,
+    lightMapLayer,
+    lulcLayer,
     parcelLayer,
     selectionLayer,
     patternSamplerLayer,
+    labelLayer,
   ],
   view: new View({
     center: [-10964368.72, 3429876.58], // San Antonio, EPSG:3857
@@ -154,13 +159,6 @@ export default function MapComponent(props) {
   // useEffect with no dependencies: only runs after first render
   useEffect(() => {
     map.setTarget(mapElementRef.current);
-    map.addLayer(satelliteLayer);
-    map.addLayer(streetMapLayer);
-    map.addLayer(lightMapLayer);
-    map.addLayer(lulcLayer);
-    map.addLayer(parcelLayer);
-    map.addLayer(selectionLayer);
-    map.addLayer(labelLayer);
     setLayers(map.getLayers().getArray());
 
     // when the box appears, or when the user finishes dragging the box,
