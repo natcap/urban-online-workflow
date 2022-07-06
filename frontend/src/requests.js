@@ -61,3 +61,13 @@ export async function getLulcCodes() {
   };
   return Promise.resolve(table);
 }
+
+export async function getPatterns() {
+  return Promise.resolve(["orchard", "city park", "housing"]);
+}
+
+// Return a globally unique ID for the pattern
+export async function createPattern(geom, name) {
+  console.log(`create pattern ${name} with geometry ${geom}`);
+  return Promise.resolve(window.crypto.getRandomValues(new Uint8Array(1))[0]);
+}

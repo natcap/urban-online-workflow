@@ -1,0 +1,3 @@
+[submodule "backend-experiments/10-convert-nlcd-to-epsg3857/cog_validator"]
+	path = backend-experiments/10-convert-nlcd-to-epsg3857/cog_validator
+	url = https://github.com/rouault/cog_validator.git
