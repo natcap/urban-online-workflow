@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Button, FormGroup, InputGroup, Icon, Switch, FocusStyleManager } from "@blueprintjs/core";
 
 import {
   Radio,
@@ -13,16 +14,23 @@ import {
   getLulcTableForParcel,
   getWallpaperResults,
   getStatus,
+  getPatterns,
+  createPattern
 } from './requests';
 import useInterval from './hooks/useInterval';
 import ScenarioTable from './scenarioTable';
 import ParcelTable from './parcelTable';
+
+FocusStyleManager.onlyShowFocusOnTabs();
 
 export default function EditMenu(props) {
   const {
     parcel,
     savedScenarios,
     refreshSavedScenarios,
+    patternSamplingMode,
+    togglePatternSamplingMode,
+    patternSampleWKT,
   } = props;
 
   const [activeTab, setActiveTab] = useState('create');
@@ -31,6 +39,13 @@ export default function EditMenu(props) {
   const [pattern, setPattern] = useState('');
   const [parcelTable, setParcelTable] = useState(null);
   const [jobID, setJobID] = useState(null);
+  const [patterns, setPatterns] = useState([]);
+  const [newPatternName, setNewPatternName] = useState("New Pattern 1");
+
+  // On first render, get the list of available patterns
+  useEffect(async () => {
+    setPatterns(await getPatterns());
+  }, []);
 
   useEffect(async () => {
     if (parcel) {
@@ -83,6 +98,30 @@ export default function EditMenu(props) {
     setActiveTab(tabID);
   };
 
+  const handleSamplePattern = async (event) => {
+    event.preventDefault();
+    await createPattern(patternSampleWKT, newPatternName);
+    setPatterns(await getPatterns());
+    togglePatternSamplingMode();
+  }
+
+  const patternSampleForm = (
+    <>
+    <p>Drag the box over the area to sample.</p>
+    <FormGroup label="Name" labelFor="text-input">
+      <InputGroup
+        id="text-input"
+        placeholder="Placeholder text"
+        value={newPatternName}
+        onChange={(event) => setNewPatternName(event.target.value)} />
+    </FormGroup>
+    <Button
+      icon="camera"
+      text="Sample this pattern"
+      onClick={handleSamplePattern} />
+    </>
+  );
+
   return (
     <div className="menu-container">
       <Tabs id="Tabs" onChange={handleTabChange} selectedTabId={activeTab}>
@@ -100,18 +139,7 @@ export default function EditMenu(props) {
                   onChange={handleRadio}
                   selectedValue={pattern}
                 >
-                  <Radio
-                    value="orchard"
-                    label="orchard"
-                  />
-                  <Radio
-                    value="city park"
-                    label="city park"
-                  />
-                  <Radio
-                    value="housing"
-                    label="housing"
-                  />
+                  {patterns.map(pattern => <Radio key={pattern} value={pattern} label={pattern} />)}
                 </RadioGroup>
                 <h4>Add this modification to a scenario</h4>
                 <datalist id="scenariolist">
@@ -128,6 +156,19 @@ export default function EditMenu(props) {
               </form>
             </div>
           )}
+        />
+        <Tab
+          id="patterns"
+          title="Patterns"
+          panel={
+            <div>
+              <Switch
+                checked={patternSamplingMode}
+                labelElement={<strong>Pattern sampling mode</strong>}
+                onChange={togglePatternSamplingMode} />
+              {patternSamplingMode ? patternSampleForm : <React.Fragment />}
+            </div>
+          }
         />
         <Tab
           id="explore"
