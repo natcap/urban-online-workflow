@@ -25,8 +25,10 @@ models.Base.metadata.create_all(bind=engine)
 # Create a queue that we will use to store our "workload".
 QUEUE = asyncio.PriorityQueue()
 TASKS = []
-STATUS = {0: "pending", 1: "running", 2: "success", 3: "failed"}
-
+STATUS_PENDING = "pending"
+STATUS_RUNNING = "running"
+STATUS_SUCCESS = "success"
+STATUS_FAIL = "failed"
 
 # Normally you would probably initialize your db (create tables, etc) with
 # Alembic. Would also use Alembic for "migrations" (that's its main job).
@@ -83,7 +85,7 @@ async def worker(name, queue):
                 'param' (object) - parameters to pass to `job`.
                 'name' (string) - name of job
                 'description' (string) - job description
-                'status' (int) - job status [0 | 1 | 2 | 3]
+                'status' (string) - job status
                 'job_id' (int) - database job ID
                 'db' (database reference) - db session
     """
@@ -99,7 +101,7 @@ async def worker(name, queue):
             job_schema = schemas.JobBase(**{
                 'name': job_details['name'],
                 'description': job_details['description'],
-                'status': 1})
+                'status': STATUS_RUNNING})
             LOGGER.debug('Update job status')
             crud.update_job(
                 db=job_details['db'], job=job_schema, job_id=job_details['job_id'])
@@ -118,7 +120,7 @@ async def worker(name, queue):
         job_schema = schemas.JobBase(**{
             'name': job_details['name'],
             'description': job_details['description'],
-            'status': 2})
+            'status': STATUS_SUCCESS})
         LOGGER.debug('Update job status')
         crud.update_job(
             db=job_details['db'], job=job_schema, job_id=job_details['job_id'])
@@ -204,7 +206,7 @@ def read_scenarios(session_id: str, db: Session = Depends(get_db)):
 async def test_async_job(sleep_time: int, db: Session = Depends(get_db)):
     job_schema = schemas.JobBase(
         **{"name": "sleep", "description": "sleep for a few seconds.",
-           "status": 0})
+           "status": STATUS_PENDING})
     # Add the job to the DB
     job_db = crud.create_job(db, job_schema)
 
