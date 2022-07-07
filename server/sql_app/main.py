@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 import sys
 
@@ -232,6 +233,23 @@ async def test_async_job(sleep_time: int, db: Session = Depends(get_db)):
     LOGGER.debug(f'Job {job_db.job_id} added')
     # Return the job_id in the response
     return {'job_id': job_db.job_id}
+
+
+@app.get("/jobsqueue/")
+async def worker_job_request(db: Session = Depends(get_db)):
+    """If there's work to be done in the queue send it to the worker."""
+    try:
+        job_priority, job_details = await queue.get_nowait()
+        return json.dumps({"job_id": 1, "test": True})
+    except QueueEmpty:
+        return None
+
+
+@app.get("/jobsqueue/{job_id}")
+async def worker_job_response(
+        worker: schemas.WorkerResponse, db: Session = Depends(get_db)):
+    """Update the queue and db given the job details from the worker."""
+    pass
 
 
 @app.post("/jobs/", response_model=schemas.Job)

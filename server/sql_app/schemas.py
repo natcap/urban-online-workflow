@@ -112,3 +112,8 @@ class PatternJob(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class WorkerReponse(BaseModel):
+    job_id: int
+    status: str
