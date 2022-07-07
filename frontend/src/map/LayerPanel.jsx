@@ -25,20 +25,16 @@ function LayerCheckbox(props) {
 }
 
 export default function LayerPanel(props) {
-  const { layers, setVisibility, show } = props;
+  const { layers, setVisibility, show, switchBasemap } = props;
   const [basemap, setBasemap] = useState('Streets');
   if (!show) {
     return null;
   }
 
-  const changeBasemap = (event) => {
+  const handleChangeBasemap = (event) => {
     const title = event.target.value;
-    setBasemap(title);
-    layers.forEach((layer) => {
-      if (layer.get('type') === 'base') {
-        setVisibility(layer, layer.get('title') === title);
-      }
-    });
+    setBasemap(title); // control the radio button
+    switchBasemap(title); // setVisibility on map layers
   };
 
   const checkboxes = [];
@@ -71,7 +67,7 @@ export default function LayerPanel(props) {
     <div className="layers-panel">
       {checkboxes}
       <RadioGroup
-        onChange={changeBasemap}
+        onChange={handleChangeBasemap}
         selectedValue={basemap}
       >
         {radios}

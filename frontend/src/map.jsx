@@ -140,6 +140,7 @@ export default function MapComponent(props) {
   const { setParcel, patternSamplingMode, setPatternSampleWKT } = props;
   const [layers, setLayers] = useState([]);
   const [showLayerControl, setShowLayerControl] = useState(false);
+  const [basemap, setBasemap] = useState('Streets');
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
 
@@ -153,6 +154,14 @@ export default function MapComponent(props) {
     } else {
       setShowLayerControl(true);
     }
+  };
+
+  const switchBasemap = (title) => {
+    layers.forEach((layer) => {
+      if (layer.get('type') === 'base') {
+        setVisibility(layer, layer.get('title') === title);
+      }
+    });
   };
 
   // useEffect with no dependencies: only runs after first render
@@ -210,6 +219,7 @@ export default function MapComponent(props) {
           centeredPatternSamplerGeom(mapCenterX, mapCenterY)
         );
       }
+      switchBasemap('Landcover');
       patternSamplerLayer.setVisible(patternSamplingMode);
     }
   }, [patternSamplingMode]);
@@ -227,6 +237,7 @@ export default function MapComponent(props) {
           show={showLayerControl}
           layers={[...layers].reverse()} // copy array & reverse it
           setVisibility={setVisibility}
+          switchBasemap={switchBasemap}
         />
       </div>
     </div>
