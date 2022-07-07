@@ -24,7 +24,7 @@ models.Base.metadata.create_all(bind=engine)
 
 # Create a queue that we will use to store our "workload".
 QUEUE = asyncio.PriorityQueue()
-TASKS = []
+TASKS = set()
 STATUS_PENDING = "pending"
 STATUS_RUNNING = "running"
 STATUS_SUCCESS = "success"
@@ -68,6 +68,12 @@ def get_db():
 # To make sure Exceptions aren't silently ignored:
 # https://stackoverflow.com/questions/27297638/when-asyncio-task-gets-stored-after-creation-exceptions-from-task-get-muted/27299160#27299160
 def handle_result(fut):
+    # To prevent keeping references to finished tasks forever,
+    # make each task remove its own reference from the set after
+    # completion:
+    #task.add_done_callback(TASKS.discard)
+    TASKS.discard(fut)
+
     if fut.exception():
         fut.result()  # This will raise the exception.
 
@@ -218,9 +224,11 @@ async def test_async_job(sleep_time: int, db: Session = Depends(get_db)):
 
     QUEUE.put_nowait((priority, job_task))
     task = asyncio.create_task(worker(f'worker-{len(TASKS)+1}', QUEUE))
+
     # This helps catch any exceptions that might have happened in our worker
     task.add_done_callback(handle_result)
-    TASKS.append(task)
+
+    TASKS.add(task)
     LOGGER.debug(f'Job {job_db.job_id} added')
     # Return the job_id in the response
     return {'job_id': job_db.job_id}
