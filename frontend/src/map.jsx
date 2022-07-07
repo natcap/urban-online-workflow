@@ -162,6 +162,7 @@ export default function MapComponent(props) {
         setVisibility(layer, layer.get('title') === title);
       }
     });
+    setBasemap(title);
   };
 
   // useEffect with no dependencies: only runs after first render
@@ -238,6 +239,7 @@ export default function MapComponent(props) {
           layers={[...layers].reverse()} // copy array & reverse it
           setVisibility={setVisibility}
           switchBasemap={switchBasemap}
+          basemap={basemap}
         />
       </div>
     </div>
