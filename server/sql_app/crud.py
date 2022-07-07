@@ -1,10 +1,23 @@
 """CRUD: Create, Read, Update, and Delete"""
+import asyncio
+import logging
+import sys
+import time
+
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 import uuid
 
 from . import models, schemas
 
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format=(
+        '%(asctime)s (%(relativeCreated)d) %(levelname)s %(name)s'
+        ' [%(funcName)s:%(lineno)d] %(message)s'),
+    stream=sys.stdout)
+LOGGER = logging.getLogger(__name__)
 
 # By creating functions that are only dedicated to interacting with the
 # database (get a user or an item) independent of your path operation function,
@@ -107,7 +120,7 @@ def get_jobs(db: Session, skip: int = 0, limit: int = 100):
 
 # read job by ID
 def get_job(db: Session, job_id: int):
-    return db.query(models.Job).filter(models.Job.job_id == job_id).firts()
+    return db.query(models.Job).filter(models.Job.job_id == job_id).first()
 
 
 def create_job(db: Session, job: schemas.JobBase):
@@ -117,6 +130,31 @@ def create_job(db: Session, job: schemas.JobBase):
     db.refresh(db_job)
     return db_job
 
+def update_job(db: Session, job: schemas.Job, job_id: int):
+    LOGGER.debug("CRUD: update_job")
+    LOGGER.debug(f'job id: {job_id}')
+    db_job = db.query(models.Job).filter(models.Job.job_id == job_id).first()
+
+    if not db_job:
+        raise HTTPException(status_code=404, detail="job not found")
+    job_data = job.dict(exclude_unset=True)
+    for key, value in job_data.items():
+        setattr(db_job, key, value)
+
+    db.add(db_job)
+    db.commit()
+    db.refresh(db_job)
+    #return db_job
+    return "success"
+
+# Normally blocking call (InVEST model, PGP call, wallpapering, ...)
+def test_job_task(job_param):
+    LOGGER.debug('Running job operation')
+
+    sleep_time = job_param
+    # Sleep for the "sleep_time" seconds.
+    time.sleep(sleep_time)
+    LOGGER.debug(f'Done sleeping for {sleep_time} seconds')
 
 def create_pattern(db: Session, session_id: str, pattern: schemas.Pattern):
     #TODO: Implement

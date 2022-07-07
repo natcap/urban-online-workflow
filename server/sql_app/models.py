@@ -15,7 +15,7 @@ class Job(Base):
     """SQLAlchemy model."""
     __tablename__ = "jobs"
 
-    id = Column(Integer, primary_key=True, index=True)
+    job_id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     description = Column(String, index=True)
     status = Column(String, index=True)
@@ -47,7 +47,10 @@ class Scenario(Base):
 
     scenario_id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
-    description = Column(String, index=True)
+    description = Column(String)
+    wkt = Column(String, default="bounding-box-geometry-here")
+    lulc_result = Column(String, default="https://my-lulc.tif")
+    lulc_base = Column(String, default="https://my-lulc-base.tif")
     owner_id = Column(String, ForeignKey("users.session_id"))
 
     owner = relationship("User", back_populates="scenarios")
