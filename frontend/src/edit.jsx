@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Button, FormGroup, InputGroup, Icon, Switch, FocusStyleManager } from "@blueprintjs/core";
 
 import {
+  Button,
+  FocusStyleManager,
+  FormGroup,
+  HTMLSelect,
+  InputGroup,
+  Icon,
   Radio,
   RadioGroup,
+  Switch,
   Tab,
   Tabs,
 } from '@blueprintjs/core';
@@ -15,11 +21,13 @@ import {
   getWallpaperResults,
   getStatus,
   getPatterns,
-  createPattern
+  createPattern,
+  convertToSingleLULC,
 } from './requests';
 import useInterval from './hooks/useInterval';
 import ScenarioTable from './scenarioTable';
 import ParcelTable from './parcelTable';
+import lulcCodes from './lulcCodes';
 
 FocusStyleManager.onlyShowFocusOnTabs();
 
@@ -29,7 +37,7 @@ export default function EditMenu(props) {
     savedScenarios,
     refreshSavedScenarios,
     patternSamplingMode,
-    togglePatternSamplingMode,
+    setPatternSamplingMode,
     patternSampleWKT,
   } = props;
 
@@ -41,6 +49,8 @@ export default function EditMenu(props) {
   const [jobID, setJobID] = useState(null);
   const [patterns, setPatterns] = useState([]);
   const [newPatternName, setNewPatternName] = useState("New Pattern 1");
+  const [singleLULC, setSingleLULC] = useState('');
+  const [conversionOption, setConversionOption] = useState('paint');
 
   // On first render, get the list of available patterns
   useEffect(async () => {
@@ -70,10 +80,6 @@ export default function EditMenu(props) {
       alert('no scenario was selected');
       return;
     }
-    if (!pattern) {
-      alert('no modification options selected; no changes to make');
-      return;
-    }
     if (!parcel) {
       alert('no parcel was selected; no changes to make');
       return;
@@ -83,7 +89,13 @@ export default function EditMenu(props) {
       currentScenarioID = await makeScenario(scenarioName, 'description');
       setScenarioID(currentScenarioID);
     }
-    const jid = await doWallpaper(parcel.coords, pattern, currentScenarioID);
+    let jid;
+    if (pattern) {
+      jid = await doWallpaper(parcel.coords, pattern, currentScenarioID);
+    }
+    if (singleLULC) {
+      jid = await convertToSingleLULC(parcel.coords, singleLULC, currentScenarioID);
+    }
     setJobID(jid);
     refreshSavedScenarios();
   }
@@ -94,6 +106,20 @@ export default function EditMenu(props) {
     setPattern(event.target.value);
   };
 
+  const handleSelectLULC = (event) => {
+    setSingleLULC(event.target.value);
+  };
+
+  const handleConversionOption = (event) => {
+    const { value } = event.target;
+    setConversionOption(event.target.value);
+    if (value === 'wallpaper') {
+      setPatternSamplingMode(true);
+    } else {
+      setPatternSamplingMode(false);
+    }
+  }
+
   const handleTabChange = (tabID) => {
     setActiveTab(tabID);
   };
@@ -102,23 +128,23 @@ export default function EditMenu(props) {
     event.preventDefault();
     await createPattern(patternSampleWKT, newPatternName);
     setPatterns(await getPatterns());
-    togglePatternSamplingMode();
-  }
+    setPatternSamplingMode(false);
+  };
 
   const patternSampleForm = (
     <>
-    <p>Drag the box over the area to sample.</p>
-    <FormGroup label="Name" labelFor="text-input">
-      <InputGroup
-        id="text-input"
-        placeholder="Placeholder text"
-        value={newPatternName}
-        onChange={(event) => setNewPatternName(event.target.value)} />
-    </FormGroup>
-    <Button
-      icon="camera"
-      text="Sample this pattern"
-      onClick={handleSamplePattern} />
+      <p>Drag the box over the area to sample.</p>
+      <FormGroup label="Name" labelFor="text-input">
+        <InputGroup
+          id="text-input"
+          placeholder="Placeholder text"
+          value={newPatternName}
+          onChange={(event) => setNewPatternName(event.target.value)} />
+      </FormGroup>
+      <Button
+        icon="camera"
+        text="Sample this pattern"
+        onClick={handleSamplePattern} />
     </>
   );
 
@@ -132,32 +158,60 @@ export default function EditMenu(props) {
             <div>
               <ParcelTable parcelTable={parcelTable} />
               <br />
-              <form onSubmit={handleSubmitNew}>
-                <RadioGroup
-                  inline={false}
-                  label="Modify the landuse of this parcel by selecting a pattern:"
-                  onChange={handleRadio}
-                  selectedValue={pattern}
-                >
-                  {patterns.map(pattern => <Radio key={pattern} value={pattern} label={pattern} />)}
-                </RadioGroup>
-                <h4>Add this modification to a scenario</h4>
-                <datalist id="scenariolist">
-                  {Object.values(savedScenarios).map(item => <option key={item} value={item} />)}
-                </datalist>
-                <input
-                  type="search"
-                  id="scenarioName"
-                  list="scenariolist"
-                  value={scenarioName}
-                  onChange={(event) => setScenarioName(event.currentTarget.value)}
-                />
-                <button type="submit">Submit</button>
-              </form>
+              {
+                (parcel)
+                  ? (
+                    <form onSubmit={handleSubmitNew}>
+                      <RadioGroup
+                        inline={true}
+                        label="Modify the landuse of this parcel by:"
+                        onChange={handleConversionOption}
+                        selectedValue={conversionOption}
+                      >
+                        <Radio key="wallpaper" value="wallpaper" label="wallpaper" />
+                        <Radio key="paint" value="paint" label="paint" />
+                      </RadioGroup>
+                      {
+                        (conversionOption === 'paint')
+                          ? (
+                            <HTMLSelect
+                              onChange={handleSelectLULC}
+                            >
+                              {Object.entries(lulcCodes).map(([k, v]) => <option value={k}>{v}</option>)}
+                            </HTMLSelect>
+                          )
+                          : patternSampleForm
+                          // (
+                          //   <RadioGroup
+                          //     inline={false}
+                          //     label="Modify the landuse of this parcel by selecting a pattern:"
+                          //     onChange={handleRadio}
+                          //     selectedValue={pattern}
+                          //   >
+                          //     {patterns.map(pattern => <Radio key={pattern} value={pattern} label={pattern} />)}
+                          //   </RadioGroup>
+                          // )
+                      }
+                      <h4>Add this modification to a scenario</h4>
+                      <datalist id="scenariolist">
+                        {Object.values(savedScenarios).map(item => <option key={item} value={item} />)}
+                      </datalist>
+                      <input
+                        type="search"
+                        id="scenarioName"
+                        list="scenariolist"
+                        value={scenarioName}
+                        onChange={(event) => setScenarioName(event.currentTarget.value)}
+                      />
+                      <button type="submit">Submit</button>
+                    </form>
+                  )
+                  : <div />
+              }
             </div>
           )}
         />
-        <Tab
+        {/*<Tab
           id="patterns"
           title="Patterns"
           panel={
@@ -169,7 +223,7 @@ export default function EditMenu(props) {
               {patternSamplingMode ? patternSampleForm : <React.Fragment />}
             </div>
           }
-        />
+        />*/}
         <Tab
           id="explore"
           title="Explore"

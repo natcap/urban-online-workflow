@@ -19,9 +19,9 @@ export default function App() {
     refreshSavedScenarios();
   }, []);
 
-  const togglePatternSamplingMode = () => {
-    setPatternSamplingMode(patternSamplingMode => !patternSamplingMode);
-  }
+  // const togglePatternSamplingMode = () => {
+  //   setPatternSamplingMode(patternSamplingMode => !patternSamplingMode);
+  // }
 
   return (
     <div className="App">
@@ -36,7 +36,7 @@ export default function App() {
           refreshSavedScenarios={refreshSavedScenarios}
           savedScenarios={savedScenarios}
           patternSamplingMode={patternSamplingMode}
-          togglePatternSamplingMode={togglePatternSamplingMode}
+          setPatternSamplingMode={setPatternSamplingMode}
           patternSampleWKT={patternSampleWKT}
         />
       </div>
