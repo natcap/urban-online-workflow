@@ -71,19 +71,6 @@ function centeredPatternSamplerGeom(centerX, centerY) {
   ]);
 }
 
-// define map layers
-const parcelLayer = new VectorTileLayer({
-  source: new VectorTileSource({
-    format: new MVT(),
-    // access API key loaded from your private .env file using dotenv package
-    // because of vite, env variables are exposed through import.meta.env
-    // and must be prefixed with VITE_. https://vitejs.dev/guide/env-and-mode.html#env-files
-    url: 'https://api.mapbox.com/v4/emlys.san-antonio-parcels/{z}/{x}/{y}.mvt?access_token=' + import.meta.env.VITE_MAPBOX_API_KEY,
-  }),
-  minZoom: 18, // don't display this layer below zoom level 17
-});
-parcelLayer.set('title', 'Parcels');
-
 const patternSamplerFeature = new Feature();
 const patternSamplerLayer = new VectorLayer({
   source: new VectorSource({
@@ -99,6 +86,18 @@ const wkt = new WKT();
 const translate = new Translate({
   layers: [patternSamplerLayer],
 });
+
+const parcelLayer = new VectorTileLayer({
+  source: new VectorTileSource({
+    format: new MVT(),
+    // access API key loaded from your private .env file using dotenv package
+    // because of vite, env variables are exposed through import.meta.env
+    // and must be prefixed with VITE_. https://vitejs.dev/guide/env-and-mode.html#env-files
+    url: 'https://api.mapbox.com/v4/emlys.san-antonio-parcels/{z}/{x}/{y}.mvt?access_token=' + import.meta.env.VITE_MAPBOX_API_KEY,
+  }),
+  minZoom: 18, // don't display this layer below zoom level 17
+});
+parcelLayer.set('title', 'Parcels');
 
 let selectedFeature = null;
 const selectionLayer = new VectorTileLayer({
@@ -160,6 +159,7 @@ export default function MapComponent(props) {
   useEffect(() => {
     map.setTarget(mapElementRef.current);
     setLayers(map.getLayers().getArray());
+    parcelLayer.setStyle(styleParcel(map.getView().getZoom()));
 
     // when the box appears, or when the user finishes dragging the box,
     // update state with its new location
@@ -184,7 +184,7 @@ export default function MapComponent(props) {
         }
         selectedFeature = feature;
         selectionLayer.changed();
-        setParcel({coords: coords});
+        setParcel({ coords: coords });
       });
     });
 

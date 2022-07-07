@@ -44,6 +44,9 @@ export default function LayerPanel(props) {
   const checkboxes = [];
   const radios = [];
   layers.forEach((layer) => {
+    if (layer.get('title') === undefined) {
+      return;
+    }
     if (layer.get('type') === 'base') {
       const title = layer.get('title');
       radios.push(
