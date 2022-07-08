@@ -28,7 +28,7 @@ import {
 import {
   selectedFeatureStyle,
   patternSamplerBoxStyle
-} from './styles';
+} from './map/styles';
 
 const styleParcel = (zoom) => {
   const style = new Style({
