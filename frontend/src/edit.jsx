@@ -154,7 +154,7 @@ export default function EditMenu(props) {
           disabled={patternSamplingMode}
           value={selectedPattern}
         >
-          {patterns.map((pattern) => <option value={pattern}>{pattern}</option>)}
+          {patterns.map((pattern) => <option key={pattern} value={pattern}>{pattern}</option>)}
         </HTMLSelect>
       </div>
       <Switch
@@ -195,7 +195,8 @@ export default function EditMenu(props) {
                           (conversionOption === 'paint')
                             ? (
                               <HTMLSelect onChange={handleSelectLULC}>
-                                {Object.entries(lulcCodes).map(([k, v]) => <option value={k}>{v}</option>)}
+                                {Object.entries(lulcCodes)
+                                  .map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                               </HTMLSelect>
                             )
                             : wallpaperingSelect
@@ -205,7 +206,8 @@ export default function EditMenu(props) {
                         Add this modification to a scenario
                       </p>
                       <datalist id="scenariolist">
-                        {Object.values(savedScenarios).map(item => <option key={item} value={item} />)}
+                        {Object.values(savedScenarios)
+                          .map(item => <option key={item} value={item} />)}
                       </datalist>
                       <input
                         type="search"
