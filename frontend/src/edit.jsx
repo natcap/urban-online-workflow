@@ -37,7 +37,6 @@ export default function EditMenu(props) {
     savedScenarios,
     refreshSavedScenarios,
     patternSamplingMode,
-    // setPatternSamplingMode,
     togglePatternSamplingMode,
     patternSampleWKT,
   } = props;
@@ -91,7 +90,7 @@ export default function EditMenu(props) {
       setScenarioID(currentScenarioID);
     }
     let jid;
-    if (conversionOption === 'wallpaper' && selectedPattern !== PLACEHOLDER_PATTERN_TEXT) {
+    if (conversionOption === 'wallpaper' && selectedPattern) {
       jid = await doWallpaper(parcel.coords, selectedPattern, currentScenarioID);
     }
     if (conversionOption === 'paint' && singleLULC) {
@@ -103,10 +102,6 @@ export default function EditMenu(props) {
 
   // TODO: do handlers  need to be wrapped in useCallback? 
   // to memoize the function?
-  const handleRadio = (event) => {
-    setSelectedPattern(event.target.value);
-  };
-
   const handleSelectLULC = (event) => {
     setSingleLULC(event.target.value);
   };
@@ -147,6 +142,30 @@ export default function EditMenu(props) {
     </>
   );
 
+  const wallpaperingSelect = (
+    <>
+      <div className="edit-wallpaper">
+        <Label htmlFor="pattern-select">
+          Choose an existing pattern:
+        </Label>
+        <HTMLSelect
+          id="pattern-select"
+          onChange={setSelectedPattern}
+          disabled={patternSamplingMode}
+          value={selectedPattern}
+        >
+          {patterns.map((pattern) => <option value={pattern}>{pattern}</option>)}
+        </HTMLSelect>
+      </div>
+      <Switch
+        checked={patternSamplingMode}
+        labelElement={<strong>Create new pattern</strong>}
+        onChange={togglePatternSamplingMode}
+      />
+      {patternSamplingMode ? patternSampleForm : <div />}
+    </>
+  );
+
   return (
     <div className="menu-container">
       <Tabs id="Tabs" onChange={handleTabChange} selectedTabId={activeTab}>
@@ -163,7 +182,7 @@ export default function EditMenu(props) {
                     <form onSubmit={handleSubmitNew}>
                       <RadioGroup
                         className="sidebar-subheading"
-                        inline={true}
+                        inline
                         label="Modify the landuse of this parcel by:"
                         onChange={handleConversionOption}
                         selectedValue={conversionOption}
@@ -175,35 +194,11 @@ export default function EditMenu(props) {
                         {
                           (conversionOption === 'paint')
                             ? (
-                              <HTMLSelect
-                                onChange={handleSelectLULC}
-                              >
+                              <HTMLSelect onChange={handleSelectLULC}>
                                 {Object.entries(lulcCodes).map(([k, v]) => <option value={k}>{v}</option>)}
                               </HTMLSelect>
                             )
-                            : (
-                              <>
-                                <div className="edit-wallpaper">
-                                  <Label htmlFor="pattern-select">
-                                    Choose an existing pattern:
-                                  </Label>
-                                  <HTMLSelect
-                                    id="pattern-select"
-                                    onChange={setSelectedPattern}
-                                    disabled={patternSamplingMode}
-                                    value={selectedPattern}
-                                  >
-                                    {patterns.map((pattern) => <option value={pattern}>{pattern}</option>)}
-                                  </HTMLSelect>
-                                </div>
-                                <Switch
-                                  checked={patternSamplingMode}
-                                  labelElement={<strong>Create new pattern</strong>}
-                                  onChange={togglePatternSamplingMode}
-                                />
-                                {patternSamplingMode ? patternSampleForm : <React.Fragment/>}
-                              </>
-                            )
+                            : wallpaperingSelect
                         }
                       </div>
                       <p className="sidebar-subheading">
