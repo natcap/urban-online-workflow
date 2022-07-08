@@ -65,6 +65,17 @@ html, body, #root, .App {
   align-items: baseline;
 }
 
-.edit-wallpaper .bp4-switch {
-  padding-left: 3rem;
+.edit-wallpaper .bp4-html-select {
+  margin-left: 1rem;
+}
+
+.sidebar-subheading {
+  padding-top: 1rem;
+  font-weight: 600;
+}
+
+.conversion-panel {
+  background-color: rgba(240, 240, 240, 1.0);
+  filter: drop-shadow(1px 1px 1px grey);
+  padding: 0.5rem;
 }

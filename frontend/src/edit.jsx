@@ -6,7 +6,7 @@ import {
   FormGroup,
   HTMLSelect,
   InputGroup,
-  Icon,
+  Label,
   Radio,
   RadioGroup,
   Switch,
@@ -91,10 +91,10 @@ export default function EditMenu(props) {
       setScenarioID(currentScenarioID);
     }
     let jid;
-    if (selectedPattern) {
+    if (conversionOption === 'wallpaper' && selectedPattern !== PLACEHOLDER_PATTERN_TEXT) {
       jid = await doWallpaper(parcel.coords, selectedPattern, currentScenarioID);
     }
-    if (singleLULC) {
+    if (conversionOption === 'paint' && singleLULC) {
       jid = await convertToSingleLULC(parcel.coords, singleLULC, currentScenarioID);
     }
     setJobID(jid);
@@ -112,13 +112,7 @@ export default function EditMenu(props) {
   };
 
   const handleConversionOption = (event) => {
-    const { value } = event.target;
     setConversionOption(event.target.value);
-    // if (value === 'wallpaper') {
-    //   setPatternSamplingMode(true);
-    // } else {
-    //   setPatternSamplingMode(false);
-    // }
   };
 
   const handleTabChange = (tabID) => {
@@ -129,23 +123,27 @@ export default function EditMenu(props) {
     event.preventDefault();
     await createPattern(patternSampleWKT, newPatternName);
     setPatterns(await getPatterns());
+    setSelectedPattern(newPatternName);
     togglePatternSamplingMode();
   };
 
   const patternSampleForm = (
     <>
-      <p>Drag the box over the area to sample.</p>
-      <FormGroup label="Name" labelFor="text-input">
+      <p>1. Drag the box over the map to sample a pattern</p>
+      <p>2. Name the new pattern:</p>
+      <FormGroup>
         <InputGroup
           id="text-input"
           placeholder="Placeholder text"
           value={newPatternName}
-          onChange={(event) => setNewPatternName(event.target.value)} />
+          onChange={(event) => setNewPatternName(event.target.value)}
+        />
       </FormGroup>
       <Button
         icon="camera"
         text="Sample this pattern"
-        onClick={handleSamplePattern} />
+        onClick={handleSamplePattern}
+      />
     </>
   );
 
@@ -164,6 +162,7 @@ export default function EditMenu(props) {
                   ? (
                     <form onSubmit={handleSubmitNew}>
                       <RadioGroup
+                        className="sidebar-subheading"
                         inline={true}
                         label="Modify the landuse of this parcel by:"
                         onChange={handleConversionOption}
@@ -172,36 +171,44 @@ export default function EditMenu(props) {
                         <Radio key="wallpaper" value="wallpaper" label="wallpaper" />
                         <Radio key="paint" value="paint" label="paint" />
                       </RadioGroup>
-                      {
-                        (conversionOption === 'paint')
-                          ? (
-                            <HTMLSelect
-                              onChange={handleSelectLULC}
-                            >
-                              {Object.entries(lulcCodes).map(([k, v]) => <option value={k}>{v}</option>)}
-                            </HTMLSelect>
-                          )
-                          : (
-                            <>
-                              <div className="edit-wallpaper">
-                                <HTMLSelect
-                                  onChange={setSelectedPattern}
-                                  disabled={patternSamplingMode}
-                                >
-                                  <option selected>Choose a pattern...</option>
-                                  {patterns.map((pattern) => <option value={pattern}>{pattern}</option>)}
-                                </HTMLSelect>
+                      <div className="conversion-panel">
+                        {
+                          (conversionOption === 'paint')
+                            ? (
+                              <HTMLSelect
+                                onChange={handleSelectLULC}
+                              >
+                                {Object.entries(lulcCodes).map(([k, v]) => <option value={k}>{v}</option>)}
+                              </HTMLSelect>
+                            )
+                            : (
+                              <>
+                                <div className="edit-wallpaper">
+                                  <Label htmlFor="pattern-select">
+                                    Choose an existing pattern:
+                                  </Label>
+                                  <HTMLSelect
+                                    id="pattern-select"
+                                    onChange={setSelectedPattern}
+                                    disabled={patternSamplingMode}
+                                    value={selectedPattern}
+                                  >
+                                    {patterns.map((pattern) => <option value={pattern}>{pattern}</option>)}
+                                  </HTMLSelect>
+                                </div>
                                 <Switch
                                   checked={patternSamplingMode}
                                   labelElement={<strong>Create new pattern</strong>}
                                   onChange={togglePatternSamplingMode}
                                 />
-                              </div>
-                              {patternSamplingMode ? patternSampleForm : <React.Fragment/>}
-                            </>
-                          )
-                      }
-                      <h4>Add this modification to a scenario</h4>
+                                {patternSamplingMode ? patternSampleForm : <React.Fragment/>}
+                              </>
+                            )
+                        }
+                      </div>
+                      <p className="sidebar-subheading">
+                        Add this modification to a scenario
+                      </p>
                       <datalist id="scenariolist">
                         {Object.values(savedScenarios).map(item => <option key={item} value={item} />)}
                       </datalist>
