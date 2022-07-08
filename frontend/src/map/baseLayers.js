@@ -8,7 +8,7 @@ const satelliteLayer = new TileLayer({
   source: new XYZ({
     url: 'https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.jpg90?access_token=' + import.meta.env.VITE_DAVES_MAPBOX_TOKEN,
   }),
-  visible: false,
+  visible: true,
 });
 satelliteLayer.set('title', 'Satellite');
 satelliteLayer.set('type', 'base');
@@ -24,6 +24,7 @@ lightMapLayer.set('type', 'base');
 const streetMapLayer = new MapboxVectorLayer({
   styleUrl: 'mapbox://styles/mapbox/streets-v11',
   accessToken: import.meta.env.VITE_DAVES_MAPBOX_TOKEN,
+  visible: false,
   layers: nonLabels,
 });
 streetMapLayer.set('title', 'Streets');

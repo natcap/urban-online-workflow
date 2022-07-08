@@ -22,7 +22,6 @@ import lulcLayer from './map/lulcLayer';
 import LayerPanel from './map/LayerPanel';
 import {
   satelliteLayer,
-  lightMapLayer,
   streetMapLayer,
   labelLayer,
 } from './map/baseLayers';
@@ -34,8 +33,8 @@ import {
 const styleParcel = (zoom) => {
   const style = new Style({
     stroke: new Stroke({
-      color: 'rgba(0, 0, 0, 0.8)',
-      width: (zoom > 18) ? 1 : 0.3,
+      color: 'rgba(255, 255, 255, 0.8)',
+      width: (zoom > 18) ? 1 : 0.7,
     }),
     // even if we want no fill, must use one to enable
     // click-to-select feature
@@ -118,7 +117,6 @@ const map = new Map({
   layers: [
     satelliteLayer,
     streetMapLayer,
-    lightMapLayer,
     lulcLayer,
     parcelLayer,
     selectionLayer,
@@ -140,7 +138,7 @@ export default function MapComponent(props) {
   const { setParcel, patternSamplingMode, setPatternSampleWKT } = props;
   const [layers, setLayers] = useState([]);
   const [showLayerControl, setShowLayerControl] = useState(false);
-  const [basemap, setBasemap] = useState('Streets');
+  const [basemap, setBasemap] = useState('Satellite');
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
 
