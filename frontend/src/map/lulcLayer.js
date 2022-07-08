@@ -5,9 +5,7 @@ import lulcColors from './lulcColors';
 
 const source = new GeoTIFF({
   sources: [{
-    // url: 'https://storage.googleapis.com/natcap-urban-online-datasets-public/NLCD_2016_epsg3857.tif',
-    // projection: 'EPSG:3857',
-    url: '/nlcd_extract.tif',
+    url: 'https://storage.googleapis.com/natcap-urban-online-datasets-public/NLCD_2016_epsg3857.tif',
     projection: 'EPSG:3857',
   }],
   interpolate: false,

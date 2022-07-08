@@ -59,3 +59,12 @@ html, body, #root, .App {
   margin: 0;
   filter: drop-shadow(2px 2px 2px grey);
 }
+
+.edit-wallpaper {
+  display: flex;
+  align-items: baseline;
+}
+
+.edit-wallpaper .bp4-switch {
+  padding-left: 3rem;
+}

@@ -37,17 +37,18 @@ export default function EditMenu(props) {
     savedScenarios,
     refreshSavedScenarios,
     patternSamplingMode,
-    setPatternSamplingMode,
+    // setPatternSamplingMode,
+    togglePatternSamplingMode,
     patternSampleWKT,
   } = props;
 
   const [activeTab, setActiveTab] = useState('create');
   const [scenarioName, setScenarioName] = useState('');
   const [scenarioID, setScenarioID] = useState(null);
-  const [pattern, setPattern] = useState('');
+  const [selectedPattern, setSelectedPattern] = useState('');
+  const [patterns, setPatterns] = useState([]);
   const [parcelTable, setParcelTable] = useState(null);
   const [jobID, setJobID] = useState(null);
-  const [patterns, setPatterns] = useState([]);
   const [newPatternName, setNewPatternName] = useState("New Pattern 1");
   const [singleLULC, setSingleLULC] = useState('');
   const [conversionOption, setConversionOption] = useState('paint');
@@ -90,8 +91,8 @@ export default function EditMenu(props) {
       setScenarioID(currentScenarioID);
     }
     let jid;
-    if (pattern) {
-      jid = await doWallpaper(parcel.coords, pattern, currentScenarioID);
+    if (selectedPattern) {
+      jid = await doWallpaper(parcel.coords, selectedPattern, currentScenarioID);
     }
     if (singleLULC) {
       jid = await convertToSingleLULC(parcel.coords, singleLULC, currentScenarioID);
@@ -103,7 +104,7 @@ export default function EditMenu(props) {
   // TODO: do handlers  need to be wrapped in useCallback? 
   // to memoize the function?
   const handleRadio = (event) => {
-    setPattern(event.target.value);
+    setSelectedPattern(event.target.value);
   };
 
   const handleSelectLULC = (event) => {
@@ -113,12 +114,12 @@ export default function EditMenu(props) {
   const handleConversionOption = (event) => {
     const { value } = event.target;
     setConversionOption(event.target.value);
-    if (value === 'wallpaper') {
-      setPatternSamplingMode(true);
-    } else {
-      setPatternSamplingMode(false);
-    }
-  }
+    // if (value === 'wallpaper') {
+    //   setPatternSamplingMode(true);
+    // } else {
+    //   setPatternSamplingMode(false);
+    // }
+  };
 
   const handleTabChange = (tabID) => {
     setActiveTab(tabID);
@@ -128,7 +129,7 @@ export default function EditMenu(props) {
     event.preventDefault();
     await createPattern(patternSampleWKT, newPatternName);
     setPatterns(await getPatterns());
-    setPatternSamplingMode(false);
+    togglePatternSamplingMode();
   };
 
   const patternSampleForm = (
@@ -180,17 +181,25 @@ export default function EditMenu(props) {
                               {Object.entries(lulcCodes).map(([k, v]) => <option value={k}>{v}</option>)}
                             </HTMLSelect>
                           )
-                          : patternSampleForm
-                          // (
-                          //   <RadioGroup
-                          //     inline={false}
-                          //     label="Modify the landuse of this parcel by selecting a pattern:"
-                          //     onChange={handleRadio}
-                          //     selectedValue={pattern}
-                          //   >
-                          //     {patterns.map(pattern => <Radio key={pattern} value={pattern} label={pattern} />)}
-                          //   </RadioGroup>
-                          // )
+                          : (
+                            <>
+                              <div className="edit-wallpaper">
+                                <HTMLSelect
+                                  onChange={setSelectedPattern}
+                                  disabled={patternSamplingMode}
+                                >
+                                  <option selected>Choose a pattern...</option>
+                                  {patterns.map((pattern) => <option value={pattern}>{pattern}</option>)}
+                                </HTMLSelect>
+                                <Switch
+                                  checked={patternSamplingMode}
+                                  labelElement={<strong>Create new pattern</strong>}
+                                  onChange={togglePatternSamplingMode}
+                                />
+                              </div>
+                              {patternSamplingMode ? patternSampleForm : <React.Fragment/>}
+                            </>
+                          )
                       }
                       <h4>Add this modification to a scenario</h4>
                       <datalist id="scenariolist">
@@ -211,19 +220,6 @@ export default function EditMenu(props) {
             </div>
           )}
         />
-        {/*<Tab
-          id="patterns"
-          title="Patterns"
-          panel={
-            <div>
-              <Switch
-                checked={patternSamplingMode}
-                labelElement={<strong>Pattern sampling mode</strong>}
-                onChange={togglePatternSamplingMode} />
-              {patternSamplingMode ? patternSampleForm : <React.Fragment />}
-            </div>
-          }
-        />*/}
         <Tab
           id="explore"
           title="Explore"

@@ -59,7 +59,7 @@ function getCoords(geometry) {
 }
 
 function centeredPatternSamplerGeom(centerX, centerY) {
-  const width = 100; // box dimensions in map CRS units
+  const width = 200; // box dimensions in map CRS units
   return new Polygon([
     [
       [centerX - width / 2, centerY - width / 2],
@@ -95,7 +95,7 @@ const parcelLayer = new VectorTileLayer({
     // and must be prefixed with VITE_. https://vitejs.dev/guide/env-and-mode.html#env-files
     url: 'https://api.mapbox.com/v4/emlys.san-antonio-parcels/{z}/{x}/{y}.mvt?access_token=' + import.meta.env.VITE_MAPBOX_API_KEY,
   }),
-  minZoom: 18, // don't display this layer below zoom level 17
+  minZoom: 15, // don't display this layer below zoom level 14
 });
 parcelLayer.set('title', 'Parcels');
 
@@ -126,8 +126,8 @@ const map = new Map({
     labelLayer,
   ],
   view: new View({
-    center: [-10964368.72, 3429876.58], // San Antonio, EPSG:3857
-    zoom: 19,
+    center: [-10984368.72, 3427876.58], // W. San Antonio, EPSG:3857
+    zoom: 16,
   }),
   interactions: defaultInteractions().extend([translate]),
   controls: defaults({
@@ -213,6 +213,7 @@ export default function MapComponent(props) {
   useEffect(() => {
     if (patternSamplerLayer) {
       if (patternSamplingMode) {
+        switchBasemap('Landcover');
         // when pattern sampling mode is turned on,
         // recenter the sampler box in the current view
         const [mapCenterX, mapCenterY] = map.getView().getCenter();
@@ -220,7 +221,6 @@ export default function MapComponent(props) {
           centeredPatternSamplerGeom(mapCenterX, mapCenterY)
         );
       }
-      switchBasemap('Landcover');
       patternSamplerLayer.setVisible(patternSamplingMode);
     }
   }, [patternSamplingMode]);
