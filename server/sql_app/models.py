@@ -19,6 +19,9 @@ class Job(Base):
     name = Column(String, index=True)
     description = Column(String, index=True)
     status = Column(String, index=True)
+    owner_id = Column(String, ForeignKey("users.session_id"))
+
+    owner = relationship("User", back_populates="jobs")
 
 
 class User(Base):
@@ -39,6 +42,7 @@ class User(Base):
     # from the db in the 'items' table and populate them here.
     scenarios = relationship("Scenario", back_populates="owner")
     patterns = relationship("Pattern", back_populates="owner")
+    jobs = relationship("Job", back_populates="owner")
 
 
 class Scenario(Base):
@@ -61,10 +65,9 @@ class Pattern(Base):
     __tablename__ = "patterns"
 
     pattern_id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    description = Column(String, index=True)
+    label = Column(String, index=True)
     wkt = Column(String, index=True)
-    url = Column(String, index=True)
+    #url = Column(String, index=True)
     owner_id = Column(String, ForeignKey("users.session_id"))
 
     owner = relationship("User", back_populates="patterns")

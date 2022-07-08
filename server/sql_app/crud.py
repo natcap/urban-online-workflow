@@ -80,8 +80,8 @@ def create_scenario(db: Session, scenario: schemas.Scenario, session_id: str):
     return db_scenario
 
 
-def update_scenario(db: Session, scenario: schemas.Scenario, scenario_id: int):
-    db_scenario = db.query(models.Scenario).filter(models.Scenario.scenario_id == scenario_id).first()
+def update_scenario(db: Session, scenario: schemas.Scenario):
+    db_scenario = db.query(models.Scenario).filter(models.Scenario.scenario_id == scenario.scenario_id).first()
 
     if not db_scenario:
         raise HTTPException(status_code=404, detail="Scenario not found")
@@ -123,17 +123,17 @@ def get_job(db: Session, job_id: int):
     return db.query(models.Job).filter(models.Job.job_id == job_id).first()
 
 
-def create_job(db: Session, job: schemas.JobBase):
-    db_job = models.Job(**job.dict())
+def create_job(db: Session, session_id: str, job: schemas.JobBase):
+    db_job = models.Job(**job.dict(), owner_id=session_id)
     db.add(db_job)
     db.commit()
     db.refresh(db_job)
     return db_job
 
-def update_job(db: Session, job: schemas.Job, job_id: int):
+def update_job(db: Session, job: schemas.Job):
     LOGGER.debug("CRUD: update_job")
-    LOGGER.debug(f'job id: {job_id}')
-    db_job = db.query(models.Job).filter(models.Job.job_id == job_id).first()
+    LOGGER.debug(f'job id: {job.job_id}')
+    db_job = db.query(models.Job).filter(models.Job.job_id == job.job_id).first()
 
     if not db_job:
         raise HTTPException(status_code=404, detail="job not found")
@@ -157,18 +157,18 @@ def test_job_task(job_param):
     LOGGER.debug(f'Done sleeping for {sleep_time} seconds')
 
 def create_pattern(db: Session, session_id: str, pattern: schemas.Pattern):
-    #TODO: Implement
-    #job_db = models.Job(name=f"create-pattern-job", status="running")
-    #create_job(db, job_db)
+    db_pattern = models.Pattern(**pattern.dict(), owner_id=session_id)
 
-    #db_pattern = models.Pattern(**pattern.dict(), url="temp-pattern-url.tif")
+    db.add(db_pattern)
+    db.commit()
+    db.refresh(db_pattern)
+    return db_pattern
 
-    #db.add(db_pattern)
-    #db.commit()
-    #db.refresh(db_pattern)
-    #return db_pattern
-    pass
+def get_pattern(db: Session, pattern_id: int):
+    return db.query(models.Pattern).filter(models.Pattern.pattern_id == pattern_id).first()
 
+def get_patterns(db: Session):
+    return db.query(models.Pattern).all()
 
 def lulc_under_parcel_summary(session_id: str, wkt_parcel: str, db: Session):
     #TODO: Implement

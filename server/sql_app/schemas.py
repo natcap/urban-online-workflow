@@ -29,7 +29,7 @@ class ScenarioOut(BaseModel):
     scenario_id: int
 
     class Config:
-            orm_mode = True
+        orm_mode = True
 
 
 class ScenarioAll(BaseModel):
@@ -37,7 +37,7 @@ class ScenarioAll(BaseModel):
     name: str
 
     class Config:
-            orm_mode = True
+        orm_mode = True
 
 
 class User(BaseModel):
@@ -75,6 +75,7 @@ class JobBase(BaseModel):
 class Job(JobBase):
     """Pydantic model (schema) used when reading data, when returning it from API."""
     job_id: int
+    owner_id: str
 
     class Config:
         orm_mode = True
@@ -94,21 +95,23 @@ class JobOut(BaseModel):
         orm_mode = True
 
 
-class Pattern(BaseModel):
+class PatternBase(BaseModel):
+    label: str
+    wkt: str
+
+
+class Pattern(PatternBase):
     """Pydantic model (schema) used when reading data, when returning it from API."""
     pattern_id: int
-    name: str
-    description: str
-    wkt: str
     owner_id: str
 
     class Config:
         orm_mode = True
 
 
-class PatternJob(BaseModel):
+class PatternResponse(BaseModel):
     pattern_id: int
-    job_id: int
+    label: str
 
     class Config:
         orm_mode = True
@@ -117,3 +120,13 @@ class PatternJob(BaseModel):
 class WorkerReponse(BaseModel):
     job_id: int
     status: str
+
+
+class Wallpaper(BaseModel):
+    scenario_id: int
+    wallpaper_wkt: str
+    pattern_id: int
+
+    class Config:
+        orm_mode = True
+
