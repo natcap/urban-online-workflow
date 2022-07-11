@@ -20,6 +20,7 @@ class Scenario(ScenarioBase):
     wkt: str
     lulc_result: str
     lulc_base: str
+    lulc_stats: str
 
     class Config:
         orm_mode = True

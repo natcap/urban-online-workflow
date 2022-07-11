@@ -241,13 +241,14 @@ async def test_async_job(sleep_time: int, db: Session = Depends(get_db)):
 
 
 ### Worker Endpoints ###
+# James working on the Worker side here: https://github.com/phargogh/urban-online-workflow/tree/feature/26-implement-wallpapering
 @app.get("/jobsqueue/")
 async def worker_job_request(db: Session = Depends(get_db)):
     """If there's work to be done in the queue send it to the worker."""
     try:
         job_priority, job_details = await queue.get_nowait()
         return json.dumps({"job_id": 1, "test": True})
-    except QueueEmpty:
+    except asyncio.QueueEmpty:
         return None
 
 
@@ -287,13 +288,14 @@ async def worker_wallpaper_response(wallpaper_job, db: Session = Depends(get_db)
         "result": {
             url_path: "url to new LULC",
             lulc_stats: {
-                lulc-int: lulc-count,
-                11: 539,
+                lulc-int: lulc-perc,
+                11: 53,
             }
-            }
+        }
         "status": "success | failed",
         "server-attrs": {
-            "job_id": int, "scenario_id": int},
+            "job_id": int, "scenario_id": int
+        },
     }
 
     Store the lulc_stats in the Scenario table in new column
@@ -322,6 +324,8 @@ async def worker_wallpaper_response(wallpaper_job, db: Session = Depends(get_db)
         if wallpaper_job.status == "success":
             # Update the job status in the DB to "success"
             scenario_db.lulc_result = wallpaper_job.result
+            # Stringify the lulc stats
+            scenario_db.lulc_stats = json.dumps(wallpaper_job.result)
         else:
             # Update the job status in the DB to "failed"
             scenario_db.lulc_result = None
