@@ -11,7 +11,7 @@ LOGGER = logging.getLogger(__name__)
 def do_work(ip, port):
     LOGGER.info(f'Starting worker, queueing {ip}:{port}')
     while True:
-        #response = requests.get(f'{ip}/jobsqueue/:{port}')
+        #response = requests.get(f'{ip}:{port}/jobsqueue/')
         LOGGER.info("Placeholder for polling the jobs queue")
         time.sleep(1)
 
