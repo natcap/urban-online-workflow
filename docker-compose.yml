@@ -21,12 +21,11 @@ services:
             - ./appdata:/opt/appdata
     worker:
         build: backend-worker
-        command: /opt/conda/bin/python /opt/worker/worker.py \
-            --queue_ip=0.0.0.0 --queue_port=8000 \
+        command: /opt/conda/bin/python /opt/worker/worker.py 0.0.0.0 8000
         restart: on-failure
         volumes:
             - ./backend-worker:/opt/worker
-            - ./appdata:opt/appdata
+            - ./appdata:/opt/appdata
 
 secrets:
     frontend-api-keys:
