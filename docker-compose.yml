@@ -8,6 +8,9 @@ services:
         volumes:
             - ./frontend/src:/opt/frontend/src
             - ./appdata:/opt/appdata
+        secrets:
+            - source: frontend-api-keys
+              target: .env
     api:
         build: server
         ports:
@@ -24,3 +27,7 @@ services:
         volumes:
             - ./backend-worker:/opt/worker
             - ./appdata:opt/appdata
+
+secrets:
+    frontend-api-keys:
+        file: ./frontend/.env
