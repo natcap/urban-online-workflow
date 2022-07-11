@@ -19,8 +19,8 @@ def do_work(ip, port):
 def main():
     parser = argparse.ArgumentParser(
         __name__, description=('Worker for Urban Online Workflow'))
-    parser.add_argument('--queue_ip')
-    parser.add_argument('--queue_port')
+    parser.add_argument('queue_ip')
+    parser.add_argument('queue_port')
 
     args = parser.parse_args()
     do_work(
