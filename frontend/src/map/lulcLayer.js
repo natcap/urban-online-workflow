@@ -21,6 +21,7 @@ export default new TileLayer({
     // https://github.com/openlayers/openlayers/blob/main/test/rendering/cases/webgl-palette/main.js
     color: [
       'palette',
+      // band values now in rgb-space; *255 to get original values
       ['*', ['band', 1], 255],
       lulcColors,
     ],
