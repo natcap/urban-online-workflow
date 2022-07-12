@@ -379,7 +379,7 @@ def do_work(ip, port):
             LOGGER.exception(f'{job_type} failed: {error}')
             status = 'failed'
             result_path = None
-        else:
+        finally:
             requests.post(
                 f'{server_url}/{job_type}/',
                 data={
