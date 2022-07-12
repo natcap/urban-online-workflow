@@ -209,9 +209,23 @@ def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path):
     target_raster = None
 
 
-def fill_parcel(parcel_wkt_epsg3857, fill_lulc_class, target_lulc_path):
+def fill_parcel(parcel_wkt_epsg3857, fill_lulc_class, target_lulc_path,
+                working_dir=None):
+    """Fill (rasterize) a parcel with a landcover code.
+
+    Args:
+        parcel_wkt_epsg3857 (str): The WKT of the parcel to fill,
+            projected in EPSG:3857 (Web Mercator)
+        fill_lulc_class (int): The lulc class to fill the parcel with.
+        target_lulc_path (str): Where the target lulc raster should be saved.
+        working_dir (str): The path to where working files should be stored.
+            If ``None``, then the default temp dir will be used.
+
+    Returns:
+        ``None``
+    """
     parcel_geom = _reproject_to_nlud(parcel_wkt_epsg3857)
-    working_dir = tempfile.mkdtemp(prefix='fill-parcel-')
+    working_dir = tempfile.mkdtemp(prefix='fill-parcel-', dir=working_dir)
 
     parcel_vector_path = os.path.join(working_dir, 'parcel.fgb')
     pygeoprocessing.geoprocessing.shapely_geometry_to_vector(
@@ -242,7 +256,8 @@ def wallpaper_parcel(parcel_wkt_epsg3857, pattern_wkt_epsg3857,
             NLUD raster, projected in Albers Equal Area.
         target_raster_path (str): Where the output raster should be written on
             disk.
-        working_dir (str): Where temporary files should be stored.
+        working_dir (str): Where temporary files should be stored.  If
+            ``None``, then the default temp dir will be used.
 
     Returns:
         ``None``
