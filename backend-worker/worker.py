@@ -331,7 +331,7 @@ def wallpaper_parcel(parcel_wkt_epsg3857, pattern_wkt_epsg3857,
 
         target_band.WriteArray(target_array, xoff=xoff, yoff=yoff)
 
-    # TODO: build overviews
+    target_raster.BuildOverviews()  # default settings for overviews
 
     shutil.rmtree(working_dir)
 
