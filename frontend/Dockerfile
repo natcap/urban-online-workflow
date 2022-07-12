@@ -10,7 +10,6 @@ RUN yarn install --production=false
 # individual files in the parent directory need to be added here
 ADD ./vite.config.js /opt/frontend/
 ADD ./index.html /opt/frontend/
-ADD ./env /opt/frontend
 
 EXPOSE 3000
 
