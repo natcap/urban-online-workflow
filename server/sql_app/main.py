@@ -1,14 +1,9 @@
-from fastapi import Depends
-from fastapi import FastAPI
-from fastapi import HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from . import crud
-from . import models
-from . import schemas
-from .database import engine
-from .database import SessionLocal
+from . import crud, models, schemas
+from .database import SessionLocal, engine
 
 # Create the db tables
 models.Base.metadata.create_all(bind=engine)
@@ -143,9 +138,6 @@ def read_jobs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return jobs
 
 
-#TODO need a way to post back job status
-
-
 ### Task Endpoints ###
 
 @app.get("/pattern/{session_id}", response_model=list[schemas.PatternJob])
@@ -194,3 +186,4 @@ def test_add_jobs():
     response = client.get("/")
     assert response.status_code == 200
     assert response.json() == {"msg": "Hello World"}
+
