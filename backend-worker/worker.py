@@ -25,6 +25,8 @@ POLLING_INTERVAL_S = 1
 DEFAULT_GTIFF_CREATION_TUPLE_OPTIONS = ('GTIFF', (
     'TILED=YES', 'BIGTIFF=YES', 'COMPRESS=LZW',
     'BLOCKXSIZE=256', 'BLOCKYSIZE=256'))
+NLUD_NODATA = -1
+NLUD_DTYPE = gdal.GDT_UInt16
 _WEB_MERCATOR_SRS = osr.SpatialReference()
 _WEB_MERCATOR_SRS.ImportFromEPSG(3857)
 _WEB_MERCATOR_SRS.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
@@ -100,7 +102,8 @@ class Tests(unittest.TestCase):
         # Raster units are in meters (mercator)
         parcel = point_over_san_antonio.buffer(100)
         pygeoprocessing.geoprocessing.shapely_geometry_to_vector(
-            [point_over_san_antonio, parcel], os.path.join(self.workspace_dir, 'parcel.shp'),
+            [point_over_san_antonio, parcel],
+            os.path.join(self.workspace_dir, 'parcel.shp'),
             _WEB_MERCATOR_SRS.ExportToWkt(), 'ESRI Shapefile')
 
         _create_new_lulc(parcel.wkt, gtiff_path)
@@ -115,7 +118,6 @@ class Tests(unittest.TestCase):
 
         self.assertTrue(epsg3857_raster_bbox_shapely.contains(parcel))
 
-
     def test_fill(self):
         # University of Texas: San Antonio, selected by hand in QGIS
         # Coordinates are in EPSG:3857 "Web Mercator"
@@ -124,13 +126,36 @@ class Tests(unittest.TestCase):
         parcel = point_over_san_antonio.buffer(100)
 
         target_raster_path = os.path.join(self.workspace_dir, 'raster.tif')
-        fill(parcel.wkt, 15, target_raster_path)
+        fill_parcel(parcel.wkt, 15, target_raster_path)
 
         result_array = pygeoprocessing.raster_to_numpy_array(
                 target_raster_path)
         self.assertEqual(
-            numpy.sum(result_array[result_array != 255]), 600)
+            numpy.sum(result_array[result_array != NLUD_NODATA]), 600)
         self.assertEqual(numpy.sum(result_array == 15), 40)
+
+    def test_wallpaper(self):
+        # University of Texas: San Antonio, selected by hand in QGIS
+        # Coordinates are in EPSG:3857 "Web Mercator"
+        point_over_san_antonio = shapely.geometry.Point(
+            -10965275.57, 3429693.30)
+        parcel = point_over_san_antonio.buffer(100)
+
+        # Apache Creek, urban residential area, San Antonio, TX.
+        # Selected by hand in QGIS.  Coordinates are in EPSG:3857 "Web
+        # Mercator"
+        pattern = shapely.geometry.box(
+            *shapely.geometry.Point(
+                -10968418.16, 3429347.98).buffer(100).bounds)
+
+        target_raster_path = os.path.join(
+            self.workspace_dir, 'wallpapered_raster.tif')
+
+        nlud_path = 'appdata/nlud.tif'
+        wallpaper_parcel(parcel.wkt, pattern.wkt, nlud_path,
+                         target_raster_path, self.workspace_dir)
+
+        import pdb; pdb.set_trace()  # print(self.workspace_dir)
 
 
 def _reproject_to_nlud(parcel_wkt_epsg3857):
@@ -162,10 +187,11 @@ def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path):
                 parcel_max_y - parcel_min_y)))
     buf_minx, buf_miny, buf_maxx, buf_maxy = buffered_parcel_geom.bounds
 
-    buf_minx -= abs(buf_minx % PIXELSIZE_X)
-    buf_miny -= abs(buf_miny % PIXELSIZE_Y)
-    buf_maxx += PIXELSIZE_X - abs(buf_maxx % PIXELSIZE_X)
-    buf_maxy += PIXELSIZE_Y - abs(buf_maxy % PIXELSIZE_Y)
+    # TODO: not quite overlapping correctly in wallpapering
+    buf_minx += abs(buf_minx % PIXELSIZE_X)
+    buf_miny += abs(buf_miny % PIXELSIZE_Y)
+    buf_maxx -= PIXELSIZE_X - abs(buf_maxx % PIXELSIZE_X)
+    buf_maxy -= PIXELSIZE_Y - abs(buf_maxy % PIXELSIZE_Y)
 
     n_cols = abs(int(math.ceil((buf_maxx - buf_minx) / PIXELSIZE_X)))
     n_rows = abs(int(math.ceil((buf_maxy - buf_miny) / PIXELSIZE_Y)))
@@ -178,14 +204,14 @@ def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path):
     target_raster.SetGeoTransform(
         [buf_minx, PIXELSIZE_X, 0, buf_maxy, 0, PIXELSIZE_Y])
     band = target_raster.GetRasterBand(1)
-    band.SetNoDataValue(255)
-    band.Fill(255)
+    band.SetNoDataValue(NLUD_NODATA)
+    band.Fill(NLUD_NODATA)
     target_raster = None
 
 
-def fill(parcel_wkt_epsg3857, fill_lulc_class, target_lulc_path):
+def fill_parcel(parcel_wkt_epsg3857, fill_lulc_class, target_lulc_path):
     parcel_geom = _reproject_to_nlud(parcel_wkt_epsg3857)
-    working_dir = tempfile.mkdtemp()
+    working_dir = tempfile.mkdtemp(prefix='fill-parcel-')
 
     parcel_vector_path = os.path.join(working_dir, 'parcel.fgb')
     pygeoprocessing.geoprocessing.shapely_geometry_to_vector(
@@ -196,10 +222,101 @@ def fill(parcel_wkt_epsg3857, fill_lulc_class, target_lulc_path):
         parcel_vector_path, target_lulc_path, [fill_lulc_class],
         option_list=['ALL_TOUCHED=TRUE'])
 
+    shutil.rmtree(working_dir)
 
-def wallpaper():
-    # TODO: For AOI: buffer the source polygon by a lot and take bbox
-    pass
+
+def wallpaper_parcel(parcel_wkt_epsg3857, pattern_wkt_epsg3857,
+                     source_nlud_raster_path, target_raster_path,
+                     working_dir=None):
+    """Wallpaper a region.
+
+    This function is adapted from
+    https://github.com/natcap/wallpaper-scenarios/blob/main/wallpaper_raster.py#L100
+
+    Args:
+        parcel_wkt_epsg3857 (str): The WKT of the parcel to wallpaper over,
+            projrected in EPSG:3857 (Web Mercator)
+        pattern_wkt_epsg3857 (str): The WKT of the pattern geometry, projected
+            in EPSG:3857 (Web Mercator)
+        source_nlud_raster_path (str): The GDAL-compatible URI to the source
+            NLUD raster, projected in Albers Equal Area.
+        target_raster_path (str): Where the output raster should be written on
+            disk.
+        working_dir (str): Where temporary files should be stored.
+
+    Returns:
+        ``None``
+    """
+    nlud_raster_info = pygeoprocessing.geoprocessing.get_raster_info(
+        source_nlud_raster_path)
+
+    working_dir = tempfile.mkdtemp(prefix='wallpaper-parcel-', dir=working_dir)
+    parcel_mask_raster_path = os.path.join(working_dir, 'mask.tif')
+    fill_parcel(parcel_wkt_epsg3857, 1, parcel_mask_raster_path)
+    parcel_raster_info = pygeoprocessing.get_raster_info(
+        parcel_mask_raster_path)
+    parcel_mask_raster = gdal.OpenEx(parcel_mask_raster_path, gdal.OF_RASTER)
+    parcel_mask_band = parcel_mask_raster.GetRasterBand(1)
+
+    nlud_under_parcel_path = os.path.join(working_dir, 'nlud_under_parcel.tif')
+    pygeoprocessing.geoprocessing.warp_raster(
+        source_nlud_raster_path, nlud_raster_info['pixel_size'],
+        nlud_under_parcel_path, 'nearest',
+        target_bb=parcel_raster_info['bounding_box'])
+    nlud_under_parcel_raster_info = pygeoprocessing.get_raster_info(
+        nlud_under_parcel_path)
+
+    nlud_under_pattern_path = os.path.join(
+        working_dir, 'nlud_under_pattern.tif')
+    pattern_bbox = _reproject_to_nlud(pattern_wkt_epsg3857).bounds
+    pygeoprocessing.geoprocessing.warp_raster(
+        source_nlud_raster_path, nlud_raster_info['pixel_size'],
+        nlud_under_pattern_path, 'nearest',
+        target_bb=pattern_bbox)
+    wallpaper_array = pygeoprocessing.raster_to_numpy_array(
+        nlud_under_pattern_path)
+
+    # Sanity check to catch programmer error early
+    for attr in ('raster_size', 'pixel_size', 'bounding_box'):
+        assert nlud_under_parcel_raster_info[attr] == parcel_raster_info[attr]
+
+    pygeoprocessing.new_raster_from_base(
+        parcel_mask_raster_path, target_raster_path,
+        NLUD_DTYPE, [NLUD_NODATA])
+    target_raster = gdal.OpenEx(
+        target_raster_path, gdal.OF_RASTER | gdal.GA_Update)
+    target_band = target_raster.GetRasterBand(1)
+
+    for offset_dict, base_array in pygeoprocessing.iterblocks(
+            (nlud_under_parcel_path, 1)):
+        parcel_mask_array = parcel_mask_band.ReadAsArray(**offset_dict)
+        assert parcel_mask_array is not None
+
+        xoff = offset_dict['xoff']
+        yoff = offset_dict['yoff']
+
+        wallpaper_x = xoff % wallpaper_array.shape[1]
+        wallpaper_y = yoff % wallpaper_array.shape[0]
+
+        win_ysize = offset_dict['win_ysize']
+        win_xsize = offset_dict['win_xsize']
+        wallpaper_x_repeats = (
+            1 + ((wallpaper_x+win_xsize) // wallpaper_array.shape[1]))
+        wallpaper_y_repeats = (
+            1 + ((wallpaper_y+win_ysize) // wallpaper_array.shape[0]))
+        wallpaper_tiled = numpy.tile(
+            wallpaper_array,
+            (wallpaper_y_repeats, wallpaper_x_repeats))[
+            wallpaper_y:wallpaper_y+win_ysize,
+            wallpaper_x:wallpaper_x+win_xsize]
+
+        target_array = numpy.where(
+            parcel_mask_array == 1,
+            wallpaper_tiled,
+            base_array)
+
+        target_band.WriteArray(target_array, xoff=xoff, yoff=yoff)
+
 
 
 def do_work(ip, port):
@@ -216,7 +333,7 @@ def do_work(ip, port):
         job_args = response.json['args']
 
         if job_type == 'fill':
-            fill(wkt=job_args['wkt'], pattern_id=server_args['pattern_id'])
+            fill_parcel(wkt=job_args['wkt'], pattern_id=server_args['pattern_id'])
         else:
             # post an update back to server - could not compute, invalid job
             # name.
