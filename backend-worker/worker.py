@@ -78,8 +78,8 @@ ALBERS_EQ_AREA_TO_WEB_MERCATOR = osr.CreateCoordinateTransformation(
     _ALBERS_EQUAL_AREA_SRS, _WEB_MERCATOR_SRS)
 
 # NLUD raster attributes copied in by hand from gdalinfo
-ORIGIN_X = -2356095.0
-ORIGIN_Y = 3172635.0
+NLUD_ORIGIN_X = -2356095.0
+NLUD_ORIGIN_Y = 3172635.0
 PIXELSIZE_X = 30.0
 PIXELSIZE_Y = -30.0
 
@@ -187,11 +187,10 @@ def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path):
                 parcel_max_y - parcel_min_y)))
     buf_minx, buf_miny, buf_maxx, buf_maxy = buffered_parcel_geom.bounds
 
-    # TODO: not quite overlapping correctly in wallpapering
-    buf_minx += abs(buf_minx % PIXELSIZE_X)
-    buf_miny += abs(buf_miny % PIXELSIZE_Y)
-    buf_maxx -= PIXELSIZE_X - abs(buf_maxx % PIXELSIZE_X)
-    buf_maxy -= PIXELSIZE_Y - abs(buf_maxy % PIXELSIZE_Y)
+    buf_minx -= abs((buf_minx - NLUD_ORIGIN_X) % PIXELSIZE_X)
+    buf_miny -= abs((buf_miny - NLUD_ORIGIN_Y) % PIXELSIZE_Y)
+    buf_maxx += PIXELSIZE_X - abs((buf_maxx - NLUD_ORIGIN_X) % PIXELSIZE_X)
+    buf_maxy += PIXELSIZE_Y - abs((buf_maxy - NLUD_ORIGIN_Y) % PIXELSIZE_Y)
 
     n_cols = abs(int(math.ceil((buf_maxx - buf_minx) / PIXELSIZE_X)))
     n_rows = abs(int(math.ceil((buf_maxy - buf_miny) / PIXELSIZE_Y)))
