@@ -96,7 +96,6 @@ class Tests(unittest.TestCase):
         # Coordinates are in EPSG:3857 "Web Mercator"
         point_over_san_antonio = shapely.geometry.Point(
             -10965275.57, 3429693.30)
-        LOGGER.info(point_over_san_antonio.wkt)
 
         # Raster units are in meters (mercator)
         parcel = point_over_san_antonio.buffer(100)
@@ -117,6 +116,35 @@ class Tests(unittest.TestCase):
         self.assertTrue(epsg3857_raster_bbox_shapely.contains(parcel))
 
 
+    def test_fill(self):
+        # University of Texas: San Antonio, selected by hand in QGIS
+        # Coordinates are in EPSG:3857 "Web Mercator"
+        point_over_san_antonio = shapely.geometry.Point(
+            -10965275.57, 3429693.30)
+        parcel = point_over_san_antonio.buffer(100)
+
+        target_raster_path = os.path.join(self.workspace_dir, 'raster.tif')
+        fill(parcel.wkt, 15, target_raster_path)
+
+        result_array = pygeoprocessing.raster_to_numpy_array(
+                target_raster_path)
+        self.assertEqual(
+            numpy.sum(result_array[result_array != 255]), 600)
+        self.assertEqual(numpy.sum(result_array == 15), 40)
+
+
+def _reproject_to_nlud(parcel_wkt_epsg3857):
+    ogr_geom = ogr.CreateGeometryFromWkt(parcel_wkt_epsg3857)
+    err_code = ogr_geom.Transform(WEB_MERCATOR_TO_ALBERS_EQ_AREA)
+    if err_code:
+        LOGGER.warning(
+            "Transformation failed on parcel; continuing with "
+            f"{parcel_wkt_epsg3857}")
+    assert ogr_geom.ExportToWkt() != parcel_wkt_epsg3857
+    parcel_geom = shapely.wkt.loads(ogr_geom.ExportToWkt())
+    return parcel_geom
+
+
 def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path):
     """Create an LULC raster in the NLUD projection covering the parcel.
 
@@ -127,15 +155,7 @@ def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path):
     Returns:
         ``None``
     """
-    ogr_geom = ogr.CreateGeometryFromWkt(parcel_wkt_epsg3857)
-    err_code = ogr_geom.Transform(WEB_MERCATOR_TO_ALBERS_EQ_AREA)
-    if err_code:
-        LOGGER.warning(
-            "Transformation failed on parcel; continuing with "
-            f"{parcel_wkt_epsg3857}")
-    assert ogr_geom.ExportToWkt() != parcel_wkt_epsg3857
-
-    parcel_geom = shapely.wkt.loads(ogr_geom.ExportToWkt())
+    parcel_geom = _reproject_to_nlud(parcel_wkt_epsg3857)
     parcel_min_x, parcel_min_y, parcel_max_x, parcel_max_y = parcel_geom.bounds
     buffered_parcel_geom = parcel_geom.buffer(
         abs(min(parcel_max_x - parcel_min_x,
@@ -157,11 +177,24 @@ def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path):
     target_raster.SetProjection(NLUD_SRS_WKT)
     target_raster.SetGeoTransform(
         [buf_minx, PIXELSIZE_X, 0, buf_maxy, 0, PIXELSIZE_Y])
+    band = target_raster.GetRasterBand(1)
+    band.SetNoDataValue(255)
+    band.Fill(255)
     target_raster = None
 
 
-def fill(wkt, target_lulc):
-    pass
+def fill(parcel_wkt_epsg3857, fill_lulc_class, target_lulc_path):
+    parcel_geom = _reproject_to_nlud(parcel_wkt_epsg3857)
+    working_dir = tempfile.mkdtemp()
+
+    parcel_vector_path = os.path.join(working_dir, 'parcel.fgb')
+    pygeoprocessing.geoprocessing.shapely_geometry_to_vector(
+        [parcel_geom], parcel_vector_path, NLUD_SRS_WKT, 'FlatGeoBuf')
+
+    _create_new_lulc(parcel_wkt_epsg3857, target_lulc_path)
+    pygeoprocessing.geoprocessing.rasterize(
+        parcel_vector_path, target_lulc_path, [fill_lulc_class],
+        option_list=['ALL_TOUCHED=TRUE'])
 
 
 def wallpaper():
