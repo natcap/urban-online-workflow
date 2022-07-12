@@ -331,13 +331,18 @@ def wallpaper_parcel(parcel_wkt_epsg3857, pattern_wkt_epsg3857,
 
         target_band.WriteArray(target_array, xoff=xoff, yoff=yoff)
 
+    # TODO: build overviews
+
+    shutil.rmtree(working_dir)
 
 
 def do_work(ip, port):
-    LOGGER.info(f'Starting worker, queueing {ip}:{port}')
+    local_appdata_dir = 'appdata'
+    server_url = f'{ip}:{port}/jobsqueue/'
+    LOGGER.info(f'Starting worker, queueing {server_url}')
     LOGGER.info(f'Polling the queue every {POLLING_INTERVAL_S}s if no work')
     while True:
-        response = requests.get(f'{ip}:{port}/jobsqueue/')
+        response = requests.get(server_url)
         if not response.json:
             time.sleep(POLLING_INTERVAL_S)
             continue
@@ -346,21 +351,42 @@ def do_work(ip, port):
         job_type = response.json['job']
         job_args = response.json['args']
 
-        if job_type == 'fill':
-            fill_parcel(wkt=job_args['wkt'], pattern_id=server_args['pattern_id'])
+        try:
+            if job_type == 'fill':
+                fill_workspace = tempfile.mkdtemp(
+                    prefix='fill-', dir=local_appdata_dir)
+                result_path = f'{fill_workspace}/filled.tif'
+                fill_parcel(
+                    parcel_wkt_epsg3857=job_args['wkt'],
+                    fill_lulc_class=1,  # TODO: get this from job args
+                    target_lulc_path=result_path)
+
+            elif job_type == 'pattern':
+                wallpaper_workspace = tempfile.mkdtemp(
+                    prefix='wallpaper-', dir=local_appdata_dir)
+                result_path = f'{wallpaper_workspace}/wallpaper.tif'
+                wallpaper_parcel(
+                    parcel_wkt_epsg3857=job_args['parcel_wkt'],
+                    pattern_wkt_epsg3857=job_args['pattern_wkt'],
+                    source_nlud_raster_path=f'{local_appdata_dir}/nlud.tif',
+                    target_raster_path=result_path,
+                    working_dir=wallpaper_workspace)
+
+            else:
+                raise ValueError(f"Invalid job type: {job_type}")
+            status = 'success'
+        except Exception as error:
+            LOGGER.exception(f'{job_type} failed: {error}')
+            status = 'failed'
+            result_path = None
         else:
-            # post an update back to server - could not compute, invalid job
-            # name.
-            # USE JOB_TYPE AS ENDPOINT
-            requests.post()
-
-
-        #response = requests.get(f'{ip}/jobsqueue/:{port}')
-        # jobname (function to call)
-        # the args for the function
-        # Assume that we're cropping the landcover to the federal HUD metro
-        # area that matches
-        #  - [ ] get the federal HUD metro areas vector
+            requests.post(
+                f'{server_url}/{job_type}/',
+                data={
+                    'status': status,
+                    'result': result_path,
+                    'server-attrs': server_args,
+                })
 
 
 def main():
