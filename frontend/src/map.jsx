@@ -14,7 +14,6 @@ import {
   defaults as defaultInteractions,
 } from 'ol/interaction';
 import { defaults } from 'ol/control';
-import { Fill, Stroke, Style } from 'ol/style';
 
 import { Button, Icon } from '@blueprintjs/core';
 
@@ -27,23 +26,9 @@ import {
 } from './map/baseLayers';
 import {
   selectedFeatureStyle,
-  patternSamplerBoxStyle
+  patternSamplerBoxStyle,
+  styleParcel,
 } from './map/styles';
-
-const styleParcel = (zoom) => {
-  const style = new Style({
-    stroke: new Stroke({
-      color: 'rgba(255, 255, 255, 0.8)',
-      width: (zoom > 18) ? 1 : 0.7,
-    }),
-    // even if we want no fill, must use one to enable
-    // click-to-select feature
-    fill: new Fill({
-      color: 'rgba(0, 0, 0, 0)',
-    }),
-  });
-  return style;
-};
 
 function getCoords(geometry) {
   const flatCoords = geometry.getFlatCoordinates();
