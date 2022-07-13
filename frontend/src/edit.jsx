@@ -100,20 +100,6 @@ export default function EditMenu(props) {
     refreshSavedScenarios();
   }
 
-  // TODO: do handlers  need to be wrapped in useCallback? 
-  // to memoize the function?
-  const handleSelectLULC = (event) => {
-    setSingleLULC(event.target.value);
-  };
-
-  const handleConversionOption = (event) => {
-    setConversionOption(event.target.value);
-  };
-
-  const handleTabChange = (tabID) => {
-    setActiveTab(tabID);
-  };
-
   const handleSamplePattern = async (event) => {
     event.preventDefault();
     await createPattern(patternSampleWKT, newPatternName);
@@ -168,7 +154,11 @@ export default function EditMenu(props) {
 
   return (
     <div className="menu-container">
-      <Tabs id="Tabs" onChange={handleTabChange} selectedTabId={activeTab}>
+      <Tabs
+        id="Tabs"
+        onChange={(tabID) => setActiveTab(tabID)}
+        selectedTabId={activeTab}
+      >
         <Tab
           id="create"
           title="Create"
@@ -184,7 +174,7 @@ export default function EditMenu(props) {
                         className="sidebar-subheading"
                         inline
                         label="Modify the landuse of this parcel by:"
-                        onChange={handleConversionOption}
+                        onChange={(event) => setConversionOption(event.target.value)}
                         selectedValue={conversionOption}
                       >
                         <Radio key="wallpaper" value="wallpaper" label="wallpaper" />
@@ -194,7 +184,9 @@ export default function EditMenu(props) {
                         {
                           (conversionOption === 'paint')
                             ? (
-                              <HTMLSelect onChange={handleSelectLULC}>
+                              <HTMLSelect
+                                onChange={(event) => setSingleLULC(event.target.value)}
+                              >
                                 {Object.entries(lulcCodes)
                                   .map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                               </HTMLSelect>
