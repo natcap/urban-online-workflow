@@ -40,3 +40,42 @@ html, body, #root, .App {
 .scenario-table {
   padding-top: 1rem;
 }
+
+.layers-control {
+  position: absolute;
+  top: 3.5rem;
+  left: 0.5rem;
+}
+
+.layers-control button {
+  min-width: 24px;
+  min-height: 24px;
+}
+
+.layers-panel {
+  background-color: white;
+  list-style-type: none;
+  padding: 0.5rem;
+  margin: 0;
+  filter: drop-shadow(2px 2px 2px grey);
+}
+
+.edit-wallpaper {
+  display: flex;
+  align-items: baseline;
+}
+
+.edit-wallpaper .bp4-html-select {
+  margin-left: 1rem;
+}
+
+.sidebar-subheading {
+  padding-top: 1rem;
+  font-weight: 600;
+}
+
+.conversion-panel {
+  background-color: rgba(240, 240, 240, 1.0);
+  filter: drop-shadow(1px 1px 1px grey);
+  padding: 0.5rem;
+}

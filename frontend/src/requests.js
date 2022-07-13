@@ -23,6 +23,10 @@ export async function doWallpaper(geom, pattern, scenarioID) {
   return Promise.resolve('fooJobID');
 }
 
+export async function convertToSingleLULC(geom, lulcCode, scenarioID) {
+  return Promise.resolve('fooJobID');
+}
+
 export async function getWallpaperResults(jobID) {
   const lulcTable = {
     forest: window.crypto.getRandomValues(new Uint8Array(1))[0],
