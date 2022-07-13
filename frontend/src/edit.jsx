@@ -27,7 +27,7 @@ import {
 import useInterval from './hooks/useInterval';
 import ScenarioTable from './scenarioTable';
 import ParcelTable from './parcelTable';
-import lulcCodes from './lulcCodes';
+import landuseCodes from './landuseCodes';
 
 FocusStyleManager.onlyShowFocusOnTabs();
 
@@ -187,8 +187,8 @@ export default function EditMenu(props) {
                               <HTMLSelect
                                 onChange={(event) => setSingleLULC(event.target.value)}
                               >
-                                {Object.entries(lulcCodes)
-                                  .map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                                {Object.entries(landuseCodes)
+                                  .map(([code, data]) => <option key={code} value={code}>{data.name}</option>)}
                               </HTMLSelect>
                             )
                             : wallpaperingSelect
