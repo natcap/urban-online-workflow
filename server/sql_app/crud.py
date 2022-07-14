@@ -80,8 +80,10 @@ def create_scenario(db: Session, scenario: schemas.Scenario, session_id: str):
     return db_scenario
 
 
-def update_scenario(db: Session, scenario: schemas.Scenario):
-    db_scenario = db.query(models.Scenario).filter(models.Scenario.scenario_id == scenario.scenario_id).first()
+def update_scenario(db: Session, scenario: schemas.Scenario, scenario_id: int):
+    #db_scenario = db.query(models.Scenario).filter(models.Scenario.scenario_id == scenario_id).first()
+    db_scenario = get_scenario(db, scenario_id)
+    LOGGER.debug("Scenario: {scenario}")
 
     if not db_scenario:
         raise HTTPException(status_code=404, detail="Scenario not found")
@@ -130,10 +132,9 @@ def create_job(db: Session, session_id: str, job: schemas.JobBase):
     db.refresh(db_job)
     return db_job
 
-def update_job(db: Session, job: schemas.Job):
+def update_job(db: Session, job: schemas.Job, job_id: int):
     LOGGER.debug("CRUD: update_job")
-    LOGGER.debug(f'job id: {job.job_id}')
-    db_job = db.query(models.Job).filter(models.Job.job_id == job.job_id).first()
+    db_job = db.query(models.Job).filter(models.Job.job_id == job_id).first()
 
     if not db_job:
         raise HTTPException(status_code=404, detail="job not found")

@@ -30,10 +30,15 @@ models.Base.metadata.create_all(bind=engine)
 # Create a queue that we will use to store our "workload".
 QUEUE = asyncio.PriorityQueue()
 TASKS = set()
+# Status constants to use for the DB and to serve to frontend
 STATUS_PENDING = "pending"
 STATUS_RUNNING = "running"
 STATUS_SUCCESS = "success"
 STATUS_FAIL = "failed"
+# Priority constants to use for jobs
+LOW_PRIORITY = 3
+MEDIUM_PRIORITY = 2
+HIGH_PRIORITY = 1
 
 # Normally you would probably initialize your db (create tables, etc) with
 # Alembic. Would also use Alembic for "migrations" (that's its main job).
@@ -246,39 +251,14 @@ async def test_async_job(sleep_time: int, db: Session = Depends(get_db)):
 async def worker_job_request(db: Session = Depends(get_db)):
     """If there's work to be done in the queue send it to the worker."""
     try:
-        job_priority, job_details = await queue.get_nowait()
-        return json.dumps({"job_id": 1, "test": True})
+        job_priority, job_details = QUEUE.get_nowait()
+        return json.dumps({**job_details, "priority": job_priority})
     except asyncio.QueueEmpty:
         return None
 
 
-@app.get("/jobsqueue/pattern")
-async def worker_pattern_response(pattern_job, db: Session = Depends(get_db)):
-    """Update the queue and db given the job details from the worker."""
-    # Update job in db based on status
-    job_db = crud.get_job(db, job_id=pattern_job.server-attrs.job_id)
-    try:
-        if pattern_job.status == "success":
-            # Update the job status in the DB to "success"
-            job_schema = schemas.JobBase(**{
-                'name': job_details['name'],
-                'description': job_details['description'],
-                'status': STATUS_SUCCESS})
-        else:
-            # Update the job status in the DB to "failed"
-            job_schema = schemas.JobBase(**{
-                'name': job_details['name'],
-                'description': job_details['description'],
-                'status': STATUS_FAILED})
-        LOGGER.debug('Update job status')
-        _ = crud.update_job(
-            db=job_details['db'], job=job_schema, job_id=job_details['job_id'])
-    except Exception as err:
-        LOGGER.error(f'Error: {err}')
-    pass
-
-@app.get("/jobsqueue/wallpaper")
-async def worker_wallpaper_response(wallpaper_job, db: Session = Depends(get_db)):
+@app.post("/jobsqueue/wallpaper")
+async def worker_wallpaper_response(wallpaper_job: schemas.WorkerResponse, db: Session = Depends(get_db)):
     """Update the queue and db given the job details from the worker.
 
     Returned URL result will be partial to allow for local vs bucket stored
@@ -293,7 +273,7 @@ async def worker_wallpaper_response(wallpaper_job, db: Session = Depends(get_db)
             }
         }
         "status": "success | failed",
-        "server-attrs": {
+        "server_attrs": {
             "job_id": int, "scenario_id": int
         },
     }
@@ -302,37 +282,47 @@ async def worker_wallpaper_response(wallpaper_job, db: Session = Depends(get_db)
     (string column or something like varchar?). Try
     stringifying the lulc_stats object to add to the db.
     """
+    LOGGER.debug("Entering jobsqueue/wallapper")
+    LOGGER.debug(wallpaper_job)
     # Update job in db based on status
-    job_db = crud.get_job(db, job_id=wallpaper_job.server-attrs.job_id)
-    try:
-        if wallpaper_job.status == "success":
-            # Update the job status in the DB to "success"
-            job_db.status = STATUS_SUCCESS
-        else:
-            # Update the job status in the DB to "failed"
-            job_db.status = STATUS_FAILED
-        LOGGER.debug('Update job status')
-        _ = crud.update_job(db=db, job=job_db)
-    except Exception as err:
-        LOGGER.error(f'Error: {err}')
+    job_db = crud.get_job(db, job_id=wallpaper_job.server_attrs['job_id'])
+    job_status = wallpaper_job.status
+    if job_status == "success":
+        # Update the job status in the DB to "success"
+        job_update = schemas.JobBase(
+            status=STATUS_SUCCESS,
+            name=job_db.name, description=job_db.description)
+    else:
+        # Update the job status in the DB to "failed"
+        job_update = schemas.JobBase(
+            status=STATUS_FAILED,
+            name=job_db.name, description=job_db.description)
+    LOGGER.debug('Update job status')
+    _ = crud.update_job(
+        db=db, job=job_update, job_id=wallpaper_job.server_attrs['job_id'])
 
     #TODO: how should we handle failure states?
 
     # Update Scenario in db with the result
-    scenario_db = crud.get_scenario(db, scenario_id=wallpaper_job.server-attrs.scenario_id)
-    try:
-        if wallpaper_job.status == "success":
-            # Update the job status in the DB to "success"
-            scenario_db.lulc_result = wallpaper_job.result
-            # Stringify the lulc stats
-            scenario_db.lulc_stats = json.dumps(wallpaper_job.result)
-        else:
-            # Update the job status in the DB to "failed"
-            scenario_db.lulc_result = None
-        LOGGER.debug('Update scenario result')
-        _ = crud.update_scenario(db=db, scenario=scenario_db)
-    except Exception as err:
-        LOGGER.error(f'Error: {err}')
+    scenario_db = crud.get_scenario(db, scenario_id=wallpaper_job.server_attrs['scenario_id'])
+    LOGGER.debug(f"what is scenario_db: {scenario_db}")
+    if wallpaper_job.status == "success":
+        scenario_update = schemas.ScenarioUpdate(
+            lulc_url_result=wallpaper_job.result['url_path'],
+            lulc_stats=json.dumps(wallpaper_job.result['lulc_stats']))
+        # Update the 
+        #scenario_schema.lulc_result = wallpaper_job.result['url_path']
+        # Stringify the lulc stats
+        #scenario_schema.lulc_stats = json.dumps(wallpaper_job.result['lulc_stats'])
+    else:
+        # Update the
+        scenario_update = schemas.ScenarioUpdate(
+            lulc_url_result=None, lulc_stats=None)
+        #scenario_schema.lulc_result = None
+    LOGGER.debug('Update scenario result')
+    _ = crud.update_scenario(
+        db=db, scenario=scenario_update,
+        scenario_id=wallpaper_job.server_attrs['scenario_id'])
 
 @app.post("/jobs/", response_model=schemas.Job)
 def create_job(
@@ -379,7 +369,7 @@ def get_patterns(db: Session = Depends(get_db)):
 @app.post("/wallpaper/", response_model=schemas.JobOut)
 def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
     # Get Scenario details from scenario_id
-    scenario_db = crud.get_scenario(db, scenario_id)
+    scenario_db = crud.get_scenario(db, wallpaper.scenario_id)
     session_id = scenario_db.owner_id
 
     # Create job entry for wallpapering task
@@ -387,14 +377,14 @@ def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
         **{"name": "wallpaper", "description": "run wallpapering",
            "status": STATUS_PENDING})
     job_db = crud.create_job(
-        db=db, session_id=session_id, job_schema=job_schema)
+        db=db, session_id=session_id, job=job_schema)
 
     # Get Pattern geometry
     pattern_db = crud.get_pattern(db, wallpaper.pattern_id)
     # Construct worker job and add to the queue
     worker_task = {
         "job": "wallpaper",
-        "server-attrs": {
+        "server_attrs": {
             "job_id": job_db.job_id, "scenario_id": scenario_db.scenario_id
         },
         "args": {
@@ -404,8 +394,10 @@ def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
             }
         }
 
+    QUEUE.put_nowait((MEDIUM_PRIORITY, worker_task))
+
     # Return job_id for response
-    return job_db.job_id
+    return job_db
 
 
 @app.get("/lulc-table/{session_id}")

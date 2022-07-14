@@ -12,14 +12,17 @@ class ScenarioBase(BaseModel):
     name: str
     description: Optional[str] = None
 
+class ScenarioUpdate(BaseModel):
+    lulc_url_result: str
+    lulc_stats: str
 
 class Scenario(ScenarioBase):
     """Pydantic model (schema) used when reading data, when returning it from API."""
     scenario_id: int
     owner_id: str
     wkt: str
-    lulc_result: str
-    lulc_base: str
+    lulc_url_result: str
+    lulc_url_base: str
     lulc_stats: str
 
     class Config:
@@ -118,14 +121,18 @@ class PatternResponse(BaseModel):
         orm_mode = True
 
 
-class WorkerReponse(BaseModel):
-    job_id: int
+class WorkerResponse(BaseModel):
+    result: dict
     status: str
+    server_attrs: dict
+
+    class Config:
+        orm_mode = True
 
 
 class Wallpaper(BaseModel):
     scenario_id: int
-    wallpaper_wkt: str
+    target_area_wkt: str
     pattern_id: int
 
     class Config:
