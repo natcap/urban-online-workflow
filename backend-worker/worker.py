@@ -91,6 +91,29 @@ class Tests(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.workspace_dir)
 
+    def test_pixelcounts_under_parcel(self):
+        # University of Texas: San Antonio, selected by hand in QGIS
+        # Coordinates are in EPSG:3857 "Web Mercator"
+        point_over_san_antonio = shapely.geometry.Point(
+            -10965275.57, 3429693.30)
+        parcel = point_over_san_antonio.buffer(100)
+
+        pygeoprocessing.geoprocessing.shapely_geometry_to_vector(
+            [point_over_san_antonio, parcel],
+            os.path.join(self.workspace_dir, 'parcel.fgb'),
+            _WEB_MERCATOR_SRS.ExportToWkt(), 'FlatGeoBuf')
+
+        nlud_path = 'appdata/nlud.tif'
+        pixelcounts = pixelcounts_under_parcel(
+            parcel.wkt, nlud_path)
+
+        expected_values = {
+            262: 0.9756,
+            321: 0.0244,
+        }
+        self.assertEqual(pixelcounts, expected_values)
+
+
     def test_new_lulc(self):
         gtiff_path = os.path.join(self.workspace_dir, 'raster.tif')
 
@@ -155,7 +178,8 @@ class Tests(unittest.TestCase):
         wallpaper_parcel(parcel.wkt, pattern.wkt, nlud_path,
                          target_raster_path, self.workspace_dir)
 
-        import pdb; pdb.set_trace()  # print(self.workspace_dir)
+        # This is useful for debugging
+        # import pdb; pdb.set_trace()  # print(self.workspace_dir)
 
 
 def _reproject_to_nlud(parcel_wkt_epsg3857):
