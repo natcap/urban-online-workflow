@@ -89,6 +89,12 @@ JOBTYPE_FILL = 'parcel_fill'
 JOBTYPE_WALLPAPER = 'wallpaper'
 JOBTYPE_PARCEL_STATS = 'stats_under_parcel'
 
+ENDPOINTS = {
+    JOBTYPE_FILL: 'scenario',
+    JOBTYPE_WALLPAPER: 'wallpaper',
+    JOBTYPE_PARCEL_STATS: 'parcel_stats',
+}
+
 
 class Tests(unittest.TestCase):
     def setUp(self):
@@ -97,7 +103,7 @@ class Tests(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.workspace_dir)
 
-    def test_pixelcounts_under_parcel(self):
+    def test_pixelpercents_under_parcel(self):
         # University of Texas: San Antonio, selected by hand in QGIS
         # Coordinates are in EPSG:3857 "Web Mercator"
         point_over_san_antonio = shapely.geometry.Point(
@@ -110,14 +116,14 @@ class Tests(unittest.TestCase):
             _WEB_MERCATOR_SRS.ExportToWkt(), 'FlatGeoBuf')
 
         nlud_path = 'appdata/nlud.tif'
-        pixelcounts = pixelcounts_under_parcel(
+        pixelpercents = pixelpercents_under_parcel(
             parcel.wkt, nlud_path)
 
         expected_values = {
             262: 0.9756,
             321: 0.0244,
         }
-        self.assertEqual(pixelcounts, expected_values)
+        self.assertEqual(pixelpercents, expected_values)
 
     def test_new_lulc(self):
         gtiff_path = os.path.join(self.workspace_dir, 'raster.tif')
@@ -365,7 +371,7 @@ def wallpaper_parcel(parcel_wkt_epsg3857, pattern_wkt_epsg3857,
     shutil.rmtree(working_dir)
 
 
-def pixelcounts_under_parcel(parcel_wkt_epsg3857, source_raster_path):
+def pixelpercents_under_parcel(parcel_wkt_epsg3857, source_raster_path):
     if source_raster_path.startswith(('https', 'http')):
         source_raster_path = f'/vsicurl/{source_raster_path}'
     source_raster = gdal.OpenEx(source_raster_path,
@@ -478,11 +484,11 @@ def do_work(ip, port):
                     'result': {
                         'lulc_path': result_path,
                         'lulc_stats': {
-                            'base': pixelcounts_under_parcel(
+                            'base': pixelpercents_under_parcel(
                                 job_args['target_parcel_wkt'],
                                 job_args['lulc_source_url']
                             ),
-                            'result': pixelcounts_under_parcel(
+                            'result': pixelpercents_under_parcel(
                                 job_args['target_parcel_wkt'],
                                 result_path
                             ),
@@ -490,7 +496,16 @@ def do_work(ip, port):
                     },
                 }
             elif job_type == 'stats_under_parcel':
-                pass
+                data = {
+                    'result': {
+                        'lulc_stats': {
+                            'base': pixelpercents_under_parcel(
+                                job_args['target_parcel_wkt'],
+                                job_args['lulc_source_url']
+                            ),
+                        }
+                    }
+                }
             else:
                 raise ValueError(f"Invalid job type: {job_type}")
             status = STATUS_SUCCESS
@@ -500,15 +515,10 @@ def do_work(ip, port):
             result_path = None
             data = {}  # data doesn't matter in a failure
         finally:
-            if job_type in set(['parcel_fill', 'wallpaper']):
-                target_endpoint = 'scenario'
-            else:
-                target_endpoint = 'invest_run'
-
             data['server_attrs'] = server_args
             data['status'] = status
             requests.post(
-                f'{job_queue_url}/{target_endpoint}',
+                f'{job_queue_url}/{ENDPOINTS[job_type]}',
                 data=data
             )
 
