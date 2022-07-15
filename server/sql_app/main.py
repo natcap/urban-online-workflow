@@ -244,7 +244,6 @@ async def test_async_job(sleep_time: int, db: Session = Depends(get_db)):
     return {'job_id': job_db.job_id}
 
 
-
 ### Worker Endpoints ###
 # James working on the Worker side here: https://github.com/phargogh/urban-online-workflow/tree/feature/26-implement-wallpapering
 @app.get("/jobsqueue/")
@@ -258,25 +257,25 @@ async def worker_job_request(db: Session = Depends(get_db)):
 
 
 @app.post("/jobsqueue/wallpaper")
-async def worker_wallpaper_response(wallpaper_job: schemas.WorkerResponse, db: Session = Depends(get_db)):
-    """Update the queue and db given the job details from the worker.
+async def worker_wallpaper_response(
+    wallpaper_job: schemas.WorkerResponse, db: Session = Depends(get_db)):
+    """Update the db given the job details from the worker.
 
     Returned URL result will be partial to allow for local vs bucket stored
 
-    Expected response from Worker:
-    {
-        "result": {
+    wallpaper_job:
+        {"result": {
             url_path: "url to new LULC",
             lulc_stats: {
                 lulc-int: lulc-perc,
                 11: 53,
+              }
+            }
+         "status": "success | failed",
+         "server_attrs": {
+            "job_id": int, "scenario_id": int
             }
         }
-        "status": "success | failed",
-        "server_attrs": {
-            "job_id": int, "scenario_id": int
-        },
-    }
 
     Store the lulc_stats in the Scenario table in new column
     (string column or something like varchar?). Try
@@ -407,10 +406,25 @@ def lulc_under_parcel_summary(session_id: str, wkt_parcel: str, db: Session = De
     pass
 
 
-@app.get("/wallpapering/{job_id}/{scenario_id}")
-def get_wallpapering_results(job_id: int, db: Session = Depends(get_db)):
-    # Return URL and Stats from table
-    pass
+@app.get("/wallpapering/result")
+def get_wallpapering_results(
+        job_id: int, scenario_id: int, db: Session = Depends(get_db)):
+    """Return the wallpapering results if the job was successful."""
+    # Check job status and return URL and Stats from table
+    job_db = crud.get_job(db, job_id=job_id)
+    if job_db is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if job_db.status == STATUS_SUCCESS:
+        scenario_db = crud.get_scenario(db, scenario_id=scenario_id)
+        if scenario_db is None:
+            raise HTTPException(status_code=404, detail="Scenario not found")
+        wallpaper_results = {
+            "lulc_url_path": scenario_db.lulc_url_result,
+            "lulc_stats": json.loads(scenario_db.lulc_stats),
+            }
+        return wallpaper_results
+    else:
+        return job_db.status
 
 
 ### Testing ideas from tutorial ###

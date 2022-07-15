@@ -1,5 +1,5 @@
 """Pydantic models which define more or less a "schema" (a valid data shape)."""
-from typing import Optional
+from typing import Optional, Union
 
 from pydantic import BaseModel
 
@@ -122,7 +122,7 @@ class PatternResponse(BaseModel):
 
 
 class WorkerResponse(BaseModel):
-    result: dict
+    result: Union[str, dict]
     status: str
     server_attrs: dict
 
