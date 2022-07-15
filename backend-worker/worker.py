@@ -83,6 +83,12 @@ NLUD_ORIGIN_Y = 3172635.0
 PIXELSIZE_X = 30.0
 PIXELSIZE_Y = -30.0
 
+STATUS_SUCCESS = 'success'
+STATUS_FAILURE = 'failed'
+JOBTYPE_FILL = 'parcel_fill'
+JOBTYPE_WALLPAPER = 'wallpaper'
+JOBTYPE_PARCEL_STATS = 'stats_under_parcel'
+
 
 class Tests(unittest.TestCase):
     def setUp(self):
@@ -112,7 +118,6 @@ class Tests(unittest.TestCase):
             321: 0.0244,
         }
         self.assertEqual(pixelcounts, expected_values)
-
 
     def test_new_lulc(self):
         gtiff_path = os.path.join(self.workspace_dir, 'raster.tif')
@@ -232,8 +237,8 @@ def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path):
     target_raster = None
 
 
-def fill_parcel(parcel_wkt_epsg3857, fill_lulc_class, target_lulc_path,
-                working_dir=None):
+def fill_parcel(parcel_wkt_epsg3857, fill_lulc_class,
+                target_lulc_path, working_dir=None):
     """Fill (rasterize) a parcel with a landcover code.
 
     Args:
@@ -360,57 +365,152 @@ def wallpaper_parcel(parcel_wkt_epsg3857, pattern_wkt_epsg3857,
     shutil.rmtree(working_dir)
 
 
+def pixelcounts_under_parcel(parcel_wkt_epsg3857, source_raster_path):
+    if source_raster_path.startswith(('https', 'http')):
+        source_raster_path = f'/vsicurl/{source_raster_path}'
+    source_raster = gdal.OpenEx(source_raster_path,
+                                gdal.GA_ReadOnly | gdal.OF_RASTER)
+    source_band = source_raster.GetRasterBand(1)
+    geotransform = source_raster.GetGeoTransform()
+    inv_geotransform = gdal.InvGeoTransform(geotransform)
+
+    parcel = _reproject_to_nlud(parcel_wkt_epsg3857)
+    # Convert lon/lat degrees to x/y pixel for the dataset
+    minx, miny, maxx, maxy = parcel.bounds
+    _x0, _y0 = gdal.ApplyGeoTransform(inv_geotransform, minx, miny)
+    _x1, _y1 = gdal.ApplyGeoTransform(inv_geotransform, maxx, maxy)
+    x0, y0 = min(_x0, _x1), min(_y0, _y1)
+    x1, y1 = max(_x0, _x1), max(_y0, _y1)
+
+    pygeoprocessing.geoprocessing.shapely_geometry_to_vector(
+        [parcel],
+        os.path.join('parcel_loaded.fgb'),
+        _WEB_MERCATOR_SRS.ExportToWkt(), 'FlatGeoBuf')
+
+    # "Round up" to the next pixel
+    x0 = math.floor(x0)
+    y0 = math.floor(y0)
+    x1 = math.ceil(x1)
+    y1 = math.ceil(y1)
+    array = source_band.ReadAsArray(
+        int(x0), int(y0), int(x1-x0), int(y1-y0))
+
+    # create a new in-memory dataset filled with 0
+    gdal_driver = gdal.GetDriverByName('MEM')
+    target_raster = gdal_driver.Create(
+        '', array.shape[1], array.shape[0], 1, gdal.GDT_Byte)
+    target_raster.SetProjection(NLUD_SRS_WKT)
+    target_origin_x, target_origin_y = gdal.ApplyGeoTransform(
+        geotransform, x0, y0)
+    target_raster.SetGeoTransform(
+        [target_origin_x, PIXELSIZE_X, 0.0, target_origin_y, 0.0, PIXELSIZE_Y])
+    target_band = target_raster.GetRasterBand(1)
+    target_band.Fill(0)
+
+    vector_driver = ogr.GetDriverByName('MEMORY')
+    vector = vector_driver.CreateDataSource('parcel')
+    parcel_layer = vector.CreateLayer(
+        'parcel_layer', _ALBERS_EQUAL_AREA_SRS, ogr.wkbPolygon)
+    parcel_layer.StartTransaction()
+    feature = ogr.Feature(parcel_layer.GetLayerDefn())
+    feature.SetGeometry(ogr.CreateGeometryFromWkt(parcel.wkt))
+    parcel_layer.CreateFeature(feature)
+    parcel_layer.CommitTransaction()
+
+    gdal.RasterizeLayer(
+        target_raster, [1], parcel_layer,
+        options=['ALL_TOUCHED=TRUE'], burn_values=[1])
+
+    parcel_mask = target_band.ReadAsArray()
+    assert parcel_mask.shape == array.shape
+    values_under_parcel, counts = numpy.unique(
+        array[parcel_mask == 1], return_counts=True)
+
+    return_values = {}
+    n_values_under_parcel = numpy.sum(counts)
+    for lulc_code, pixel_count in zip(values_under_parcel, counts):
+        return_values[lulc_code] = round(
+            pixel_count / n_values_under_parcel, 4)
+
+    return return_values
+
+
 def do_work(ip, port):
     local_appdata_dir = 'appdata'
-    server_url = f'{ip}:{port}/jobsqueue/'
-    LOGGER.info(f'Starting worker, queueing {server_url}')
+    job_queue_url = f'{ip}:{port}/jobsqueue/'
+    LOGGER.info(f'Starting worker, queueing {job_queue_url}')
     LOGGER.info(f'Polling the queue every {POLLING_INTERVAL_S}s if no work')
     while True:
-        response = requests.get(server_url)
+        response = requests.get(job_queue_url)
         if not response.json:
             time.sleep(POLLING_INTERVAL_S)
             continue
 
         server_args = response.json['server-attrs']
-        job_type = response.json['job']
-        job_args = response.json['args']
+        job_type = response.json['job_type']
+        job_args = response.json['job_args']
 
         try:
-            if job_type == 'fill':
-                fill_workspace = tempfile.mkdtemp(
-                    prefix='fill-', dir=local_appdata_dir)
-                result_path = f'{fill_workspace}/filled.tif'
-                fill_parcel(
-                    parcel_wkt_epsg3857=job_args['wkt'],
-                    fill_lulc_class=1,  # TODO: get this from job args
-                    target_lulc_path=result_path)
-
-            elif job_type == 'pattern':
-                wallpaper_workspace = tempfile.mkdtemp(
-                    prefix='wallpaper-', dir=local_appdata_dir)
-                result_path = f'{wallpaper_workspace}/wallpaper.tif'
-                wallpaper_parcel(
-                    parcel_wkt_epsg3857=job_args['parcel_wkt'],
-                    pattern_wkt_epsg3857=job_args['pattern_wkt'],
-                    source_nlud_raster_path=f'{local_appdata_dir}/nlud.tif',
-                    target_raster_path=result_path,
-                    working_dir=wallpaper_workspace)
-
+            if job_type in {JOBTYPE_FILL, JOBTYPE_WALLPAPER}:
+                if job_type == 'parcel_fill':
+                    fill_workspace = tempfile.mkdtemp(
+                        prefix='fill-', dir=local_appdata_dir)
+                    result_path = f'{fill_workspace}/filled.tif'
+                    fill_parcel(
+                        parcel_wkt_epsg3857=job_args['target_parcel_wkt'],
+                        fill_lulc_class=job_args['lulc_class'],
+                        source_nlud_raster_path=job_args['lulc_source_url'],
+                        target_lulc_path=result_path
+                    )
+                elif job_type == 'wallpaper':
+                    wallpaper_workspace = tempfile.mkdtemp(
+                        prefix='wallpaper-', dir=local_appdata_dir)
+                    result_path = f'{wallpaper_workspace}/wallpaper.tif'
+                    wallpaper_parcel(
+                        parcel_wkt_epsg3857=job_args['target_parcel_wkt'],
+                        pattern_wkt_epsg3857=job_args['pattern_bbox_wkt'],
+                        #source_nlud_raster_path=f'{local_appdata_dir}/nlud.tif',
+                        source_nlud_raster_path=job_args['lulc_source_url'],
+                        target_raster_path=result_path,
+                        working_dir=wallpaper_workspace
+                    )
+                data = {
+                    'result': {
+                        'lulc_path': result_path,
+                        'lulc_stats': {
+                            'base': pixelcounts_under_parcel(
+                                job_args['target_parcel_wkt'],
+                                job_args['lulc_source_url']
+                            ),
+                            'result': pixelcounts_under_parcel(
+                                job_args['target_parcel_wkt'],
+                                result_path
+                            ),
+                        }
+                    },
+                }
+            elif job_type == 'stats_under_parcel':
+                pass
             else:
                 raise ValueError(f"Invalid job type: {job_type}")
-            status = 'success'
+            status = STATUS_SUCCESS
         except Exception as error:
             LOGGER.exception(f'{job_type} failed: {error}')
-            status = 'failed'
+            status = STATUS_FAILURE
             result_path = None
+            data = {}  # data doesn't matter in a failure
         finally:
+            if job_type in set(['parcel_fill', 'wallpaper']):
+                target_endpoint = 'scenario'
+            else:
+                target_endpoint = 'invest_run'
+
+            data['server_attrs'] = server_args
+            data['status'] = status
             requests.post(
-                f'{server_url}/{job_type}/',
-                data={
-                    'status': status,
-                    'result': result_path,
-                    'server-attrs': server_args,
-                })
+                f'{job_queue_url}/{target_endpoint}',
+                data=data
+            )
 
 
 def main():
