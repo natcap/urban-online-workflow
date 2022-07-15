@@ -372,6 +372,19 @@ def wallpaper_parcel(parcel_wkt_epsg3857, pattern_wkt_epsg3857,
 
 
 def pixelpercents_under_parcel(parcel_wkt_epsg3857, source_raster_path):
+    """Get a breakdown of the percent of pixels under a parcel per lulc code.
+
+    Args:
+        parcel_wkt_epsg3857 (str): The parcel WKT in web mercator.
+        source_raster_path (str): The LULC to get pixel counts from.
+
+    Returns:
+        counts (dict): A dict mapping int lulc codes to float (0-1) percent of
+            pixels rounded to 4 decimal places.  This percentage reflects the
+            percentage of pixels under the parcel, not the lulc, so if a parcel
+            covers 4 pixels, 1 of lulc code 5 and 3 of lulc code 6, ``counts``
+            would be ``{5: 0.25, 6: 0.75}``.
+    """
     if source_raster_path.startswith(('https', 'http')):
         source_raster_path = f'/vsicurl/{source_raster_path}'
     source_raster = gdal.OpenEx(source_raster_path,
