@@ -1,5 +1,7 @@
 #FastAPI setup (using Python 3.9+)
 
+> `pip install requests`
+> `pip install sqlalchecmy`
 > `pip install fastapi`
 > `pip install "uvicorn[standard]"`
 

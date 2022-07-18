@@ -1,3 +1,8 @@
+import asyncio
+import json
+import logging
+import sys
+
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
@@ -5,8 +10,26 @@ from sqlalchemy.orm import Session
 from . import crud, models, schemas
 from .database import SessionLocal, engine
 
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format=(
+        '%(asctime)s (%(relativeCreated)d) %(levelname)s %(name)s'
+        ' [%(funcName)s:%(lineno)d] %(message)s'),
+    stream=sys.stdout)
+LOGGER = logging.getLogger(__name__)
+
 # Create the db tables
 models.Base.metadata.create_all(bind=engine)
+
+
+# Create a queue that we will use to store our "workload".
+QUEUE = asyncio.PriorityQueue()
+TASKS = set()
+STATUS_PENDING = "pending"
+STATUS_RUNNING = "running"
+STATUS_SUCCESS = "success"
+STATUS_FAIL = "failed"
 
 # Normally you would probably initialize your db (create tables, etc) with
 # Alembic. Would also use Alembic for "migrations" (that's its main job).
@@ -43,9 +66,77 @@ def get_db():
 # operation function and use that session.
 
 
+# To make sure Exceptions aren't silently ignored:
+# https://stackoverflow.com/questions/27297638/when-asyncio-task-gets-stored-after-creation-exceptions-from-task-get-muted/27299160#27299160
+def handle_result(fut):
+    # To prevent keeping references to finished tasks forever,
+    # make each task remove its own reference from the set after
+    # completion:
+    #task.add_done_callback(TASKS.discard)
+    TASKS.discard(fut)
+
+    if fut.exception():
+        fut.result()  # This will raise the exception.
+
+
+# Our worker to run tasks
+async def worker(name, queue):
+    """Handle jobs in the priority queue.
+
+    Args:
+        name (string) - name for the asyncio worker task
+        queue (asyncio.PriorityQueue) - priority queue to get jobs from where
+            the returned queue item is a tuple of: (priority (int), job (dict))
+            The job dictionary has keys of:
+                'job' (object) - a function to call
+                'param' (object) - parameters to pass to `job`.
+                'name' (string) - name of job
+                'description' (string) - job description
+                'status' (string) - job status
+                'job_id' (int) - database job ID
+                'db' (database reference) - db session
+    """
+    while True:
+        # Get a "work item" out of the queue.
+        job_priority, job_details = await queue.get()
+        LOGGER.debug(f'job details: {job_details}')
+
+        # I had a try/except here before adding the `add_done_callback` because
+        # there was an exception happening that I was never seeing in the console
+        try:
+            # Update the job status in the DB to "running"
+            job_schema = schemas.JobBase(**{
+                'name': job_details['name'],
+                'description': job_details['description'],
+                'status': STATUS_RUNNING})
+            LOGGER.debug('Update job status')
+            crud.update_job(
+                db=job_details['db'], job=job_schema, job_id=job_details['job_id'])
+        except Exception as err:
+            LOGGER.error(f'Error: {err}')
+
+        run_op = job_details['job']
+        # 'gather' and 'to_thread' allows us to await blocking calls for
+        # I/O bound or CPU bound processes.
+        await asyncio.gather(
+            asyncio.to_thread(run_op, job_details['param']))
+
+        # Notify the queue that the "work item" has been processed.
+        queue.task_done()
+        # Update job status to "success"
+        job_schema = schemas.JobBase(**{
+            'name': job_details['name'],
+            'description': job_details['description'],
+            'status': STATUS_SUCCESS})
+        LOGGER.debug('Update job status')
+        crud.update_job(
+            db=job_details['db'], job=job_schema, job_id=job_details['job_id'])
+
+        LOGGER.debug(f'JOB: {job_details["name"]} has completed')
+
+
 ### User / Session Endpoints ###
 
-#def create_user(schemas.UserCreate, db: Session = Depends(get_db)):
 @app.post("/users/", response_model=schemas.UserOut)
 def create_user(db: Session = Depends(get_db)):
     # Notice that the values returned are SQLA models. But as all path operations
@@ -117,6 +208,49 @@ def read_scenarios(session_id: str, db: Session = Depends(get_db)):
 
 
 ### Job Endpoints ###
+
+@app.get("/test-async-job/{sleep_time}", response_model=schemas.JobOut)
+async def test_async_job(sleep_time: int, db: Session = Depends(get_db)):
+    job_schema = schemas.JobBase(
+        **{"name": "sleep", "description": "sleep for a few seconds.",
+           "status": STATUS_PENDING})
+    # Add the job to the DB
+    job_db = crud.create_job(db, job_schema)
+
+    # Set up job package
+    job_task = {
+        **job_schema.dict(), 'job': crud.test_job_task, 'param': sleep_time,
+        'job_id': job_db.job_id, 'db': db}
+    priority = 2
+
+    QUEUE.put_nowait((priority, job_task))
+    task = asyncio.create_task(worker(f'worker-{len(TASKS)+1}', QUEUE))
+
+    # This helps catch any exceptions that might have happened in our worker
+    task.add_done_callback(handle_result)
+
+    TASKS.add(task)
+    LOGGER.debug(f'Job {job_db.job_id} added')
+    # Return the job_id in the response
+    return {'job_id': job_db.job_id}
+
+
+@app.get("/jobsqueue/")
+async def worker_job_request(db: Session = Depends(get_db)):
+    """If there's work to be done in the queue send it to the worker."""
+    try:
+        job_priority, job_details = await queue.get_nowait()
+        return json.dumps({"job_id": 1, "test": True})
+    except QueueEmpty:
+        return None
+
+
+@app.get("/jobsqueue/{job_id}")
+async def worker_job_response(
+        worker: schemas.WorkerResponse, db: Session = Depends(get_db)):
+    """Update the queue and db given the job details from the worker."""
+    pass
+
 
 @app.post("/jobs/", response_model=schemas.Job)
 def create_job(
