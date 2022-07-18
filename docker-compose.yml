@@ -1,0 +1,26 @@
+services:
+    frontend:
+        build: frontend
+        command: yarn start-docker
+        ports:
+            - 3000:3000
+        volumes:
+            - ./frontend/src:/opt/frontend/src
+        secrets:
+            - source: frontend-api-keys
+              target: .env
+    api:
+        build: server
+        ports:
+            - 8000:8000
+        volumes:
+            - ./server:/opt/server
+    worker:
+        build: backend-worker
+        command: /opt/conda/bin/python /opt/worker/worker.py --queue_ip 0.0.0.0 --queue_port 8000
+        volumes:
+            - ./backend-worker:/opt/worker
+
+secrets:
+    frontend-api-keys:
+        file: ./frontend/.env
