@@ -6,6 +6,7 @@ services:
             - 3000:3000
         volumes:
             - ./frontend/src:/opt/frontend/src
+            - ./frontend/tests:/opt/frontend/tests
         secrets:
             - source: frontend-api-keys
               target: .env

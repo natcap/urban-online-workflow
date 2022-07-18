@@ -12,5 +12,3 @@ ADD ./vite.config.js /opt/frontend/
 ADD ./index.html /opt/frontend/
 
 EXPOSE 3000
-
-CMD yarn start-docker
