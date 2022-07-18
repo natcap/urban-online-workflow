@@ -7,9 +7,8 @@ import {
 
 import App from '../src/App';
 
-it('everything', () => {
-  render(<App />);
-  const map = screen.getByTitle('Map');
-  screen.debug(map);
-  expect(true).toBe(false);
+describe('App', () => {
+  it('should import', () => {
+    render(<App />);
+  });
 });

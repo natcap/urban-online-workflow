@@ -7,5 +7,9 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'happy-dom',
+    coverage: { // https://github.com/bcoe/c8
+      all: true,
+      src: 'src',
+    },
   },
 });
