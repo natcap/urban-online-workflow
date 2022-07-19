@@ -1,8 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-console.log(process.env.MODE)
-
 let envDir = '.';
 if (process.env.MODE === 'docker') {
   envDir = '/run/secrets/';

@@ -25,7 +25,7 @@ jobs:
       - name: Set up node
         uses: actions/setup-node@v2
         with:
-          node-version: 14.x
+          node-version: 18.x
 
       - name: Restore node_modules cache
         id: nodemodules-cache
@@ -45,9 +45,6 @@ jobs:
           echo VITE_MAPBOX_API_KEY=${{ secrets.VITE_MAPBOX_API_KEY }} >> .env
           echo VITE_DAVES_MAPBOX_TOKEN=${{ secrets.VITE_DAVES_MAPBOX_TOKEN }} >> .env
 
-      - name: Start docker
-        run: docker compose up --build
-
       - name: Run tests
         working-directory: frontend
-        run: yarn test
+        run: yarn run test
