@@ -467,7 +467,6 @@ def do_work(ip, port):
                     wallpaper_parcel(
                         parcel_wkt_epsg3857=job_args['target_parcel_wkt'],
                         pattern_wkt_epsg3857=job_args['pattern_bbox_wkt'],
-                        #source_nlud_raster_path=f'{local_appdata_dir}/nlud.tif',
                         source_nlud_raster_path=job_args['lulc_source_url'],
                         target_raster_path=result_path,
                         working_dir=wallpaper_workspace
