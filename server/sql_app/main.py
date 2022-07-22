@@ -1,6 +1,6 @@
-import asyncio
 import json
 import logging
+import queue
 import sys
 
 from fastapi import Depends, FastAPI, HTTPException
@@ -28,8 +28,7 @@ models.Base.metadata.create_all(bind=engine)
 
 
 # Create a queue that we will use to store our "workload".
-QUEUE = asyncio.PriorityQueue()
-TASKS = set()
+QUEUE = queue.PriorityQueue()
 # Status constants to use for the DB and to serve to frontend
 STATUS_PENDING = "pending"
 STATUS_RUNNING = "running"
@@ -73,75 +72,6 @@ def get_db():
 
 # With that, we can just call crud.get_user directly from inside of the path
 # operation function and use that session.
-
-
-# To make sure Exceptions aren't silently ignored:
-# https://stackoverflow.com/questions/27297638/when-asyncio-task-gets-stored-after-creation-exceptions-from-task-get-muted/27299160#27299160
-def handle_result(fut):
-    # To prevent keeping references to finished tasks forever,
-    # make each task remove its own reference from the set after
-    # completion:
-    #task.add_done_callback(TASKS.discard)
-    TASKS.discard(fut)
-
-    if fut.exception():
-        fut.result()  # This will raise the exception.
-
-
-# Our worker to run tasks
-async def worker(name, queue):
-    """Handle jobs in the priority queue.
-
-    Args:
-        name (string) - name for the asyncio worker task
-        queue (asyncio.PriorityQueue) - priority queue to get jobs from where
-            the returned queue item is a tuple of: (priority (int), job (dict))
-            The job dictionary has keys of:
-                'job' (object) - a function to call
-                'param' (object) - parameters to pass to `job`.
-                'name' (string) - name of job
-                'description' (string) - job description
-                'status' (string) - job status
-                'job_id' (int) - database job ID
-                'db' (database reference) - db session
-    """
-    while True:
-        # Get a "work item" out of the queue.
-        job_priority, job_details = await queue.get()
-        LOGGER.debug(f'job details: {job_details}')
-
-        # I had a try/except here before adding the `add_done_callback` because
-        # there was an exception happening that I was never seeing in the console
-        try:
-            # Update the job status in the DB to "running"
-            job_schema = schemas.JobBase(**{
-                'name': job_details['name'],
-                'description': job_details['description'],
-                'status': STATUS_RUNNING})
-            LOGGER.debug('Update job status')
-            crud.update_job(
-                db=job_details['db'], job=job_schema, job_id=job_details['job_id'])
-        except Exception as err:
-            LOGGER.error(f'Error: {err}')
-
-        run_op = job_details['job']
-        # 'gather' and 'to_thread' allows us to await blocking calls for
-        # I/O bound or CPU bound processes.
-        await asyncio.gather(
-            asyncio.to_thread(run_op, job_details['param']))
-
-        # Notify the queue that the "work item" has been processed.
-        queue.task_done()
-        # Update job status to "success"
-        job_schema = schemas.JobBase(**{
-            'name': job_details['name'],
-            'description': job_details['description'],
-            'status': STATUS_SUCCESS})
-        LOGGER.debug('Update job status')
-        crud.update_job(
-            db=job_details['db'], job=job_schema, job_id=job_details['job_id'])
-
-        LOGGER.debug(f'JOB: {job_details["name"]} has completed')
 
 
 ### User / Session Endpoints ###
@@ -216,110 +146,78 @@ def read_scenarios(session_id: str, db: Session = Depends(get_db)):
     return scenarios
 
 
-### Job Endpoints ###
-
-@app.get("/test-async-job/{sleep_time}", response_model=schemas.JobOut)
-async def test_async_job(sleep_time: int, db: Session = Depends(get_db)):
-    job_schema = schemas.JobBase(
-        **{"name": "sleep", "description": "sleep for a few seconds.",
-           "status": STATUS_PENDING})
-    # Add the job to the DB
-    job_db = crud.create_job(db, job_schema)
-
-    # Set up job package
-    job_task = {
-        **job_schema.dict(), 'job': crud.test_job_task, 'param': sleep_time,
-        'job_id': job_db.job_id, 'db': db}
-    priority = 2
-
-    QUEUE.put_nowait((priority, job_task))
-    task = asyncio.create_task(worker(f'worker-{len(TASKS)+1}', QUEUE))
-
-    # This helps catch any exceptions that might have happened in our worker
-    task.add_done_callback(handle_result)
-
-    TASKS.add(task)
-    LOGGER.debug(f'Job {job_db.job_id} added')
-    # Return the job_id in the response
-    return {'job_id': job_db.job_id}
-
-
 ### Worker Endpoints ###
-# James working on the Worker side here: https://github.com/phargogh/urban-online-workflow/tree/feature/26-implement-wallpapering
 @app.get("/jobsqueue/")
 async def worker_job_request(db: Session = Depends(get_db)):
     """If there's work to be done in the queue send it to the worker."""
     try:
-        job_priority, job_details = QUEUE.get_nowait()
-        return json.dumps({**job_details, "priority": job_priority})
-    except asyncio.QueueEmpty:
+        # Get job from queue, ignoring returned priority value
+        _, job_details = QUEUE.get_nowait()
+        LOGGER.info(f"Sending job [{job_details['job']}] to worker.")
+        return json.dumps(job_details)
+    except queue.Empty:
         return None
 
 
 @app.post("/jobsqueue/scenario")
-async def worker_wallpaper_response(
+def worker_scenario_response(
     scenario_job: schemas.WorkerResponse, db: Session = Depends(get_db)):
     """Update the db given the job details from the worker.
 
-    Returned URL result will be partial to allow for local vs bucket stored
+    Returned URL result will be partial to allow for local vs cloud stored
+    depending on production vs dev environment.
 
-    wallpaper_job:
-        {"result": {
-            lulc_path: "relative path to file location",
-            lulc_stats: {
-                base: {
-                    lulc-int: lulc-perc,
-                    11: 53,
-                },
-                result: {
-                    lulc-int: lulc-perc,
-                    11: 53,
-                },
-              },
-            }
-         "status": "success | failed",
-         "server_attrs": {
-            "job_id": int, "scenario_id": int
-            }
-        }
+    Args:
+        scenario_job (pydantic model): a pydantic model with the following 
+            key/vals
 
-    Store the lulc_stats in the Scenario table in new column
-    (string column or something like varchar?). Try
-    stringifying the lulc_stats object to add to the db.
+            "result": {
+                lulc_path: "relative path to file location",
+                lulc_stats: {
+                    base: {
+                        lulc-int: lulc-perc,
+                        11: 53,
+                    },
+                    result: {
+                        lulc-int: lulc-perc,
+                        11: 53,
+                    },
+                  },
+                }
+             "status": "success | failed",
+             "server_attrs": {
+                "job_id": int, "scenario_id": int
+                }
     """
     LOGGER.debug("Entering jobsqueue/scenario")
     LOGGER.debug(scenario_job)
     # Update job in db based on status
     job_db = crud.get_job(db, job_id=scenario_job.server_attrs['job_id'])
+    # Update Scenario in db with the result
+    scenario_db = crud.get_scenario(db, scenario_id=scenario_job.server_attrs['scenario_id'])
+
     job_status = scenario_job.status
     if job_status == "success":
         # Update the job status in the DB to "success"
         job_update = schemas.JobBase(
             status=STATUS_SUCCESS,
             name=job_db.name, description=job_db.description)
+        # Update the scenario lulc path and stats
+        scenario_update = schemas.ScenarioUpdate(
+            lulc_url_result=scenario_job.result['lulc_path'],
+            lulc_stats=json.dumps(scenario_job.result['lulc_stats']))
     else:
         # Update the job status in the DB to "failed"
         job_update = schemas.JobBase(
             status=STATUS_FAILED,
             name=job_db.name, description=job_db.description)
+        # Update the the scenario lulc path stats with None
+        scenario_update = schemas.ScenarioUpdate(
+            lulc_url_result=None, lulc_stats=None)
+
     LOGGER.debug('Update job status')
     _ = crud.update_job(
         db=db, job=job_update, job_id=scenario_job.server_attrs['job_id'])
-
-    #TODO: how should we handle failure states?
-
-    # Update Scenario in db with the result
-    scenario_db = crud.get_scenario(db, scenario_id=scenario_job.server_attrs['scenario_id'])
-    LOGGER.debug(f"what is scenario_db: {scenario_db}")
-    if scenario_job.status == "success":
-        scenario_update = schemas.ScenarioUpdate(
-            lulc_url_result=scenario_job.result['url_path'],
-            lulc_stats=json.dumps(scenario_job.result['lulc_stats']))
-    else:
-        # Update the
-        scenario_update = schemas.ScenarioUpdate(
-            lulc_url_result=None, lulc_stats=None)
-        #scenario_schema.lulc_result = None
     LOGGER.debug('Update scenario result')
     _ = crud.update_scenario(
         db=db, scenario=scenario_update,
@@ -457,7 +355,7 @@ def get_wallpapering_results(
         if scenario_db is None:
             raise HTTPException(status_code=404, detail="Scenario not found")
         wallpaper_results = {
-            "lulc_url_path": scenario_db.lulc_url_result,
+            "lulc_url_result": scenario_db.lulc_url_result,
             "lulc_stats": json.loads(scenario_db.lulc_stats),
             }
         return wallpaper_results
