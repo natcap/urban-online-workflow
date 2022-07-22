@@ -256,20 +256,26 @@ async def worker_job_request(db: Session = Depends(get_db)):
         return None
 
 
-@app.post("/jobsqueue/wallpaper")
+@app.post("/jobsqueue/scenario")
 async def worker_wallpaper_response(
-    wallpaper_job: schemas.WorkerResponse, db: Session = Depends(get_db)):
+    scenario_job: schemas.WorkerResponse, db: Session = Depends(get_db)):
     """Update the db given the job details from the worker.
 
     Returned URL result will be partial to allow for local vs bucket stored
 
     wallpaper_job:
         {"result": {
-            url_path: "url to new LULC",
+            lulc_path: "relative path to file location",
             lulc_stats: {
-                lulc-int: lulc-perc,
-                11: 53,
-              }
+                base: {
+                    lulc-int: lulc-perc,
+                    11: 53,
+                },
+                result: {
+                    lulc-int: lulc-perc,
+                    11: 53,
+                },
+              },
             }
          "status": "success | failed",
          "server_attrs": {
@@ -281,11 +287,11 @@ async def worker_wallpaper_response(
     (string column or something like varchar?). Try
     stringifying the lulc_stats object to add to the db.
     """
-    LOGGER.debug("Entering jobsqueue/wallapper")
-    LOGGER.debug(wallpaper_job)
+    LOGGER.debug("Entering jobsqueue/scenario")
+    LOGGER.debug(scenario_job)
     # Update job in db based on status
-    job_db = crud.get_job(db, job_id=wallpaper_job.server_attrs['job_id'])
-    job_status = wallpaper_job.status
+    job_db = crud.get_job(db, job_id=scenario_job.server_attrs['job_id'])
+    job_status = scenario_job.status
     if job_status == "success":
         # Update the job status in the DB to "success"
         job_update = schemas.JobBase(
@@ -298,21 +304,17 @@ async def worker_wallpaper_response(
             name=job_db.name, description=job_db.description)
     LOGGER.debug('Update job status')
     _ = crud.update_job(
-        db=db, job=job_update, job_id=wallpaper_job.server_attrs['job_id'])
+        db=db, job=job_update, job_id=scenario_job.server_attrs['job_id'])
 
     #TODO: how should we handle failure states?
 
     # Update Scenario in db with the result
-    scenario_db = crud.get_scenario(db, scenario_id=wallpaper_job.server_attrs['scenario_id'])
+    scenario_db = crud.get_scenario(db, scenario_id=scenario_job.server_attrs['scenario_id'])
     LOGGER.debug(f"what is scenario_db: {scenario_db}")
-    if wallpaper_job.status == "success":
+    if scenario_job.status == "success":
         scenario_update = schemas.ScenarioUpdate(
-            lulc_url_result=wallpaper_job.result['url_path'],
-            lulc_stats=json.dumps(wallpaper_job.result['lulc_stats']))
-        # Update the 
-        #scenario_schema.lulc_result = wallpaper_job.result['url_path']
-        # Stringify the lulc stats
-        #scenario_schema.lulc_stats = json.dumps(wallpaper_job.result['lulc_stats'])
+            lulc_url_result=scenario_job.result['url_path'],
+            lulc_stats=json.dumps(scenario_job.result['lulc_stats']))
     else:
         # Update the
         scenario_update = schemas.ScenarioUpdate(
@@ -321,12 +323,14 @@ async def worker_wallpaper_response(
     LOGGER.debug('Update scenario result')
     _ = crud.update_scenario(
         db=db, scenario=scenario_update,
-        scenario_id=wallpaper_job.server_attrs['scenario_id'])
+        scenario_id=scenario_job.server_attrs['scenario_id'])
+
 
 @app.post("/jobs/", response_model=schemas.Job)
 def create_job(
     job: schemas.JobBase, db: Session = Depends(get_db)
 ):
+    """Internal endpoint for testing."""
     return crud.create_job(db=db, job=job)
 
 
@@ -382,14 +386,14 @@ def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
     pattern_db = crud.get_pattern(db, wallpaper.pattern_id)
     # Construct worker job and add to the queue
     worker_task = {
-        "job": "wallpaper",
+        "job_type": "wallpaper",
         "server_attrs": {
             "job_id": job_db.job_id, "scenario_id": scenario_db.scenario_id
         },
-        "args": {
-            "target_area_wkt": wallpaper.target_area_wkt,
+        "job_args": {
+            "target_parcel_wkt": wallpaper.target_parcel_wkt,
             "pattern_bbox_wkt": pattern_db.wkt, #TODO: make sure this is a WKT string and no just a bounding box
-            "lulc_url_source": scenario_db.lulc_url_base,
+            "lulc_source_url": scenario_db.lulc_url_base,
             }
         }
 
@@ -399,7 +403,41 @@ def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
     return job_db
 
 
-@app.get("/lulc-table/{session_id}")
+@app.post("/parcel-fill/", response_model=schemas.JobOut)
+def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
+    # Get Scenario details from scenario_id
+    scenario_db = crud.get_scenario(db, parcel_fill.scenario_id)
+    session_id = scenario_db.owner_id
+
+    # Create job entry for wallpapering task
+    job_schema = schemas.JobBase(
+        **{"name": "wallpaper", "description": "run wallpapering",
+           "status": STATUS_PENDING})
+    job_db = crud.create_job(
+        db=db, session_id=session_id, job=job_schema)
+
+    # Get Pattern geometry
+    pattern_db = crud.get_pattern(db, wallpaper.pattern_id)
+    # Construct worker job and add to the queue
+    worker_task = {
+        "job_type": "parcel_fill",
+        "server_attrs": {
+            "job_id": job_db.job_id, "scenario_id": scenario_db.scenario_id
+        },
+        "job_args": {
+            "target_parcel_wkt": parcel_fill.parcel_wkt,
+            "lulc_class": parcel_fill.lulc_class, #TODO: make sure this is a WKT string and no just a bounding box
+            "lulc_source_url": scenario_db.lulc_url_base,
+            }
+        }
+
+    QUEUE.put_nowait((MEDIUM_PRIORITY, worker_task))
+
+    # Return job_id for response
+    return job_db
+
+#TODO: frontend will want preliminary stats under parcel wkt
+@app.get("/stats_under_parcel/{session_id}")
 def lulc_under_parcel_summary(session_id: str, wkt_parcel: str, db: Session = Depends(get_db)):
     #lulc_summary_table = crud.lulc_under_parcel_summary(db=db, session_id=session_id, pattern=pattern)
     #return lulc_summary_table

@@ -132,7 +132,7 @@ class WorkerResponse(BaseModel):
 
 class Wallpaper(BaseModel):
     scenario_id: int
-    target_area_wkt: str
+    target_parcel_wkt: str
     pattern_id: int
 
     class Config:
