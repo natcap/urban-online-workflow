@@ -58,7 +58,7 @@ JOBTYPE_PARCEL_STATS = 'stats_under_parcel'
 
 ENDPOINTS = {
     JOBTYPE_FILL: 'scenario',
-    JOBTYPE_WALLPAPER: 'wallpaper',
+    JOBTYPE_WALLPAPER: 'scenario',
     JOBTYPE_PARCEL_STATS: 'parcel_stats',
 }
 
