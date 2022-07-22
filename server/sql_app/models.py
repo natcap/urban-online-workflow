@@ -58,6 +58,7 @@ class Scenario(Base):
     lulc_url_base = Column(String, default="https://my-lulc-base.tif")
     owner_id = Column(String, ForeignKey("users.session_id"))
 
+    parcel_stats = relationship("ParcelStats", back_populates="owner")
     owner = relationship("User", back_populates="scenarios")
 
 
@@ -72,3 +73,14 @@ class Pattern(Base):
     owner_id = Column(String, ForeignKey("users.session_id"))
 
     owner = relationship("User", back_populates="patterns")
+
+
+class ParcelStats(Base):
+    """SQLAlchemy model."""
+    __tablename__ = "parcel_stats"
+
+    stats_id = Column(Integer, primary_key=True, index=True)
+    target_parcel_wkt = Column(String, index=True)
+    owner_id = Column(String, ForeignKey("scenarios.scenario_id"))
+
+    owner = relationship("Scenario", back_populates="parcel_stats")

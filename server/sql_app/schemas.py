@@ -99,6 +99,13 @@ class JobOut(BaseModel):
         orm_mode = True
 
 
+class StatsOut(BaseModel):
+    job_id: int
+    stats_id: int
+
+    class Config:
+        orm_mode = True
+
 class PatternBase(BaseModel):
     label: str
     wkt: str
@@ -121,6 +128,24 @@ class PatternResponse(BaseModel):
         orm_mode = True
 
 
+class ParcelStatsBase(BaseModel):
+    wkt: str
+
+
+class ParcelStats(ParcelStatsBase):
+    """Pydantic model (schema) used when reading data, when returning it from API."""
+    stats_id: int
+    owner_id: str
+
+    class Config:
+        orm_mode = True
+
+
+class ParcelStatsRequest(BaseModel):
+    scenario_id: int
+    target_parcel_wkt: str
+
+
 class WorkerResponse(BaseModel):
     result: Union[str, dict]
     status: str
@@ -134,6 +159,15 @@ class Wallpaper(BaseModel):
     scenario_id: int
     target_parcel_wkt: str
     pattern_id: int
+
+    class Config:
+        orm_mode = True
+
+
+class ParcelFill(BaseModel):
+    scenario_id: int
+    target_parcel_wkt: str
+    lulc_class: int
 
     class Config:
         orm_mode = True
