@@ -1,6 +1,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+// Thap app relies on a .env file in a know location,
+// which is in the frontend/ root, except when the app
+// is running in docker.
 let envDir = '.';
 if (process.env.MODE === 'docker') {
   envDir = '/run/secrets/';
