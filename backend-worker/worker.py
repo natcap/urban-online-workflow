@@ -199,6 +199,8 @@ def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path):
                 parcel_max_y - parcel_min_y)))
     buf_minx, buf_miny, buf_maxx, buf_maxy = buffered_parcel_geom.bounds
 
+    # Round "up" to the nearest pixel, sort of the pixel-math version of
+    # rasterizing the bounding box with "ALL_TOUCHED=TRUE".
     buf_minx -= abs((buf_minx - NLUD_ORIGIN_X) % PIXELSIZE_X)
     buf_miny -= abs((buf_miny - NLUD_ORIGIN_Y) % PIXELSIZE_Y)
     buf_maxx += PIXELSIZE_X - abs((buf_maxx - NLUD_ORIGIN_X) % PIXELSIZE_X)
