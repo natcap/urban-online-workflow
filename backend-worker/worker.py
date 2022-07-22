@@ -465,7 +465,7 @@ def do_work(ip, port):
             time.sleep(POLLING_INTERVAL_S)
             continue
 
-        server_args = response.json['server-attrs']
+        server_args = response.json['server_attrs']
         job_type = response.json['job_type']
         job_args = response.json['job_args']
 
