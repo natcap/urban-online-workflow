@@ -161,6 +161,16 @@ class Tests(unittest.TestCase):
 
 
 def _reproject_to_nlud(parcel_wkt_epsg3857):
+    """Reproject a WKT polygon to the NLUD projection.
+
+    Args:
+        parcel_wkt_epsg3857 (string): A WKT polygon projected in epsg 3857 "Web
+            Mercator".
+
+    Returns:
+        parcel (shapely.geometry): A Shapely geometry of the input parcel where
+            the geometry has been transformed to the NLUD's projection.
+    """
     ogr_geom = ogr.CreateGeometryFromWkt(parcel_wkt_epsg3857)
     err_code = ogr_geom.Transform(WEB_MERCATOR_TO_ALBERS_EQ_AREA)
     if err_code:
