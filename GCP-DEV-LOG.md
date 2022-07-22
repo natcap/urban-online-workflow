@@ -1,3 +1,7 @@
+## 2022-07-18
+
+Static IP address for our vm has been reserved in anticipation of creating a real URL for this on naturalcapitalproject.org and setting up letsencrypt over nginx
+
 ## 2022-07-05
 
 1. Went through the steps at https://docs.docker.com/engine/install/debian/ to reinstall docker and get the latest `docker compose`:
