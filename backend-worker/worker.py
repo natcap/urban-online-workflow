@@ -31,45 +31,14 @@ _WEB_MERCATOR_SRS = osr.SpatialReference()
 _WEB_MERCATOR_SRS.ImportFromEPSG(3857)
 _WEB_MERCATOR_SRS.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
 _ALBERS_EQUAL_AREA_SRS = osr.SpatialReference()
-NLUD_SRS_WKT = textwrap.dedent("""\
-    PROJCRS["Albers_Conical_Equal_Area",
-        BASEGEOGCRS["WGS 84",
-            DATUM["World Geodetic System 1984",
-                ELLIPSOID["WGS 84",6378137,298.257223563,
-                    LENGTHUNIT["metre",1]]],
-            PRIMEM["Greenwich",0,
-                ANGLEUNIT["degree",0.0174532925199433]],
-            ID["EPSG",4326]],
-        CONVERSION["Albers Equal Area",
-            METHOD["Albers Equal Area",
-                ID["EPSG",9822]],
-            PARAMETER["Latitude of false origin",23,
-                ANGLEUNIT["degree",0.0174532925199433],
-                ID["EPSG",8821]],
-            PARAMETER["Longitude of false origin",-96,
-                ANGLEUNIT["degree",0.0174532925199433],
-                ID["EPSG",8822]],
-            PARAMETER["Latitude of 1st standard parallel",29.5,
-                ANGLEUNIT["degree",0.0174532925199433],
-                ID["EPSG",8823]],
-            PARAMETER["Latitude of 2nd standard parallel",45.5,
-                ANGLEUNIT["degree",0.0174532925199433],
-                ID["EPSG",8824]],
-            PARAMETER["Easting at false origin",0,
-                LENGTHUNIT["metre",1],
-                ID["EPSG",8826]],
-            PARAMETER["Northing at false origin",0,
-                LENGTHUNIT["metre",1],
-                ID["EPSG",8827]]],
-        CS[Cartesian,2],
-            AXIS["easting",east,
-                ORDER[1],
-                LENGTHUNIT["metre",1,
-                    ID["EPSG",9001]]],
-            AXIS["northing",north,
-                ORDER[2],
-                LENGTHUNIT["metre",1,
-                    ID["EPSG",9001]]]]""")
+try:
+    _NLUD_RASTER_INFO = pygeoprocessing.get_raster_info(
+        '/vsigs/natcap-urban-online-datasets/nlud.tif')
+except ValueError:
+    # When GDAL can't open the file via vsigs
+    _NLUD_RASTER_INFO = pygeoprocessing.get_raster_info(
+        'appdata/nlud.tif')
+NLUD_SRS_WKT = _NLUD_RASTER_INFO['projection_wkt']
 _ALBERS_EQUAL_AREA_SRS.ImportFromWkt(NLUD_SRS_WKT)
 _ALBERS_EQUAL_AREA_SRS.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
 WEB_MERCATOR_TO_ALBERS_EQ_AREA = osr.CreateCoordinateTransformation(
@@ -78,10 +47,8 @@ ALBERS_EQ_AREA_TO_WEB_MERCATOR = osr.CreateCoordinateTransformation(
     _ALBERS_EQUAL_AREA_SRS, _WEB_MERCATOR_SRS)
 
 # NLUD raster attributes copied in by hand from gdalinfo
-NLUD_ORIGIN_X = -2356095.0
-NLUD_ORIGIN_Y = 3172635.0
-PIXELSIZE_X = 30.0
-PIXELSIZE_Y = -30.0
+NLUD_ORIGIN_X, _, _, NLUD_ORIGIN_Y, _, _ = _NLUD_RASTER_INFO['geotransform']
+PIXELSIZE_X, PIXELSIZE_Y = _NLUD_RASTER_INFO['pixel_size']
 
 STATUS_SUCCESS = 'success'
 STATUS_FAILURE = 'failed'
