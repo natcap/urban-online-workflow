@@ -146,6 +146,9 @@ class ParcelStatsRequest(BaseModel):
     target_parcel_wkt: str
 
 
+class ParcelStatsUpdate(BaseModel):
+    lulc_stats: str
+
 class WorkerResponse(BaseModel):
     result: Union[str, dict]
     status: str

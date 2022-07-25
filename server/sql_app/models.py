@@ -58,7 +58,7 @@ class Scenario(Base):
     lulc_url_base = Column(String, default="nlud.tif")
     owner_id = Column(String, ForeignKey("users.session_id"))
 
-    parcel_stats = relationship("ParcelStats", back_populates="owner")
+    #parcel_stats = relationship("ParcelStats", back_populates="owner")
     owner = relationship("User", back_populates="scenarios")
 
 
@@ -81,6 +81,7 @@ class ParcelStats(Base):
 
     stats_id = Column(Integer, primary_key=True, index=True)
     target_parcel_wkt = Column(String, index=True)
-    owner_id = Column(String, ForeignKey("scenarios.scenario_id"))
+    lulc_stats = Column(String)
+    #owner_id = Column(String, ForeignKey("scenarios.scenario_id"))
 
-    owner = relationship("Scenario", back_populates="parcel_stats")
+    #owner = relationship("Scenario", back_populates="parcel_stats")

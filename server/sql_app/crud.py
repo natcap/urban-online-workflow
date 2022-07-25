@@ -99,7 +99,8 @@ def update_scenario(db: Session, scenario: schemas.Scenario, scenario_id: int):
 
 
 def delete_scenario(db: Session, scenario_id: int):
-    db_scenario = db.query(models.Scenario).filter(models.Scenario.scenario_id == scenario_id).first()
+    db_scenario = db.query(models.Scenario).filter(
+            models.Scenario.scenario_id == scenario_id).first()
 
     if not db_scenario:
         raise HTTPException(status_code=404, detail="Scenario not found")
@@ -112,7 +113,30 @@ def delete_scenario(db: Session, scenario_id: int):
 
 # read a single scenario by ID
 def get_scenario(db: Session, scenario_id: int):
-    return db.query(models.Scenario).filter(models.Scenario.scenario_id == scenario_id).first()
+    return db.query(models.Scenario).filter(
+            models.Scenario.scenario_id == scenario_id).first()
+
+
+# read a single stats entry by ID
+def get_parcel_stats(db: Session, stats_id: int):
+    return db.query(models.ParcelStats).filter(
+            models.ParcelStats.stats_id == stats_id).first()
+
+
+def update_parcel_stats(db: Session, parcel_stats: schemas.ParcelStatsUpdate,
+                        stats_id: int):
+    db_stats = get_parcel_stats(db, stats_id)
+
+    if not db_stats:
+        raise HTTPException(status_code=404, detail="Scenario not found")
+    stats_data = parcel_stats.dict(exclude_unset=True)
+    for key, value in stats_data.items():
+        setattr(db_stats, key, value)
+
+    db.add(db_stats)
+    db.commit()
+    db.refresh(db_stats)
+    return "success"
 
 
 # read multiple jobs

@@ -13,7 +13,7 @@ from .database import SessionLocal, engine
 
 # This will help with flexibility of where we store our files and DB
 # When gathering URL result for frontend request build the URL with this:
-WORKING_ENV = "C://Users//ddenu//Workspace//NatCap//Repositories//urban-online-workflow//backend-worker//appdata"
+WORKING_ENV = "appdata"
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -228,56 +228,39 @@ def worker_scenario_response(
 def worker_parcel_stats_response(
     parcel_stats_job: schemas.WorkerResponse, db: Session = Depends(get_db)):
     """Update the db given the job details from the worker.
-
-    Args:
-        parcel_stats_job (pydantic model): a pydantic model with the following 
-            key/vals
-
-            "result": {
-                lulc_stats: {
-                    base: {
-                        lulc-int: lulc-perc,
-                        11: 53,
-                    },
-                  },
-                }
-             "status": "success | failed",
-             "server_attrs": {
-                "job_id": int, "scenario_id": int
-                }
     """
     LOGGER.debug("Entering jobsqueue/parcel_stats")
-    LOGGER.debug(scenario_job)
+    LOGGER.debug(parcel_stats_job)
     # Update job in db based on status
-    job_db = crud.get_job(db, job_id=scenario_job.server_attrs['job_id'])
-    # Update Scenario in db with the result
-    scenario_db = crud.get_scenario(db, scenario_id=scenario_job.server_attrs['scenario_id'])
+    job_db = crud.get_job(db, job_id=parcel_stats_job.server_attrs['job_id'])
+    # Update Stats in db with the result
+    stats_db = crud.get_parcel_stats(
+        db, stats_id=parcel_stats_job.server_attrs['stats_id'])
 
-    job_status = scenario_job.status
+    job_status = parcel_stats_job.status
     if job_status == "success":
         # Update the job status in the DB to "success"
         job_update = schemas.JobBase(
             status=STATUS_SUCCESS,
             name=job_db.name, description=job_db.description)
         # Update the scenario lulc path and stats
-        scenario_update = schemas.ScenarioUpdate(
-            lulc_stats=json.dumps(scenario_job.result['lulc_stats']))
+        stats_update = schemas.ParcelStatsUpdate(
+            lulc_stats=json.dumps(parcel_stats_job.result['lulc_stats']))
     else:
         # Update the job status in the DB to "failed"
         job_update = schemas.JobBase(
             status=STATUS_FAILED,
             name=job_db.name, description=job_db.description)
-        # Update the the scenario lulc path stats with None
-        scenario_update = schemas.ScenarioUpdate(
-            lulc_url_result=None, lulc_stats=None)
+        # Update the stats with None
+        stats_update = schemas.ParcelStatsUpdate(lulc_stats=None)
 
     LOGGER.debug('Update job status')
     _ = crud.update_job(
-        db=db, job=job_update, job_id=scenario_job.server_attrs['job_id'])
-    LOGGER.debug('Update scenario result')
-    _ = crud.update_scenario(
-        db=db, scenario=scenario_update,
-        scenario_id=scenario_job.server_attrs['scenario_id'])
+        db=db, job=job_update, job_id=parcel_stats_job.server_attrs['job_id'])
+    LOGGER.debug('Update stats result')
+    _ = crud.update_parcel_stats(
+        db=db, parcel_stats=stats_update,
+        stats_id=parcel_stats_job.server_attrs['stats_id'])
 
 @app.post("/jobs/", response_model=schemas.Job)
 def create_job(
@@ -376,7 +359,7 @@ def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
             "job_id": job_db.job_id, "scenario_id": scenario_db.scenario_id
         },
         "job_args": {
-            "target_parcel_wkt": parcel_fill.parcel_wkt,
+            "target_parcel_wkt": parcel_fill.target_parcel_wkt,
             "lulc_class": parcel_fill.lulc_class, #TODO: make sure this is a WKT string and no just a bounding box
             "lulc_source_url": f'{WORKING_ENV}/{scenario_db.lulc_url_base}',
             }
@@ -389,10 +372,8 @@ def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
 
 #TODO: frontend will want preliminary stats under parcel wkt
 @app.get("/stats_under_parcel/", response_model=schemas.StatsOut)
-def get_lulc_stats_under_parcel(parcel_stats: schemas.ParcelStatsRequest, db: Session = Depends(get_db)):
-    # Get Scenario details from scenario_id
-    scenario_db = crud.get_scenario(db, parcel_stats.scenario_id)
-
+def get_lulc_stats_under_parcel(parcel_stats: schemas.ParcelStatsRequest,
+                                db: Session = Depends(get_db)):
     # Create job entry for wallpapering task
     job_schema = schemas.JobBase(
         **{"name": "stats_under_parcel", "description": "get lulc base stats under parcel",
@@ -401,8 +382,7 @@ def get_lulc_stats_under_parcel(parcel_stats: schemas.ParcelStatsRequest, db: Se
         db=db, session_id=session_id, job=job_schema)
 
     parcel_stats_db = crud.create_parcel_stats(
-        db=db, scenario_id=parcel_stats.scenario_id,
-        target_parcel_wkt=parcel_stats.target_parcel_wkt)
+        db=db, target_parcel_wkt=parcel_stats.target_parcel_wkt)
     # Construct worker job and add to the queue
     worker_task = {
         "job_type": "stats_under_parcel",
@@ -410,7 +390,7 @@ def get_lulc_stats_under_parcel(parcel_stats: schemas.ParcelStatsRequest, db: Se
             "job_id": job_db.job_id, "stats_id": parcel_stats_db.stats_id
         },
         "job_args": {
-            "target_parcel_wkt": parcel_fill.parcel_wkt,
+            "target_parcel_wkt": parcel_fill.target_parcel_wkt,
             "lulc_source_url": f'{WORKING_ENV}/{scenario_db.lulc_url_base}',
             }
         }
@@ -421,10 +401,10 @@ def get_lulc_stats_under_parcel(parcel_stats: schemas.ParcelStatsRequest, db: Se
     return worker_task['server_attrs']
 
 
-@app.get("/wallpapering/result")
-def get_wallpapering_results(
+@app.get("/scenario/result")
+def get_scenario_results(
         job_id: int, scenario_id: int, db: Session = Depends(get_db)):
-    """Return the wallpapering results if the job was successful."""
+    """Return the wallpapering or fill results if the job was successful."""
     # Check job status and return URL and Stats from table
     job_db = crud.get_job(db, job_id=job_id)
     if job_db is None:
@@ -433,11 +413,11 @@ def get_wallpapering_results(
         scenario_db = crud.get_scenario(db, scenario_id=scenario_id)
         if scenario_db is None:
             raise HTTPException(status_code=404, detail="Scenario not found")
-        wallpaper_results = {
+        scenario_results = {
             "lulc_url_result": scenario_db.lulc_url_result,
             "lulc_stats": json.loads(scenario_db.lulc_stats),
             }
-        return wallpaper_results
+        return scenario_results
     else:
         return job_db.status
 
