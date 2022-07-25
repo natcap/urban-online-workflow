@@ -1,8 +1,7 @@
+import React, { useEffect, useRef, useState } from 'react';
+
 import { Map, View } from 'ol';
 import MVT from 'ol/format/MVT';
-import OSM from 'ol/source/OSM';
-import React, { useEffect, useRef, useState } from 'react';
-import TileLayer from 'ol/layer/Tile';
 import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
 import { Vector as VectorSource } from 'ol/source';
@@ -11,12 +10,25 @@ import WKT from 'ol/format/WKT';
 import Feature from 'ol/Feature';
 import { Polygon } from 'ol/geom';
 import {
-  Select,
   Translate,
   defaults as defaultInteractions,
 } from 'ol/interaction';
+import { defaults } from 'ol/control';
 
-import {selectedFeatureStyle, patternSamplerBoxStyle} from './styles';
+import { Button, Icon } from '@blueprintjs/core';
+
+import lulcLayer from './map/lulcLayer';
+import LayerPanel from './map/LayerPanel';
+import {
+  satelliteLayer,
+  streetMapLayer,
+  labelLayer,
+} from './map/baseLayers';
+import {
+  selectedFeatureStyle,
+  patternSamplerBoxStyle,
+  styleParcel,
+} from './map/styles';
 
 function getCoords(geometry) {
   const flatCoords = geometry.getFlatCoordinates();
@@ -31,7 +43,7 @@ function getCoords(geometry) {
 }
 
 function centeredPatternSamplerGeom(centerX, centerY) {
-  const width = 100; // box dimensions in map CRS units
+  const width = 200; // box dimensions in map CRS units
   return new Polygon([
     [
       [centerX - width / 2, centerY - width / 2],
@@ -40,21 +52,8 @@ function centeredPatternSamplerGeom(centerX, centerY) {
       [centerX + width / 2, centerY - width / 2],
       [centerX - width / 2, centerY - width / 2],
     ],
-  ])
+  ]);
 }
-
-// define map layers
-const streetMapLayer = new TileLayer({ source: new OSM() });
-const parcelLayer = new VectorTileLayer({
-  source: new VectorTileSource({
-    format: new MVT(),
-    // access API key loaded from your private .env file using dotenv package
-    // because of vite, env variables are exposed through import.meta.env
-    // and must be prefixed with VITE_. https://vitejs.dev/guide/env-and-mode.html#env-files
-    url: 'https://api.mapbox.com/v4/emlys.san-antonio-parcels/{z}/{x}/{y}.mvt?access_token=' + import.meta.env.VITE_MAPBOX_API_KEY,
-  }),
-  minZoom: 18, // don't display this layer below zoom level 17
-});
 
 const patternSamplerFeature = new Feature();
 const patternSamplerLayer = new VectorLayer({
@@ -72,8 +71,19 @@ const translate = new Translate({
   layers: [patternSamplerLayer],
 });
 
-let selectedFeature = null;
+const parcelLayer = new VectorTileLayer({
+  source: new VectorTileSource({
+    format: new MVT(),
+    // access API key loaded from your private .env file using dotenv package
+    // because of vite, env variables are exposed through import.meta.env
+    // and must be prefixed with VITE_. https://vitejs.dev/guide/env-and-mode.html#env-files
+    url: 'https://api.mapbox.com/v4/emlys.san-antonio-parcels/{z}/{x}/{y}.mvt?access_token=' + import.meta.env.VITE_MAPBOX_API_KEY,
+  }),
+  minZoom: 15, // don't display this layer below zoom level 14
+});
+parcelLayer.set('title', 'Parcels');
 
+let selectedFeature = null;
 const selectionLayer = new VectorTileLayer({
   renderMode: 'vector',
   source: parcelLayer.getSource(),
@@ -85,30 +95,64 @@ const selectionLayer = new VectorTileLayer({
     }
   },
 });
+selectionLayer.set('title', 'Selected Parcels');
 
 // define the map
 const map = new Map({
   layers: [
+    satelliteLayer,
     streetMapLayer,
+    lulcLayer,
     parcelLayer,
     selectionLayer,
     patternSamplerLayer,
+    labelLayer,
   ],
   view: new View({
-    center: [-10964368.72, 3429876.58], // San Antonio, EPSG:3857
-    zoom: 19,
+    center: [-10984368.72, 3427876.58], // W. San Antonio, EPSG:3857
+    zoom: 16,
   }),
   interactions: defaultInteractions().extend([translate]),
+  controls: defaults({
+    rotate: false,
+    attribution: true,
+  }),
 });
 
 export default function MapComponent(props) {
   const { setParcel, patternSamplingMode, setPatternSampleWKT } = props;
+  const [layers, setLayers] = useState([]);
+  const [showLayerControl, setShowLayerControl] = useState(false);
+  const [basemap, setBasemap] = useState('Satellite');
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
+
+  const setVisibility = (lyr, visible) => {
+    lyr.setVisible(visible);
+  };
+
+  const toggleLayerControl = () => {
+    if (showLayerControl) {
+      setShowLayerControl(false);
+    } else {
+      setShowLayerControl(true);
+    }
+  };
+
+  const switchBasemap = (title) => {
+    layers.forEach((layer) => {
+      if (layer.get('type') === 'base') {
+        setVisibility(layer, layer.get('title') === title);
+      }
+    });
+    setBasemap(title);
+  };
 
   // useEffect with no dependencies: only runs after first render
   useEffect(() => {
     map.setTarget(mapElementRef.current);
+    setLayers(map.getLayers().getArray());
+    parcelLayer.setStyle(styleParcel(map.getView().getZoom()));
 
     // when the box appears, or when the user finishes dragging the box,
     // update state with its new location
@@ -121,11 +165,10 @@ export default function MapComponent(props) {
       () => setPatternSampleWKT(wkt.writeFeature(patternSamplerFeature))
     );
 
-    // map click handler: visually select the clicked feature and save info in state
     map.on(['click'], async (event) => {
       parcelLayer.getFeatures(event.pixel).then((features) => {
         const feature = features.length ? features[0] : undefined;
-        let coords = undefined;
+        let coords;
         if (feature) {
           // NOTE that a feature's geometry can change with the tile/zoom level and view position
           // and so its coordinates will change slightly.
@@ -134,8 +177,18 @@ export default function MapComponent(props) {
         }
         selectedFeature = feature;
         selectionLayer.changed();
-        setParcel({coords: coords});
+        setParcel({ coords: coords });
       });
+    });
+
+    // Some layers have style dependent on zoom level
+    let currentZoom = map.getView().getZoom();
+    map.on(['moveend'], () => {
+      const newZoom = map.getView().getZoom();
+      if (currentZoom !== newZoom) {
+        currentZoom = newZoom;
+        parcelLayer.setStyle(styleParcel(newZoom));
+      }
     });
   }, []);
 
@@ -143,6 +196,7 @@ export default function MapComponent(props) {
   useEffect(() => {
     if (patternSamplerLayer) {
       if (patternSamplingMode) {
+        switchBasemap('Landcover');
         // when pattern sampling mode is turned on,
         // recenter the sampler box in the current view
         const [mapCenterX, mapCenterY] = map.getView().getCenter();
@@ -154,10 +208,23 @@ export default function MapComponent(props) {
     }
   }, [patternSamplingMode]);
 
-  // render component
   return (
     <div className="map-container">
       <div ref={mapElementRef} className="map-viewport" />
+      <div className="layers-control">
+        <Button
+          onClick={toggleLayerControl}
+        >
+          <Icon icon="layers" />
+        </Button>
+        <LayerPanel
+          show={showLayerControl}
+          layers={[...layers].reverse()} // copy array & reverse it
+          setVisibility={setVisibility}
+          switchBasemap={switchBasemap}
+          basemap={basemap}
+        />
+      </div>
     </div>
   );
 }

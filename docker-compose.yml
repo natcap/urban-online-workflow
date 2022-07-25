@@ -1,0 +1,32 @@
+services:
+    frontend:
+        build: frontend
+        command: yarn start-docker
+        ports:
+            - 3000:3000
+        restart: on-failure
+        volumes:
+            - ./frontend/src:/opt/frontend/src
+            - ./appdata:/opt/appdata
+        secrets:
+            - source: frontend-api-keys
+              target: .env
+    api:
+        build: server
+        ports:
+            - 8000:8000
+        restart: on-failure
+        volumes:
+            - ./server:/opt/server
+            - ./appdata:/opt/appdata
+    worker:
+        build: backend-worker
+        command: /opt/conda/bin/python /opt/worker/worker.py 0.0.0.0 8000
+        restart: on-failure
+        volumes:
+            - ./backend-worker:/opt/worker
+            - ./appdata:/opt/appdata
+
+secrets:
+    frontend-api-keys:
+        file: ./frontend/.env

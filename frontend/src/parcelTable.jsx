@@ -19,7 +19,7 @@ export default function ParcelTable(props) {
   }, []);
 
   if (!parcelTable) {
-    return <h4>Select a parcel to modify</h4>;
+    return <p className="sidebar-subheading">Select a parcel to modify</p>;
   }
 
   const lulcHeader = (
@@ -39,7 +39,7 @@ export default function ParcelTable(props) {
   );
   return (
     <div>
-      <h4>Selected parcel contains:</h4>
+      <p className="sidebar-subheading">Selected parcel contains:</p>
       <HTMLTable bordered striped>
         <tbody>
           {rows}
