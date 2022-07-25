@@ -1,6 +1,6 @@
 name: Run Frontend Tests
 
-on: [push, pull_request, workflow_dispatch]
+on: [push, workflow_dispatch]
 
 defaults:
   run:
