@@ -13,7 +13,7 @@ from .database import SessionLocal, engine
 
 # This will help with flexibility of where we store our files and DB
 # When gathering URL result for frontend request build the URL with this:
-WORKING_ENV = "file://"
+WORKING_ENV = "C://Users//ddenu//Workspace//NatCap//Repositories//urban-online-workflow//backend-worker//appdata"
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -153,7 +153,7 @@ async def worker_job_request(db: Session = Depends(get_db)):
     try:
         # Get job from queue, ignoring returned priority value
         _, job_details = QUEUE.get_nowait()
-        LOGGER.info(f"Sending job [{job_details['job']}] to worker.")
+        LOGGER.info(f"Sending job [{job_details['job_type']}] to worker.")
         return json.dumps(job_details)
     except queue.Empty:
         return None
@@ -346,7 +346,7 @@ def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
         "job_args": {
             "target_parcel_wkt": wallpaper.target_parcel_wkt,
             "pattern_bbox_wkt": pattern_db.wkt, #TODO: make sure this is a WKT string and no just a bounding box
-            "lulc_source_url": scenario_db.lulc_url_base,
+            "lulc_source_url": f'{WORKING_ENV}/{scenario_db.lulc_url_base}',
             }
         }
 
@@ -378,7 +378,7 @@ def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
         "job_args": {
             "target_parcel_wkt": parcel_fill.parcel_wkt,
             "lulc_class": parcel_fill.lulc_class, #TODO: make sure this is a WKT string and no just a bounding box
-            "lulc_source_url": scenario_db.lulc_url_base,
+            "lulc_source_url": f'{WORKING_ENV}/{scenario_db.lulc_url_base}',
             }
         }
 
@@ -411,7 +411,7 @@ def get_lulc_stats_under_parcel(parcel_stats: schemas.ParcelStatsRequest, db: Se
         },
         "job_args": {
             "target_parcel_wkt": parcel_fill.parcel_wkt,
-            "lulc_source_url": scenario_db.lulc_url_base,
+            "lulc_source_url": f'{WORKING_ENV}/{scenario_db.lulc_url_base}',
             }
         }
 

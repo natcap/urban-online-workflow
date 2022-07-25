@@ -53,9 +53,9 @@ class Scenario(Base):
     name = Column(String, index=True)
     description = Column(String)
     wkt = Column(String, default="bounding-box-geometry-here")
-    lulc_url_result = Column(String, default="https://my-lulc.tif")
+    lulc_url_result = Column(String)
     lulc_stats = Column(String)
-    lulc_url_base = Column(String, default="https://my-lulc-base.tif")
+    lulc_url_base = Column(String, default="nlud.tif")
     owner_id = Column(String, ForeignKey("users.session_id"))
 
     parcel_stats = relationship("ParcelStats", back_populates="owner")
