@@ -307,15 +307,14 @@ def wallpaper_parcel(parcel_wkt_epsg3857, pattern_wkt_epsg3857,
     for attr in ('raster_size', 'pixel_size', 'bounding_box'):
         assert nlud_under_parcel_raster_info[attr] == parcel_raster_info[attr]
 
-    parcel_mask_raster = gdal.OpenEx(parcel_mask_raster_path, gdal.OF_RASTER)
-    parcel_mask_band = parcel_mask_raster.GetRasterBand(1)
-
     pygeoprocessing.new_raster_from_base(
         parcel_mask_raster_path, target_raster_path,
         NLUD_DTYPE, [NLUD_NODATA])
     target_raster = gdal.OpenEx(
         target_raster_path, gdal.OF_RASTER | gdal.GA_Update)
     target_band = target_raster.GetRasterBand(1)
+    parcel_mask_raster = gdal.OpenEx(parcel_mask_raster_path, gdal.OF_RASTER)
+    parcel_mask_band = parcel_mask_raster.GetRasterBand(1)
 
     for offset_dict, base_array in pygeoprocessing.iterblocks(
             (nlud_under_parcel_path, 1)):
@@ -349,7 +348,7 @@ def wallpaper_parcel(parcel_wkt_epsg3857, pattern_wkt_epsg3857,
 
     target_raster.BuildOverviews()  # default settings for overviews
 
-    parcel_mask_array = None
+    # clean up mask raster before rmtree
     parcel_mask_band = None
     parcel_mask_raster = None
 
@@ -433,6 +432,8 @@ def pixelpercents_under_parcel(parcel_wkt_epsg3857, source_raster_path):
     return_values = {}
     n_values_under_parcel = numpy.sum(counts)
     for lulc_code, pixel_count in zip(values_under_parcel, counts):
+        # cast lulc_codes to int from numpy_int16 for future json dump call
+        # which does not allow numpy types for keys
         return_values[int(lulc_code)] = round(
             pixel_count / n_values_under_parcel, 4)
 
@@ -451,8 +452,9 @@ def do_work(ip, port):
             time.sleep(POLLING_INTERVAL_S)
             continue
 
+        # response.json() returns a stringified json object, so need to load
+        # it into a python dict
         response_json = json.loads(response.json())
-        LOGGER.info(response_json)
         server_args = response_json['server_attrs']
         job_type = response_json['job_type']
         job_args = response_json['job_args']
@@ -466,7 +468,6 @@ def do_work(ip, port):
                     fill_parcel(
                         parcel_wkt_epsg3857=job_args['target_parcel_wkt'],
                         fill_lulc_class=job_args['lulc_class'],
-                        source_nlud_raster_path=job_args['lulc_source_url'],
                         target_lulc_path=result_path
                     )
                 elif job_type == 'wallpaper':
