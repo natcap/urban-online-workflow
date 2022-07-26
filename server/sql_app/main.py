@@ -76,7 +76,7 @@ def get_db():
 
 ### User / Session Endpoints ###
 
-@app.post("/users/", response_model=schemas.UserOut)
+@app.post("/users/", response_model=schemas.UserResponse)
 def create_user(db: Session = Depends(get_db)):
     # Notice that the values returned are SQLA models. But as all path operations
     # have a 'response_model' with Pydantic models / schemas using orm_mode,
@@ -109,7 +109,7 @@ def read_user(session_id: str, db: Session = Depends(get_db)):
 
 ### Scenario Endpoints ###
 
-@app.post("/scenario/{session_id}", response_model=schemas.ScenarioOut)
+@app.post("/scenario/{session_id}", response_model=schemas.ScenarioResponse)
 def create_scenario(
     session_id: str, scenario: schemas.ScenarioBase,
     db: Session = Depends(get_db)
@@ -305,7 +305,7 @@ def get_patterns(db: Session = Depends(get_db)):
     return pattern_db
 
 
-@app.post("/wallpaper/", response_model=schemas.JobOut)
+@app.post("/wallpaper/", response_model=schemas.JobResponse)
 def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
     # Get Scenario details from scenario_id
     scenario_db = crud.get_scenario(db, wallpaper.scenario_id)
@@ -339,7 +339,7 @@ def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
     return job_db
 
 
-@app.post("/parcel_fill/", response_model=schemas.JobOut)
+@app.post("/parcel_fill/", response_model=schemas.JobResponse)
 def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
     # Get Scenario details from scenario_id
     scenario_db = crud.get_scenario(db, parcel_fill.scenario_id)
@@ -372,7 +372,7 @@ def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
 
 #TODO: frontend will want preliminary stats under parcel wkt
 @app.get("/stats_under_parcel/", response_model=schemas.StatsOut)
-def get_lulc_stats_under_parcel(parcel_stats: schemas.ParcelStatsRequest,
+def get_lulc_stats_under_parcel(parcel_stats: schemas.ParcelStats,
                                 db: Session = Depends(get_db)):
     # Create job entry for wallpapering task
     job_schema = schemas.JobBase(
