@@ -4,6 +4,7 @@ To develop:
 
     yarn install
     yarn start
+    yarn test
 
 To build:
 

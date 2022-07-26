@@ -1,28 +1,43 @@
 name: Run Frontend Tests
 
-on: [push, pull_request, workflow_dispatch]
+on: [push, workflow_dispatch]
 
 defaults:
   run:
     shell: bash -l {0}
 
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  run-frontend-tests:
+    name: Run Frontend Tests
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
+      - name: Check out repo
+        uses: actions/checkout@v3
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      - name: Set up node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 18.x
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: Restore node_modules cache
+        id: nodemodules-cache
+        uses: actions/cache@v2
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('frontend/yarn.lock') }}
+
+      - name: Install dependencies
+        if: steps.nodemodules-cache.outputs.cache-hit != 'true'
+        working-directory: frontend
+        run: yarn install
+
+      - name: Create .env file
+        working-directory: frontend
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          echo VITE_MAPBOX_API_KEY=${{ secrets.VITE_MAPBOX_API_KEY }} >> .env
+          echo VITE_DAVES_MAPBOX_TOKEN=${{ secrets.VITE_DAVES_MAPBOX_TOKEN }} >> .env
+
+      - name: Run tests
+        working-directory: frontend
+        run: yarn run test
