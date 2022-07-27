@@ -1,4 +1,6 @@
 """Pydantic models which define more or less a "schema" (valid data shape)."""
+#TODO: I suspect there are ways to condense the number of pydantic models.
+# There are so many listed as a convenience for working with FastAPI and SQLA.
 from datetime import datetime
 from typing import Optional, Union
 
@@ -154,12 +156,12 @@ class ParcelStatsRequest(BaseModel):
 
 
 class ParcelStatsUpdate(BaseModel):
-    """Pydantic model used in establishing the request to create stats."""
+    """Pydantic model used for updating stats."""
     lulc_stats: str
 
 
-class StatsOut(BaseModel):
-    """Pydantic model for the response after job creation."""
+class ParcelStatsResponse(BaseModel):
+    """Pydantic model for the response after parcel stats creation request."""
     job_id: int
     stats_id: int
 
@@ -167,6 +169,7 @@ class StatsOut(BaseModel):
         orm_mode = True
 
 class WorkerResponse(BaseModel):
+    """Pydantic model used for the jobsqueue request from the worker."""
     result: Union[str, dict]
     status: str
     server_attrs: dict
@@ -176,6 +179,7 @@ class WorkerResponse(BaseModel):
 
 
 class Wallpaper(BaseModel):
+    """Pydantic model for the wallpaper request."""
     scenario_id: int
     target_parcel_wkt: str
     pattern_id: int
@@ -185,6 +189,7 @@ class Wallpaper(BaseModel):
 
 
 class ParcelFill(BaseModel):
+    """Pydantic model for the parcel fill request."""
     scenario_id: int
     target_parcel_wkt: str
     lulc_class: int
