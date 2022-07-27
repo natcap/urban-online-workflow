@@ -382,7 +382,8 @@ def get_lulc_stats_under_parcel(parcel_stats: schemas.ParcelStats,
         db=db, session_id=session_id, job=job_schema)
 
     parcel_stats_db = crud.create_parcel_stats(
-        db=db, target_parcel_wkt=parcel_stats.target_parcel_wkt)
+        db=db, parcel_stats=parcel_stats)
+
     # Construct worker job and add to the queue
     worker_task = {
         "job_type": "stats_under_parcel",

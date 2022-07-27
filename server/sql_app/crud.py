@@ -1,12 +1,12 @@
 """CRUD: Create, Read, Update, and Delete"""
 import asyncio
 import logging
+import uuid
 import sys
 import time
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-import uuid
 
 from . import models, schemas
 
@@ -19,24 +19,26 @@ logging.basicConfig(
     stream=sys.stdout)
 LOGGER = logging.getLogger(__name__)
 
+
+STATUS_SUCCESS = "success"
+STATUS_FAIL = "fail"
+
 # By creating functions that are only dedicated to interacting with the
 # database (get a user or an item) independent of your path operation function,
 # you can more easily reuse them in multiple parts and also add unit tests for
 # them.
 
-# read a single user by ID
 def get_user(db: Session, session_id: str):
-    return db.query(models.User).filter(models.User.session_id == session_id).first()
+    """Read a single user by ``session_id``."""
+    return db.query(models.User).filter(
+            models.User.session_id == session_id).first()
 
-
-# read multiple users
 def get_users(db: Session, skip: int = 0, limit: int = 100):
+    """Read multiple users."""
     return db.query(models.User).offset(skip).limit(limit).all()
 
-
-# create user session
 def create_user(db: Session):
-
+    """Create user session using UUID as unique ID."""
     # It is unlikely that a UUID would be duplicated but we can do three
     # attempts in case it does happen. After the three attempts if a unique
     # UUID still has not been found then we'll return a HTTPException
@@ -53,7 +55,8 @@ def create_user(db: Session):
             break
 
     if not unique_session:
-        raise HTTPException(status_code=404, detail="Unique session could not be created.")
+        raise HTTPException(status_code=404,
+                            detail="Unique session could not be created.")
 
     # create SQLA model instance with your data
     db_user = models.User(session_id=session_id)
@@ -66,25 +69,27 @@ def create_user(db: Session):
     db.refresh(db_user)
     return db_user
 
-
-# read multiple scenarios
-def get_scenarios(db: Session, session_id: str):
-    return db.query(models.Scenario).filter(models.Scenario.owner_id == session_id).all()
-
-
 def create_scenario(db: Session, scenario: schemas.Scenario, session_id: str):
+    """Create scenario linking with ``session_id``."""
     db_scenario = models.Scenario(**scenario.dict(), owner_id=session_id)
     db.add(db_scenario)
     db.commit()
     db.refresh(db_scenario)
     return db_scenario
 
+def get_scenario(db: Session, scenario_id: int):
+    """Read a single scenario by ID."""
+    return db.query(models.Scenario).filter(
+            models.Scenario.scenario_id == scenario_id).first()
+
+def get_scenarios(db: Session, session_id: str):
+    """Read all scenarios."""
+    return db.query(models.Scenario).filter(
+            models.Scenario.owner_id == session_id).all()
 
 def update_scenario(db: Session, scenario: schemas.Scenario, scenario_id: int):
-    #db_scenario = db.query(models.Scenario).filter(models.Scenario.scenario_id == scenario_id).first()
+    """Update a scenario."""
     db_scenario = get_scenario(db, scenario_id)
-    LOGGER.debug("Scenario: {scenario}")
-
     if not db_scenario:
         raise HTTPException(status_code=404, detail="Scenario not found")
     scenario_data = scenario.dict(exclude_unset=True)
@@ -94,37 +99,35 @@ def update_scenario(db: Session, scenario: schemas.Scenario, scenario_id: int):
     db.add(db_scenario)
     db.commit()
     db.refresh(db_scenario)
-    #return db_scenario
-    return "success"
-
+    return STATUS_SUCCESS
 
 def delete_scenario(db: Session, scenario_id: int):
-    db_scenario = db.query(models.Scenario).filter(
-            models.Scenario.scenario_id == scenario_id).first()
+    """Delete a scenario."""
+    db_scenario = get_scenario(db, scenario_id)
 
     if not db_scenario:
         raise HTTPException(status_code=404, detail="Scenario not found")
 
     db.delete(db_scenario)
     db.commit()
-    #return db_scenario
-    return "success"
+    return STATUS_SUCCESS
 
+def create_parcel_stats(db: Session, parcel_stats: schemas.ParceStats):
+    """Create a stats entry in parcel stats table."""
+    db_parcel_stats = models.ParcelStats(**parcel_stats.dict())
+    db.add(db_parcel_stats)
+    db.commit()
+    db.refresh(db_parcel_stats)
+    return db_parcel_stats
 
-# read a single scenario by ID
-def get_scenario(db: Session, scenario_id: int):
-    return db.query(models.Scenario).filter(
-            models.Scenario.scenario_id == scenario_id).first()
-
-
-# read a single stats entry by ID
 def get_parcel_stats(db: Session, stats_id: int):
+    """Read a single stats entry by ID."""
     return db.query(models.ParcelStats).filter(
             models.ParcelStats.stats_id == stats_id).first()
 
-
-def update_parcel_stats(db: Session, parcel_stats: schemas.ParcelStatsUpdate,
-                        stats_id: int):
+def update_parcel_stats(
+        db: Session, parcel_stats: schemas.ParcelStatsUpdate, stats_id: int):
+    """Update a parcel stats entry."""
     db_stats = get_parcel_stats(db, stats_id)
 
     if not db_stats:
@@ -136,29 +139,27 @@ def update_parcel_stats(db: Session, parcel_stats: schemas.ParcelStatsUpdate,
     db.add(db_stats)
     db.commit()
     db.refresh(db_stats)
-    return "success"
-
-
-# read multiple jobs
-def get_jobs(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Job).offset(skip).limit(limit).all()
-
-
-# read job by ID
-def get_job(db: Session, job_id: int):
-    return db.query(models.Job).filter(models.Job.job_id == job_id).first()
-
+    return STATUS_SUCCESS
 
 def create_job(db: Session, session_id: str, job: schemas.JobBase):
+    """Create a job entry in the jobs table."""
     db_job = models.Job(**job.dict(), owner_id=session_id)
     db.add(db_job)
     db.commit()
     db.refresh(db_job)
     return db_job
 
+def get_job(db: Session, job_id: int):
+    """Read job by ``job_id``."""
+    return db.query(models.Job).filter(models.Job.job_id == job_id).first()
+
+def get_jobs(db: Session, skip: int = 0, limit: int = 100):
+    """Read multiple jobs from the table."""
+    return db.query(models.Job).offset(skip).limit(limit).all()
+
 def update_job(db: Session, job: schemas.Job, job_id: int):
-    LOGGER.debug("CRUD: update_job")
-    db_job = db.query(models.Job).filter(models.Job.job_id == job_id).first()
+    """Update job entry in jobs table."""
+    db_job = get_job(db, job_id)
 
     if not db_job:
         raise HTTPException(status_code=404, detail="job not found")
@@ -169,19 +170,10 @@ def update_job(db: Session, job: schemas.Job, job_id: int):
     db.add(db_job)
     db.commit()
     db.refresh(db_job)
-    #return db_job
-    return "success"
-
-# Normally blocking call (InVEST model, PGP call, wallpapering, ...)
-def test_job_task(job_param):
-    LOGGER.debug('Running job operation')
-
-    sleep_time = job_param
-    # Sleep for the "sleep_time" seconds.
-    time.sleep(sleep_time)
-    LOGGER.debug(f'Done sleeping for {sleep_time} seconds')
+    return STATUS_SUCCESS
 
 def create_pattern(db: Session, session_id: str, pattern: schemas.Pattern):
+    """Create a pattern."""
     db_pattern = models.Pattern(**pattern.dict(), owner_id=session_id)
 
     db.add(db_pattern)
@@ -190,31 +182,11 @@ def create_pattern(db: Session, session_id: str, pattern: schemas.Pattern):
     return db_pattern
 
 def get_pattern(db: Session, pattern_id: int):
-    return db.query(models.Pattern).filter(models.Pattern.pattern_id == pattern_id).first()
+    """Read pattern by ``pattern_id``."""
+    return db.query(models.Pattern).filter(
+            models.Pattern.pattern_id == pattern_id).first()
 
 def get_patterns(db: Session):
+    """Read all patterns."""
     return db.query(models.Pattern).all()
-
-def lulc_under_parcel_summary(session_id: str, wkt_parcel: str, db: Session):
-    #TODO: Implement
-    #job_db = models.Job(name=f"lulc-summary-job", status="running")
-    #create_job(db, job_db)
-
-    #summary = {'4': 20, '1': 11, '3': 17}
-    #return summary
-    pass
-
-
-def wallpaper(session_id: str, scenario_id: int, db: Session):
-    #TODO: Implement run wallpapering
-    pass
-
-
-def get_wallpaper_results(job_id: int, db: Session):
-    #TODO: Implement
-    #job_db = get_job(db, job_id)
-
-    #results = {'cog_URL': 'temp-url.tif', 'lulc_summary': {'4': 20, '1': 11, '3': 17}}
-    #return results
-    pass
 
