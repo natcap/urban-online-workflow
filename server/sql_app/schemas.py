@@ -1,47 +1,59 @@
-"""Pydantic models which define more or less a "schema" (a valid data shape)."""
-from typing import Optional
+"""Pydantic models which define more or less a "schema" (valid data shape)."""
+#TODO: I suspect there are ways to condense the number of pydantic models.
+# There are so many listed as a convenience for working with FastAPI and SQLA.
+from datetime import datetime
+from typing import Optional, Union
 
 from pydantic import BaseModel
 
-from datetime import datetime
 
 # Pydantic models declare the types using ":", the new type annotation
 # syntax/type hints
 
 class ScenarioBase(BaseModel):
+    """Pydantic model base for Scenarios."""
     name: str
     description: Optional[str] = None
 
 
+class ScenarioUpdate(BaseModel):
+    """Pydantic model for updating Scenarios in the DB."""
+    lulc_url_result: str
+    lulc_stats: str
+
+
 class Scenario(ScenarioBase):
-    """Pydantic model (schema) used when reading data, when returning it from API."""
+    """Pydantic model used when reading data, when returning it from API."""
     scenario_id: int
     owner_id: str
     wkt: str
-    lulc_result: str
-    lulc_base: str
+    lulc_url_result: str
+    lulc_url_base: str
+    lulc_stats: str
 
     class Config:
         orm_mode = True
 
 
-class ScenarioOut(BaseModel):
+class ScenarioResponse(BaseModel):
+    """Pydantic model for the response after scenario creation."""
     scenario_id: int
 
     class Config:
-            orm_mode = True
+        orm_mode = True
 
 
 class ScenarioAll(BaseModel):
+    """Pydantic model for the response when requesting all scenarios."""
     scenario_id: int
     name: str
 
     class Config:
-            orm_mode = True
+        orm_mode = True
 
 
 class User(BaseModel):
-    """Pydantic model (schema) used when reading data, when returning it from API."""
+    """Pydantic model used when reading data, when returning it from API."""
     id: int
     session_id: str
     last_active: datetime
@@ -59,7 +71,8 @@ class User(BaseModel):
         orm_mode = True
 
 
-class UserOut(BaseModel):
+class UserResponse(BaseModel):
+    """Pydantic model for the response after user creation."""
     session_id: str
 
     class Config:
@@ -67,53 +80,120 @@ class UserOut(BaseModel):
 
 
 class JobBase(BaseModel):
+    """Pydantic model base for Jobs."""
     name: str
-    description: str
+    description: Optional[str] = None
     status: str
 
 
 class Job(JobBase):
-    """Pydantic model (schema) used when reading data, when returning it from API."""
+    """Pydantic model used when reading data, when returning it from API."""
     job_id: int
-
-    class Config:
-        orm_mode = True
-
-
-class JobStatus(BaseModel):
-    status: str
-
-    class Config:
-        orm_mode = True
-
-
-class JobOut(BaseModel):
-    job_id: int
-
-    class Config:
-        orm_mode = True
-
-
-class Pattern(BaseModel):
-    """Pydantic model (schema) used when reading data, when returning it from API."""
-    pattern_id: int
-    name: str
-    description: str
-    wkt: str
     owner_id: str
 
     class Config:
         orm_mode = True
 
 
-class PatternJob(BaseModel):
-    pattern_id: int
+class JobStatus(BaseModel):
+    """Pydantic model used for returning status response of a job."""
+    status: str
+
+    class Config:
+        orm_mode = True
+
+
+class JobResponse(BaseModel):
+    """Pydantic model for the response after job creation."""
     job_id: int
 
     class Config:
         orm_mode = True
 
 
-class WorkerReponse(BaseModel):
+class PatternBase(BaseModel):
+    """Pydantic model base for Patterns."""
+    label: str
+    wkt: str
+
+
+class Pattern(PatternBase):
+    """Pydantic model used when reading data, when returning it from API."""
+    pattern_id: int
+    owner_id: str
+
+    class Config:
+        orm_mode = True
+
+
+class PatternResponse(BaseModel):
+    """Pydantic model for the response after the pattern creation."""
+    pattern_id: int
+    label: str
+
+    class Config:
+        orm_mode = True
+
+
+class ParcelStatsBase(BaseModel):
+    """Pydantic model base for ParcelStats."""
+    target_parcel_wkt: str
+
+
+class ParcelStats(ParcelStatsBase):
+    """Pydantic model used when reading data, when returning it from API."""
+    stats_id: int
+    #owner_id: str
+
+    class Config:
+        orm_mode = True
+
+
+class ParcelStatsRequest(BaseModel):
+    """Pydantic model used in establishing the request to create stats."""
+    scenario_id: int
+    target_parcel_wkt: str
+
+
+class ParcelStatsUpdate(BaseModel):
+    """Pydantic model used for updating stats."""
+    lulc_stats: str
+
+
+class ParcelStatsResponse(BaseModel):
+    """Pydantic model for the response after parcel stats creation request."""
     job_id: int
+    stats_id: int
+
+    class Config:
+        orm_mode = True
+
+class WorkerResponse(BaseModel):
+    """Pydantic model used for the jobsqueue request from the worker."""
+    result: Union[str, dict]
     status: str
+    server_attrs: dict
+
+    class Config:
+        orm_mode = True
+
+
+class Wallpaper(BaseModel):
+    """Pydantic model for the wallpaper request."""
+    scenario_id: int
+    target_parcel_wkt: str
+    pattern_id: int
+
+    class Config:
+        orm_mode = True
+
+
+class ParcelFill(BaseModel):
+    """Pydantic model for the parcel fill request."""
+    scenario_id: int
+    target_parcel_wkt: str
+    lulc_class: int
+
+    class Config:
+        orm_mode = True
+

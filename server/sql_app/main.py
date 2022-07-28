@@ -1,6 +1,6 @@
-import asyncio
 import json
 import logging
+import queue
 import sys
 
 from fastapi import Depends, FastAPI, HTTPException
@@ -10,6 +10,10 @@ from sqlalchemy.orm import Session
 from . import crud, models, schemas
 from .database import SessionLocal, engine
 
+
+# This will help with flexibility of where we store our files and DB
+# When gathering URL result for frontend request build the URL with this:
+WORKING_ENV = "appdata"
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -24,12 +28,16 @@ models.Base.metadata.create_all(bind=engine)
 
 
 # Create a queue that we will use to store our "workload".
-QUEUE = asyncio.PriorityQueue()
-TASKS = set()
+QUEUE = queue.PriorityQueue()
+# Status constants to use for the DB and to serve to frontend
 STATUS_PENDING = "pending"
 STATUS_RUNNING = "running"
 STATUS_SUCCESS = "success"
 STATUS_FAIL = "failed"
+# Priority constants to use for jobs
+LOW_PRIORITY = 3
+MEDIUM_PRIORITY = 2
+HIGH_PRIORITY = 1
 
 # Normally you would probably initialize your db (create tables, etc) with
 # Alembic. Would also use Alembic for "migrations" (that's its main job).
@@ -66,78 +74,9 @@ def get_db():
 # operation function and use that session.
 
 
-# To make sure Exceptions aren't silently ignored:
-# https://stackoverflow.com/questions/27297638/when-asyncio-task-gets-stored-after-creation-exceptions-from-task-get-muted/27299160#27299160
-def handle_result(fut):
-    # To prevent keeping references to finished tasks forever,
-    # make each task remove its own reference from the set after
-    # completion:
-    #task.add_done_callback(TASKS.discard)
-    TASKS.discard(fut)
-
-    if fut.exception():
-        fut.result()  # This will raise the exception.
-
-
-# Our worker to run tasks
-async def worker(name, queue):
-    """Handle jobs in the priority queue.
-
-    Args:
-        name (string) - name for the asyncio worker task
-        queue (asyncio.PriorityQueue) - priority queue to get jobs from where
-            the returned queue item is a tuple of: (priority (int), job (dict))
-            The job dictionary has keys of:
-                'job' (object) - a function to call
-                'param' (object) - parameters to pass to `job`.
-                'name' (string) - name of job
-                'description' (string) - job description
-                'status' (string) - job status
-                'job_id' (int) - database job ID
-                'db' (database reference) - db session
-    """
-    while True:
-        # Get a "work item" out of the queue.
-        job_priority, job_details = await queue.get()
-        LOGGER.debug(f'job details: {job_details}')
-
-        # I had a try/except here before adding the `add_done_callback` because
-        # there was an exception happening that I was never seeing in the console
-        try:
-            # Update the job status in the DB to "running"
-            job_schema = schemas.JobBase(**{
-                'name': job_details['name'],
-                'description': job_details['description'],
-                'status': STATUS_RUNNING})
-            LOGGER.debug('Update job status')
-            crud.update_job(
-                db=job_details['db'], job=job_schema, job_id=job_details['job_id'])
-        except Exception as err:
-            LOGGER.error(f'Error: {err}')
-
-        run_op = job_details['job']
-        # 'gather' and 'to_thread' allows us to await blocking calls for
-        # I/O bound or CPU bound processes.
-        await asyncio.gather(
-            asyncio.to_thread(run_op, job_details['param']))
-
-        # Notify the queue that the "work item" has been processed.
-        queue.task_done()
-        # Update job status to "success"
-        job_schema = schemas.JobBase(**{
-            'name': job_details['name'],
-            'description': job_details['description'],
-            'status': STATUS_SUCCESS})
-        LOGGER.debug('Update job status')
-        crud.update_job(
-            db=job_details['db'], job=job_schema, job_id=job_details['job_id'])
-
-        LOGGER.debug(f'JOB: {job_details["name"]} has completed')
-
-
 ### User / Session Endpoints ###
 
-@app.post("/users/", response_model=schemas.UserOut)
+@app.post("/users/", response_model=schemas.UserResponse)
 def create_user(db: Session = Depends(get_db)):
     # Notice that the values returned are SQLA models. But as all path operations
     # have a 'response_model' with Pydantic models / schemas using orm_mode,
@@ -170,7 +109,7 @@ def read_user(session_id: str, db: Session = Depends(get_db)):
 
 ### Scenario Endpoints ###
 
-@app.post("/scenario/{session_id}", response_model=schemas.ScenarioOut)
+@app.post("/scenario/{session_id}", response_model=schemas.ScenarioResponse)
 def create_scenario(
     session_id: str, scenario: schemas.ScenarioBase,
     db: Session = Depends(get_db)
@@ -207,55 +146,127 @@ def read_scenarios(session_id: str, db: Session = Depends(get_db)):
     return scenarios
 
 
-### Job Endpoints ###
-
-@app.get("/test-async-job/{sleep_time}", response_model=schemas.JobOut)
-async def test_async_job(sleep_time: int, db: Session = Depends(get_db)):
-    job_schema = schemas.JobBase(
-        **{"name": "sleep", "description": "sleep for a few seconds.",
-           "status": STATUS_PENDING})
-    # Add the job to the DB
-    job_db = crud.create_job(db, job_schema)
-
-    # Set up job package
-    job_task = {
-        **job_schema.dict(), 'job': crud.test_job_task, 'param': sleep_time,
-        'job_id': job_db.job_id, 'db': db}
-    priority = 2
-
-    QUEUE.put_nowait((priority, job_task))
-    task = asyncio.create_task(worker(f'worker-{len(TASKS)+1}', QUEUE))
-
-    # This helps catch any exceptions that might have happened in our worker
-    task.add_done_callback(handle_result)
-
-    TASKS.add(task)
-    LOGGER.debug(f'Job {job_db.job_id} added')
-    # Return the job_id in the response
-    return {'job_id': job_db.job_id}
-
-
+### Worker Endpoints ###
 @app.get("/jobsqueue/")
 async def worker_job_request(db: Session = Depends(get_db)):
     """If there's work to be done in the queue send it to the worker."""
     try:
-        job_priority, job_details = await queue.get_nowait()
-        return json.dumps({"job_id": 1, "test": True})
-    except QueueEmpty:
+        # Get job from queue, ignoring returned priority value
+        _, job_details = QUEUE.get_nowait()
+        LOGGER.info(f"Sending job [{job_details['job_type']}] to worker.")
+        return json.dumps(job_details)
+    except queue.Empty:
         return None
 
 
-@app.get("/jobsqueue/{job_id}")
-async def worker_job_response(
-        worker: schemas.WorkerResponse, db: Session = Depends(get_db)):
-    """Update the queue and db given the job details from the worker."""
-    pass
+@app.post("/jobsqueue/scenario")
+def worker_scenario_response(
+    scenario_job: schemas.WorkerResponse, db: Session = Depends(get_db)):
+    """Update the db given the job details from the worker.
 
+    Returned URL result will be partial to allow for local vs cloud stored
+    depending on production vs dev environment.
+
+    Args:
+        scenario_job (pydantic model): a pydantic model with the following 
+            key/vals
+
+            "result": {
+                lulc_path: "relative path to file location",
+                lulc_stats: {
+                    base: {
+                        lulc-int: lulc-perc,
+                        11: 53,
+                    },
+                    result: {
+                        lulc-int: lulc-perc,
+                        11: 53,
+                    },
+                  },
+                }
+             "status": "success | failed",
+             "server_attrs": {
+                "job_id": int, "scenario_id": int
+                }
+    """
+    LOGGER.debug("Entering jobsqueue/scenario")
+    LOGGER.debug(scenario_job)
+    # Update job in db based on status
+    job_db = crud.get_job(db, job_id=scenario_job.server_attrs['job_id'])
+    # Update Scenario in db with the result
+    scenario_db = crud.get_scenario(db, scenario_id=scenario_job.server_attrs['scenario_id'])
+
+    job_status = scenario_job.status
+    if job_status == "success":
+        # Update the job status in the DB to "success"
+        job_update = schemas.JobBase(
+            status=STATUS_SUCCESS,
+            name=job_db.name, description=job_db.description)
+        # Update the scenario lulc path and stats
+        scenario_update = schemas.ScenarioUpdate(
+            lulc_url_result=scenario_job.result['lulc_path'],
+            lulc_stats=json.dumps(scenario_job.result['lulc_stats']))
+    else:
+        # Update the job status in the DB to "failed"
+        job_update = schemas.JobBase(
+            status=STATUS_FAILED,
+            name=job_db.name, description=job_db.description)
+        # Update the the scenario lulc path stats with None
+        scenario_update = schemas.ScenarioUpdate(
+            lulc_url_result=None, lulc_stats=None)
+
+    LOGGER.debug('Update job status')
+    _ = crud.update_job(
+        db=db, job=job_update, job_id=scenario_job.server_attrs['job_id'])
+    LOGGER.debug('Update scenario result')
+    _ = crud.update_scenario(
+        db=db, scenario=scenario_update,
+        scenario_id=scenario_job.server_attrs['scenario_id'])
+
+
+@app.post("/jobsqueue/parcel_stats")
+def worker_parcel_stats_response(
+    parcel_stats_job: schemas.WorkerResponse, db: Session = Depends(get_db)):
+    """Update the db given the job details from the worker.
+    """
+    LOGGER.debug("Entering jobsqueue/parcel_stats")
+    LOGGER.debug(parcel_stats_job)
+    # Update job in db based on status
+    job_db = crud.get_job(db, job_id=parcel_stats_job.server_attrs['job_id'])
+    # Update Stats in db with the result
+    stats_db = crud.get_parcel_stats(
+        db, stats_id=parcel_stats_job.server_attrs['stats_id'])
+
+    job_status = parcel_stats_job.status
+    if job_status == "success":
+        # Update the job status in the DB to "success"
+        job_update = schemas.JobBase(
+            status=STATUS_SUCCESS,
+            name=job_db.name, description=job_db.description)
+        # Update the scenario lulc path and stats
+        stats_update = schemas.ParcelStatsUpdate(
+            lulc_stats=json.dumps(parcel_stats_job.result['lulc_stats']))
+    else:
+        # Update the job status in the DB to "failed"
+        job_update = schemas.JobBase(
+            status=STATUS_FAILED,
+            name=job_db.name, description=job_db.description)
+        # Update the stats with None
+        stats_update = schemas.ParcelStatsUpdate(lulc_stats=None)
+
+    LOGGER.debug('Update job status')
+    _ = crud.update_job(
+        db=db, job=job_update, job_id=parcel_stats_job.server_attrs['job_id'])
+    LOGGER.debug('Update stats result')
+    _ = crud.update_parcel_stats(
+        db=db, parcel_stats=stats_update,
+        stats_id=parcel_stats_job.server_attrs['stats_id'])
 
 @app.post("/jobs/", response_model=schemas.Job)
 def create_job(
     job: schemas.JobBase, db: Session = Depends(get_db)
 ):
+    """Internal endpoint for testing."""
     return crud.create_job(db=db, job=job)
 
 
@@ -274,31 +285,142 @@ def read_jobs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
 
 ### Task Endpoints ###
 
-@app.get("/pattern/{session_id}", response_model=list[schemas.PatternJob])
-def create_pattern(session_id: str, pattern: schemas.Pattern, ndb: Session = Depends(get_db)):
-    #pattern_job = crud.create_pattern(db=db, session_id=session_id, pattern=pattern)
-    #return pattern_job
-    pass
+@app.post("/pattern/{session_id}", response_model=schemas.PatternResponse)
+def create_pattern(session_id: str, pattern: schemas.PatternBase, db: Session = Depends(get_db)):
+    """Create a wallpapering pattern by just saving the wkt in the db."""
+
+    pattern_db = crud.create_pattern(
+        db=db, session_id=session_id, pattern=pattern)
+
+    return pattern_db
 
 
-@app.get("/lulc-table/{session_id}")
-def lulc_under_parcel_summary(session_id: str, wkt_parcel: str, db: Session = Depends(get_db)):
-    #lulc_summary_table = crud.lulc_under_parcel_summary(db=db, session_id=session_id, pattern=pattern)
-    #return lulc_summary_table
-    pass
+@app.get("/pattern/", response_model=list[schemas.PatternResponse])
+def get_patterns(db: Session = Depends(get_db)):
+    """Get a list of the wallpapering patterns saved in the db."""
+
+    pattern_db = crud.get_patterns(
+        db=db, session_id=session_id, pattern=pattern)
+
+    return pattern_db
 
 
-@app.get("/wallpapering/{session_id}/{scenario_id}")
-def run_wallpapering(session_id: str, scenario_id: int, db: Session = Depends(get_db)):
-    #wallpaper = crud.run_wallpaper(db=db, session_id=session_id, scenario_id=scenario_id)
-    #return wallpaper
-    pass
+@app.post("/wallpaper/", response_model=schemas.JobResponse)
+def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
+    # Get Scenario details from scenario_id
+    scenario_db = crud.get_scenario(db, wallpaper.scenario_id)
+    session_id = scenario_db.owner_id
 
-@app.get("/wallpapering/{job_id}")
-def read_wallpapering_results(job_id: int, db: Session = Depends(get_db)):
-    #wallpaper_results = crud.get_wallpaper_results(db=db, job_id=job_id)
-    #return wallpaper_results
-    pass
+    # Create job entry for wallpapering task
+    job_schema = schemas.JobBase(
+        **{"name": "wallpaper", "description": "run wallpapering",
+           "status": STATUS_PENDING})
+    job_db = crud.create_job(
+        db=db, session_id=session_id, job=job_schema)
+
+    # Get Pattern geometry
+    pattern_db = crud.get_pattern(db, wallpaper.pattern_id)
+    # Construct worker job and add to the queue
+    worker_task = {
+        "job_type": "wallpaper",
+        "server_attrs": {
+            "job_id": job_db.job_id, "scenario_id": scenario_db.scenario_id
+        },
+        "job_args": {
+            "target_parcel_wkt": wallpaper.target_parcel_wkt,
+            "pattern_bbox_wkt": pattern_db.wkt, #TODO: make sure this is a WKT string and no just a bounding box
+            "lulc_source_url": f'{WORKING_ENV}/{scenario_db.lulc_url_base}',
+            }
+        }
+
+    QUEUE.put_nowait((MEDIUM_PRIORITY, worker_task))
+
+    # Return job_id for response
+    return job_db
+
+
+@app.post("/parcel_fill/", response_model=schemas.JobResponse)
+def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
+    # Get Scenario details from scenario_id
+    scenario_db = crud.get_scenario(db, parcel_fill.scenario_id)
+    session_id = scenario_db.owner_id
+
+    # Create job entry for wallpapering task
+    job_schema = schemas.JobBase(
+        **{"name": "parcel_fill", "description": "parcel filling",
+           "status": STATUS_PENDING})
+    job_db = crud.create_job(
+        db=db, session_id=session_id, job=job_schema)
+
+    # Construct worker job and add to the queue
+    worker_task = {
+        "job_type": "parcel_fill",
+        "server_attrs": {
+            "job_id": job_db.job_id, "scenario_id": scenario_db.scenario_id
+        },
+        "job_args": {
+            "target_parcel_wkt": parcel_fill.target_parcel_wkt,
+            "lulc_class": parcel_fill.lulc_class, #TODO: make sure this is a WKT string and no just a bounding box
+            "lulc_source_url": f'{WORKING_ENV}/{scenario_db.lulc_url_base}',
+            }
+        }
+
+    QUEUE.put_nowait((MEDIUM_PRIORITY, worker_task))
+
+    # Return job_id for response
+    return job_db
+
+#TODO: frontend will want preliminary stats under parcel wkt
+@app.get("/stats_under_parcel/", response_model=schemas.ParcelStatsResponse)
+def get_lulc_stats_under_parcel(parcel_stats: schemas.ParcelStats,
+                                db: Session = Depends(get_db)):
+    # Create job entry for wallpapering task
+    job_schema = schemas.JobBase(
+        **{"name": "stats_under_parcel", "description": "get lulc base stats under parcel",
+           "status": STATUS_PENDING})
+    job_db = crud.create_job(
+        db=db, session_id=session_id, job=job_schema)
+
+    parcel_stats_db = crud.create_parcel_stats(
+        db=db, parcel_stats=parcel_stats)
+
+    # Construct worker job and add to the queue
+    worker_task = {
+        "job_type": "stats_under_parcel",
+        "server_attrs": {
+            "job_id": job_db.job_id, "stats_id": parcel_stats_db.stats_id
+        },
+        "job_args": {
+            "target_parcel_wkt": parcel_fill.target_parcel_wkt,
+            "lulc_source_url": f'{WORKING_ENV}/{scenario_db.lulc_url_base}',
+            }
+        }
+
+    QUEUE.put_nowait((MEDIUM_PRIORITY, worker_task))
+
+    # Return job_id and stats_id for response
+    return worker_task['server_attrs']
+
+
+@app.get("/scenario/result")
+def get_scenario_results(
+        job_id: int, scenario_id: int, db: Session = Depends(get_db)):
+    """Return the wallpapering or fill results if the job was successful."""
+    # Check job status and return URL and Stats from table
+    job_db = crud.get_job(db, job_id=job_id)
+    if job_db is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if job_db.status == STATUS_SUCCESS:
+        scenario_db = crud.get_scenario(db, scenario_id=scenario_id)
+        if scenario_db is None:
+            raise HTTPException(status_code=404, detail="Scenario not found")
+        scenario_results = {
+            "lulc_url_result": scenario_db.lulc_url_result,
+            "lulc_stats": json.loads(scenario_db.lulc_stats),
+            }
+        return scenario_results
+    else:
+        return job_db.status
 
 
 ### Testing ideas from tutorial ###

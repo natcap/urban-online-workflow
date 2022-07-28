@@ -1,4 +1,5 @@
 import argparse
+import json
 import logging
 import math
 import os
@@ -283,8 +284,6 @@ def wallpaper_parcel(parcel_wkt_epsg3857, pattern_wkt_epsg3857,
     fill_parcel(parcel_wkt_epsg3857, 1, parcel_mask_raster_path)
     parcel_raster_info = pygeoprocessing.get_raster_info(
         parcel_mask_raster_path)
-    parcel_mask_raster = gdal.OpenEx(parcel_mask_raster_path, gdal.OF_RASTER)
-    parcel_mask_band = parcel_mask_raster.GetRasterBand(1)
 
     nlud_under_parcel_path = os.path.join(working_dir, 'nlud_under_parcel.tif')
     pygeoprocessing.geoprocessing.warp_raster(
@@ -314,6 +313,8 @@ def wallpaper_parcel(parcel_wkt_epsg3857, pattern_wkt_epsg3857,
     target_raster = gdal.OpenEx(
         target_raster_path, gdal.OF_RASTER | gdal.GA_Update)
     target_band = target_raster.GetRasterBand(1)
+    parcel_mask_raster = gdal.OpenEx(parcel_mask_raster_path, gdal.OF_RASTER)
+    parcel_mask_band = parcel_mask_raster.GetRasterBand(1)
 
     for offset_dict, base_array in pygeoprocessing.iterblocks(
             (nlud_under_parcel_path, 1)):
@@ -346,6 +347,10 @@ def wallpaper_parcel(parcel_wkt_epsg3857, pattern_wkt_epsg3857,
         target_band.WriteArray(target_array, xoff=xoff, yoff=yoff)
 
     target_raster.BuildOverviews()  # default settings for overviews
+
+    # clean up mask raster before rmtree
+    parcel_mask_band = None
+    parcel_mask_raster = None
 
     shutil.rmtree(working_dir)
 
@@ -427,7 +432,9 @@ def pixelpercents_under_parcel(parcel_wkt_epsg3857, source_raster_path):
     return_values = {}
     n_values_under_parcel = numpy.sum(counts)
     for lulc_code, pixel_count in zip(values_under_parcel, counts):
-        return_values[lulc_code] = round(
+        # cast lulc_codes to int from numpy_int16 for future json dump call
+        # which does not allow numpy types for keys
+        return_values[int(lulc_code)] = round(
             pixel_count / n_values_under_parcel, 4)
 
     return return_values
@@ -435,18 +442,22 @@ def pixelpercents_under_parcel(parcel_wkt_epsg3857, source_raster_path):
 
 def do_work(ip, port):
     local_appdata_dir = 'appdata'
-    job_queue_url = f'{ip}:{port}/jobsqueue/'
+    job_queue_url = f'http://{ip}:{port}/jobsqueue/'
     LOGGER.info(f'Starting worker, queueing {job_queue_url}')
     LOGGER.info(f'Polling the queue every {POLLING_INTERVAL_S}s if no work')
     while True:
         response = requests.get(job_queue_url)
-        if not response.json:
+        # if there is no work on the queue, expecting response.json()==None
+        if not response.json():
             time.sleep(POLLING_INTERVAL_S)
             continue
 
-        server_args = response.json['server_attrs']
-        job_type = response.json['job_type']
-        job_args = response.json['job_args']
+        # response.json() returns a stringified json object, so need to load
+        # it into a python dict
+        response_json = json.loads(response.json())
+        server_args = response_json['server_attrs']
+        job_type = response_json['job_type']
+        job_args = response_json['job_args']
 
         try:
             if job_type in {JOBTYPE_FILL, JOBTYPE_WALLPAPER}:
@@ -457,7 +468,6 @@ def do_work(ip, port):
                     fill_parcel(
                         parcel_wkt_epsg3857=job_args['target_parcel_wkt'],
                         fill_lulc_class=job_args['lulc_class'],
-                        source_nlud_raster_path=job_args['lulc_source_url'],
                         target_lulc_path=result_path
                     )
                 elif job_type == 'wallpaper':
@@ -509,8 +519,8 @@ def do_work(ip, port):
             data['server_attrs'] = server_args
             data['status'] = status
             requests.post(
-                f'{job_queue_url}/{ENDPOINTS[job_type]}',
-                data=data
+                f'{job_queue_url}{ENDPOINTS[job_type]}',
+                data=json.dumps(data)
             )
 
 
