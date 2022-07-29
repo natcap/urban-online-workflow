@@ -86,7 +86,7 @@ export default function EditMenu(props) {
       return;
     }
     let currentScenarioID = scenarioID;
-    if (!Object.values(savedScenarios).includes(scenarioName)) {
+    if (savedScenarios.every((scen) => scen.name !== scenarioName)) {
       currentScenarioID = await makeScenario(sessionID, scenarioName, 'description');
       setScenarioID(currentScenarioID);
     }
@@ -220,7 +220,7 @@ export default function EditMenu(props) {
         <Tab
           id="explore"
           title="Explore"
-          panel={<ScenarioTable scenarioLookup={savedScenarios} />}
+          panel={<ScenarioTable savedScenarios={savedScenarios} />}
         />
       </Tabs>
     </div>

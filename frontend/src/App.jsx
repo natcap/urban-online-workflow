@@ -1,6 +1,6 @@
+import React, { useState, useEffect } from 'react';
 import MapComponent from './map';
 import EditMenu from './edit';
-import React, { useState, useEffect } from 'react';
 
 import { getAllScenarios, createSession } from './requests';
 
@@ -13,19 +13,18 @@ export default function App() {
 
   const refreshSavedScenarios = async () => {
     const scenarios = await getAllScenarios(sessionID);
-    console.log(scenarios);
     setSavedScenarios(scenarios);
   };
 
   useEffect(async () => {
     const sID = await createSession();
     setSessionID(sID.session_id);
-    // refreshSavedScenarios();
+    refreshSavedScenarios();
   }, []);
 
   const togglePatternSamplingMode = () => {
-    setPatternSamplingMode(patternSamplingMode => !patternSamplingMode);
-  }
+    setPatternSamplingMode((mode) => !mode);
+  };
 
   return (
     <div className="App">

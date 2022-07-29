@@ -5,7 +5,6 @@ import {
 } from '@blueprintjs/core';
 
 import {
-  // getScenario,
   getLulcCodes,
 } from './requests';
 
@@ -47,14 +46,15 @@ export default function ScenarioTable(props) {
         {lulcNames.map((type) => <td key={type}> </td>)}
       </tr>,
     );
-    Object.values(scen.features).forEach((feature) => {
-      rows.push(
-        <tr key={feature.fid}>
-          <td key={feature.fid}>{feature.fid}</td>
-          {lulcNames.map((type) => <td key={type}>{feature.table[type]}</td>)}
-        </tr>,
-      );
-    });
+    // Uncomment when https://github.com/natcap/urban-online-workflow/issues/40 is fixed
+    // Object.values(scen.features).forEach((feature) => {
+    //   rows.push(
+    //     <tr key={feature.fid}>
+    //       <td key={feature.fid}>{feature.fid}</td>
+    //       {lulcNames.map((type) => <td key={type}>{feature.table[type]}</td>)}
+    //     </tr>,
+    //   );
+    // });
   });
 
   return (
