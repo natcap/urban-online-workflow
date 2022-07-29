@@ -5,7 +5,6 @@ import math
 import os
 import shutil
 import tempfile
-import textwrap
 import time
 import unittest
 
@@ -440,9 +439,9 @@ def pixelpercents_under_parcel(parcel_wkt_epsg3857, source_raster_path):
     return return_values
 
 
-def do_work(ip, port):
+def do_work(host, port):
     local_appdata_dir = 'appdata'
-    job_queue_url = f'http://{ip}:{port}/jobsqueue/'
+    job_queue_url = f'http://{host}:{port}/jobsqueue/'
     LOGGER.info(f'Starting worker, queueing {job_queue_url}')
     LOGGER.info(f'Polling the queue every {POLLING_INTERVAL_S}s if no work')
     while True:
@@ -527,12 +526,12 @@ def do_work(ip, port):
 def main():
     parser = argparse.ArgumentParser(
         __name__, description=('Worker for Urban Online Workflow'))
-    parser.add_argument('queue_ip')
+    parser.add_argument('queue_host')
     parser.add_argument('queue_port')
 
     args = parser.parse_args()
     do_work(
-        ip=args.queue_ip,
+        host=args.queue_host,
         port=args.queue_port
     )
 
