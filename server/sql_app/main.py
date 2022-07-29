@@ -3,6 +3,7 @@ import logging
 import queue
 import sys
 
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
@@ -46,6 +47,24 @@ HIGH_PRIORITY = 1
 # in the db, add a new column, a new table, etc.
 
 app = FastAPI()
+
+
+origins = [
+    "http://localhost.tiangolo.com",
+    "https://localhost.tiangolo.com",
+    "http://localhost",
+    "http://localhost:8080",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # We need to have an independent db session / connection (SessionLocal) per
 # request, use the same session through all the request and then close it after
