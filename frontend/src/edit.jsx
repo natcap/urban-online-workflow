@@ -39,6 +39,7 @@ export default function EditMenu(props) {
     patternSamplingMode,
     togglePatternSamplingMode,
     patternSampleWKT,
+    sessionID,
   } = props;
 
   const [activeTab, setActiveTab] = useState('create');
@@ -86,7 +87,7 @@ export default function EditMenu(props) {
     }
     let currentScenarioID = scenarioID;
     if (!Object.values(savedScenarios).includes(scenarioName)) {
-      currentScenarioID = await makeScenario(scenarioName, 'description');
+      currentScenarioID = await makeScenario(sessionID, scenarioName, 'description');
       setScenarioID(currentScenarioID);
     }
     let jid;

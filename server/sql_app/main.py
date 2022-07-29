@@ -50,12 +50,7 @@ app = FastAPI()
 
 
 origins = [
-    "http://localhost.tiangolo.com",
-    "https://localhost.tiangolo.com",
-    "http://localhost",
-    "http://localhost:8080",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
+    "http://localhost:3000",
 ]
 
 app.add_middleware(
@@ -159,7 +154,7 @@ def read_scenario(scenario_id: int, db: Session = Depends(get_db)):
     return db_scenario
 
 
-@app.get("/scenarios/", response_model=list[schemas.ScenarioAll])
+@app.get("/scenarios/{session_id}", response_model=list[schemas.ScenarioAll])
 def read_scenarios(session_id: str, db: Session = Depends(get_db)):
     scenarios = crud.get_scenarios(db, session_id=session_id)
     return scenarios

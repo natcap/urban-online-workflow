@@ -1,17 +1,42 @@
 import store from './scenario';
 
-export async function getAllScenarios() {
-  return store.getAllScenarios();
+const apiBaseURL = 'http://127.0.0.1:8000';
+
+export async function createSession() {
+  return (
+    window.fetch(`${apiBaseURL}/users`, {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
+}
+
+export async function getAllScenarios(sessionID) {
+  return (
+    window.fetch(`${apiBaseURL}/scenarios/${sessionID}`, {
+      method: 'get',
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
 }
 
 export async function getScenario(id) {
   return store.getScenario(id);
 }
 
-export async function makeScenario(name, description) {
-  const [sid, scenario] = store.new(name);
-  await store.save(sid, scenario);
-  return Promise.resolve(sid);
+export async function makeScenario(sessionID, name, description) {
+  return (
+    window.fetch(`${apiBaseURL}/scenario/${sessionID}`, {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name, description: description }),
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
 }
 
 export async function getStatus(jobID) {
