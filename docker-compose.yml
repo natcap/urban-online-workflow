@@ -21,7 +21,7 @@ services:
             - ./appdata:/opt/appdata
     worker:
         build: backend-worker
-        command: /opt/conda/bin/python /opt/worker/worker.py 0.0.0.0 8000
+        command: /opt/conda/bin/python /opt/worker/worker.py api 8000
         restart: on-failure
         volumes:
             - ./backend-worker:/opt/worker
@@ -30,3 +30,4 @@ services:
 secrets:
     frontend-api-keys:
         file: ./frontend/.env
+

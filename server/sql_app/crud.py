@@ -1,15 +1,15 @@
 """CRUD: Create, Read, Update, and Delete"""
 import asyncio
 import logging
-import uuid
 import sys
 import time
+import uuid
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from . import models, schemas
-
+from . import models
+from . import schemas
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -112,7 +112,7 @@ def delete_scenario(db: Session, scenario_id: int):
     db.commit()
     return STATUS_SUCCESS
 
-def create_parcel_stats(db: Session, parcel_stats: schemas.ParceStats):
+def create_parcel_stats(db: Session, parcel_stats: schemas.ParcelStats):
     """Create a stats entry in parcel stats table."""
     db_parcel_stats = models.ParcelStats(**parcel_stats.dict())
     db.add(db_parcel_stats)
@@ -189,4 +189,3 @@ def get_pattern(db: Session, pattern_id: int):
 def get_patterns(db: Session):
     """Read all patterns."""
     return db.query(models.Pattern).all()
-
