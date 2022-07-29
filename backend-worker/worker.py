@@ -38,7 +38,7 @@ try:
 except ValueError:
     # When GDAL can't open the file via vsigs
     _NLUD_RASTER_INFO = pygeoprocessing.get_raster_info(
-        'appdata/nlud.tif')
+        '/opt/appdata/nlud.tif')
 NLUD_SRS_WKT = _NLUD_RASTER_INFO['projection_wkt']
 _ALBERS_EQUAL_AREA_SRS.ImportFromWkt(NLUD_SRS_WKT)
 _ALBERS_EQUAL_AREA_SRS.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
