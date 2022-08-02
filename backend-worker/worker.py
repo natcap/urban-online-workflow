@@ -439,8 +439,7 @@ def pixelpercents_under_parcel(parcel_wkt_epsg3857, source_raster_path):
     return return_values
 
 
-def do_work(host, port):
-    local_appdata_dir = 'appdata'
+def do_work(host, port, outputs_location):
     job_queue_url = f'http://{host}:{port}/jobsqueue/'
     LOGGER.info(f'Starting worker, queueing {job_queue_url}')
     LOGGER.info(f'Polling the queue every {POLLING_INTERVAL_S}s if no work')
@@ -455,24 +454,31 @@ def do_work(host, port):
         # it into a python dict
         response_json = json.loads(response.json())
         server_args = response_json['server_attrs']
+        job_id = server_args['job_id']
         job_type = response_json['job_type']
         job_args = response_json['job_args']
 
+        # Make sure the appropriate directory is created
+        scenarios_dir = os.path.join(outputs_location, 'scenarios')
+        model_outputs_dir = os.path.join(outputs_location, 'model_outputs')
+        for path in (scenarios_dir, model_outputs_dir):
+            if not os.path.exists(path):
+                shutil.makedirs(path)
+
         try:
             if job_type in {JOBTYPE_FILL, JOBTYPE_WALLPAPER}:
+                scenario_id = server_args['scenario_id']
+                workspace = os.path.join(scenarios_dir, str(scenario_id))
+                result_path = os.path.join(
+                    workspace, f'{scenario_id}_{job_type}.tif')
+
                 if job_type == 'parcel_fill':
-                    fill_workspace = tempfile.mkdtemp(
-                        prefix='fill-', dir=local_appdata_dir)
-                    result_path = f'{fill_workspace}/filled.tif'
                     fill_parcel(
                         parcel_wkt_epsg3857=job_args['target_parcel_wkt'],
                         fill_lulc_class=job_args['lulc_class'],
                         target_lulc_path=result_path
                     )
                 elif job_type == 'wallpaper':
-                    wallpaper_workspace = tempfile.mkdtemp(
-                        prefix='wallpaper-', dir=local_appdata_dir)
-                    result_path = f'{wallpaper_workspace}/wallpaper.tif'
                     wallpaper_parcel(
                         parcel_wkt_epsg3857=job_args['target_parcel_wkt'],
                         pattern_wkt_epsg3857=job_args['pattern_bbox_wkt'],
@@ -528,11 +534,13 @@ def main():
         __name__, description=('Worker for Urban Online Workflow'))
     parser.add_argument('queue_host')
     parser.add_argument('queue_port')
+    parser.add_argument('output_dir')
 
     args = parser.parse_args()
     do_work(
         host=args.queue_host,
-        port=args.queue_port
+        port=args.queue_port,
+        outputs_location=args.output_dir
     )
 
 

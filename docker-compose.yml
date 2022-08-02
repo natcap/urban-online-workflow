@@ -21,7 +21,7 @@ services:
             - ./appdata:/opt/appdata
     worker:
         build: backend-worker
-        command: /opt/conda/bin/python /opt/worker/worker.py api 8000
+        command: /opt/conda/bin/python /opt/worker/worker.py api 8000 /opt/appdata
         restart: on-failure
         volumes:
             - ./backend-worker:/opt/worker
