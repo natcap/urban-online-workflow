@@ -45,26 +45,24 @@ export async function getLulcTableForParcel(geom) {
   // doing any wallpapering. The values will come from the
   // baseline LULC.
   const lulcTable = {
-    forest: window.crypto.getRandomValues(new Uint8Array(1))[0],
-    grass: window.crypto.getRandomValues(new Uint8Array(1))[0],
-    housing: window.crypto.getRandomValues(new Uint8Array(1))[0],
-    commercial: window.crypto.getRandomValues(new Uint8Array(1))[0],
-    orchard: window.crypto.getRandomValues(new Uint8Array(1))[0],
+    'Developed, Open Space': 24,
+    'Developed, Low Intensity': 8,
+    'Shrub/Scrub': 4,
   };
   return Promise.resolve(lulcTable);
 }
 
 // A lookup for landuse codes that will always remain constant
-export async function getLulcCodes() {
-  const table = {
-    1: 'forest',
-    2: 'grass',
-    3: 'housing',
-    4: 'commercial',
-    5: 'orchard',
-  };
-  return Promise.resolve(table);
-}
+// export async function getLulcCodes() {
+//   const table = {
+//     1: 'Developed, Open Space',
+//     2: 'Developed, Low Intensity',
+//     3: 'Shrub/Scrub',
+//     4: 'commercial',
+//     5: 'orchard',
+//   };
+//   return Promise.resolve(table);
+// }
 
 export async function getPatterns() {
   return Promise.resolve(["orchard", "city park", "housing"]);

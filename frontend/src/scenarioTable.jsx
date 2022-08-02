@@ -6,7 +6,7 @@ import {
 
 import {
   getScenario,
-  getLulcCodes,
+  // getLulcCodes,
 } from './requests';
 
 export default function ScenarioTable(props) {
