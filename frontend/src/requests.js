@@ -98,31 +98,34 @@ export async function getLulcTableForParcel(parcelCoords) {
   // want to see this table for a parcel we select, before
   // doing any wallpapering. The values will come from the
   // baseline LULC.
-  const parcelWKT = `POLYGON((${
-    parcelCoords.map(
-      (coords) => `${coords[0]} ${coords[1]}`,
-    ).join(', ')
-  }))`;
 
-  return (
-    window.fetch(`${apiBaseURL}/stats_under_parcel`, {
-      method: 'post',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        target_parcel_wkt: parcelWKT,
-        // stats_id: ?
-      }),
-    })
-      .then((response) => response.json())
-      .then((json) => console.log(json))
-      .catch((error) => console.log(error))
-  );
-  // const lulcTable = {
-  //   'Developed, Open Space': 24,
-  //   'Developed, Low Intensity': 8,
-  //   'Shrub/Scrub': 4,
-  // };
-  // return Promise.resolve(lulcTable);
+  // TODO: re-instate this real fetch once the endpoint is ready,
+  // https://github.com/natcap/urban-online-workflow/issues/42
+  // const parcelWKT = `POLYGON((${
+  //   parcelCoords.map(
+  //     (coords) => `${coords[0]} ${coords[1]}`,
+  //   ).join(', ')
+  // }))`;
+
+  // return (
+  //   window.fetch(`${apiBaseURL}/stats_under_parcel`, {
+  //     method: 'post',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify({
+  //       target_parcel_wkt: parcelWKT,
+  //       // stats_id: ?
+  //     }),
+  //   })
+  //     .then((response) => response.json())
+  //     .then((json) => console.log(json))
+  //     .catch((error) => console.log(error))
+  // );
+  const lulcTable = {
+    'Developed, Open Space': 24,
+    'Developed, Low Intensity': 8,
+    'Shrub/Scrub': 4,
+  };
+  return Promise.resolve(lulcTable);
 }
 
 export async function getPatterns() {
