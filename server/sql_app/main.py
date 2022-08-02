@@ -384,7 +384,7 @@ def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
     return job_db
 
 #TODO: frontend will want preliminary stats under parcel wkt
-@app.get("/stats_under_parcel/", response_model=schemas.ParcelStatsResponse)
+@app.post("/stats_under_parcel/", response_model=schemas.ParcelStatsResponse)
 def get_lulc_stats_under_parcel(parcel_stats: schemas.ParcelStats,
                                 db: Session = Depends(get_db)):
     # Create job entry for wallpapering task

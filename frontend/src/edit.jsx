@@ -103,7 +103,7 @@ export default function EditMenu(props) {
 
   const handleSamplePattern = async (event) => {
     event.preventDefault();
-    await createPattern(patternSampleWKT, newPatternName);
+    await createPattern(patternSampleWKT, newPatternName, sessionID);
     setPatterns(await getPatterns());
     setSelectedPattern(newPatternName);
     togglePatternSamplingMode();

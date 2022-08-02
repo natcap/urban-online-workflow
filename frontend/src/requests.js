@@ -61,7 +61,7 @@ export async function doWallpaper(targetCoords, patternID, scenarioID) {
       (coords) => `${coords[0]} ${coords[1]}`,
     ).join(', ')
   }))`;
-
+  console.log(targetWKT, patternID, scenarioID);
   return (
     window.fetch(`${apiBaseURL}/wallpaper`, {
       method: 'post',
@@ -92,20 +92,31 @@ export async function getWallpaperResults(jobID) {
   return Promise.resolve(lulcTable);
 }
 
-export async function getLulcTableForParcel(geom) {
+export async function getLulcTableForParcel(parcelCoords) {
   // In general, this table will be built as part of a
   // wallpapering action, but there is the case where we
   // want to see this table for a parcel we select, before
   // doing any wallpapering. The values will come from the
   // baseline LULC.
-  const lulcTable = {
-    forest: window.crypto.getRandomValues(new Uint8Array(1))[0],
-    grass: window.crypto.getRandomValues(new Uint8Array(1))[0],
-    housing: window.crypto.getRandomValues(new Uint8Array(1))[0],
-    commercial: window.crypto.getRandomValues(new Uint8Array(1))[0],
-    orchard: window.crypto.getRandomValues(new Uint8Array(1))[0],
-  };
-  return Promise.resolve(lulcTable);
+  const parcelWKT = `POLYGON((${
+    parcelCoords.map(
+      (coords) => `${coords[0]} ${coords[1]}`,
+    ).join(', ')
+  }))`;
+
+  return (
+    window.fetch(`${apiBaseURL}/stats_under_parcel`, {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        target_parcel_wkt: parcelWKT,
+        // stats_id: ?
+      }),
+    })
+      .then((response) => response.json())
+      .then((json) => console.log(json))
+      .catch((error) => console.log(error))
+  );
 }
 
 // A lookup for landuse codes that will always remain constant
@@ -131,7 +142,18 @@ export async function getPatterns() {
 }
 
 // Return a globally unique ID for the pattern
-export async function createPattern(geom, name) {
-  console.log(`create pattern ${name} with geometry ${geom}`);
-  return Promise.resolve(window.crypto.getRandomValues(new Uint8Array(1))[0]);
+export async function createPattern(wkt, label, sessionID) {
+  return (
+    window.fetch(`${apiBaseURL}/pattern/${sessionID}`, {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        label: label,
+        wkt: wkt,
+      }),
+    })
+      .then((response) => response.json())
+      .then((json) => json.pattern_id)
+      .catch((error) => console.log(error))
+  );
 }
