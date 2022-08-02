@@ -309,7 +309,7 @@ def create_pattern(session_id: str, pattern: schemas.PatternBase, db: Session = 
     return pattern_db
 
 
-@app.get("/pattern/", response_model=list[schemas.PatternResponse])
+@app.get("/pattern/{session_id}", response_model=list[schemas.PatternResponse])
 def get_patterns(db: Session = Depends(get_db)):
     """Get a list of the wallpapering patterns saved in the db."""
 

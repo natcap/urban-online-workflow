@@ -31,7 +31,6 @@ export async function getScenario(id) {
       method: 'get',
     })
       .then((response) => response.json())
-      .then((json) => json.scenario_id)
       .catch((error) => console.log(error))
   );
 }
@@ -44,6 +43,7 @@ export async function makeScenario(sessionID, name, description) {
       body: JSON.stringify({ name: name, description: description }),
     })
       .then((response) => response.json())
+      .then((json) => json.scenario_id)
       .catch((error) => console.log(error))
   );
 }
@@ -60,10 +60,9 @@ export async function getJobStatus(jobID) {
 
 export async function doWallpaper(targetCoords, patternID, scenarioID) {
   // side-effect here where feature w/ lulc table is added to scenario
-  console.log(targetCoords);
   const targetWKT = `POLYGON((${
     targetCoords.map(
-      (coords) => `${coords[0]} ${coords[1]}`
+      (coords) => `${coords[0]} ${coords[1]}`,
     ).join(', ')
   }))`;
 
@@ -73,7 +72,7 @@ export async function doWallpaper(targetCoords, patternID, scenarioID) {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        scenarioID: scenarioID,
+        scenario_id: scenarioID,
         target_parcel_wkt: targetWKT,
         pattern_id: patternID,
       }),
@@ -126,8 +125,15 @@ export async function getLulcCodes() {
   return Promise.resolve(table);
 }
 
-export async function getPatterns() {
-  return Promise.resolve(["orchard", "city park", "housing"]);
+export async function getPatterns(sessionID) {
+  return (
+    window.fetch(`${apiBaseURL}/pattern/${sessionID}`, {
+      method: 'get',
+    })
+      .then((response) => response.json())
+      // .then((json) => console.log(json))
+      .catch((error) => console.log(error))
+  );
 }
 
 // Return a globally unique ID for the pattern

@@ -55,8 +55,12 @@ export default function EditMenu(props) {
 
   // On first render, get the list of available patterns
   useEffect(async () => {
-    setPatterns(await getPatterns());
-  }, []);
+    if (sessionID) {
+      const p = await getPatterns(sessionID);
+      console.log(p);
+      setPatterns(p);
+    }
+  }, [sessionID]);
 
   useEffect(async () => {
     if (parcel) {
@@ -88,12 +92,10 @@ export default function EditMenu(props) {
     let currentScenarioID = scenarioID;
     if (savedScenarios.every((scen) => scen.name !== scenarioName)) {
       currentScenarioID = await makeScenario(sessionID, scenarioName, 'description');
-      setScenarioID(currentScenarioID);
+      setScenarioID(currentScenarioID.scenario_id);
     }
     let jid;
-    console.log(conversionOption, selectedPattern);
     if (conversionOption === 'wallpaper' && selectedPattern) {
-      console.log('do wallpaper');
       jid = await doWallpaper(parcel.coords, selectedPattern, currentScenarioID);
     }
     if (conversionOption === 'paint' && singleLULC) {
@@ -106,7 +108,7 @@ export default function EditMenu(props) {
   const handleSamplePattern = async (event) => {
     event.preventDefault();
     await createPattern(patternSampleWKT, newPatternName);
-    setPatterns(await getPatterns());
+    setPatterns(await getPatterns(sessionID));
     setSelectedPattern(newPatternName);
     togglePatternSamplingMode();
   };
@@ -139,11 +141,19 @@ export default function EditMenu(props) {
         </Label>
         <HTMLSelect
           id="pattern-select"
-          onChange={setSelectedPattern}
+          onChange={
+            (event) => setSelectedPattern(event.currentTarget.value)
+          }
           disabled={patternSamplingMode}
           value={selectedPattern}
         >
-          {patterns.map((pattern) => <option key={pattern} value={pattern}>{pattern}</option>)}
+          {patterns.map(
+            (pattern) => (
+              <option key={pattern.pattern_id} value={pattern.pattern_id}>
+                {pattern.label}
+              </option>
+            ),
+          )}
         </HTMLSelect>
       </div>
       <Switch
