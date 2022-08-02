@@ -1,5 +1,7 @@
 import store from './scenario';
+import WKT from 'ol/format/WKT';
 
+const wkt = new WKT();
 const apiBaseURL = 'http://127.0.0.1:8000';
 
 export async function createSession() {
@@ -24,7 +26,14 @@ export async function getAllScenarios(sessionID) {
 }
 
 export async function getScenario(id) {
-  return store.getScenario(id);
+  return (
+    window.fetch(`${apiBaseURL}/scenario/${id}`, {
+      method: 'get',
+    })
+      .then((response) => response.json())
+      .then((json) => json.scenario_id)
+      .catch((error) => console.log(error))
+  );
 }
 
 export async function makeScenario(sessionID, name, description) {
@@ -39,13 +48,39 @@ export async function makeScenario(sessionID, name, description) {
   );
 }
 
-export async function getStatus(jobID) {
-  return Promise.resolve('complete');
+export async function getJobStatus(jobID) {
+  return (
+    window.fetch(`${apiBaseURL}/job/${jobID}`, {
+      method: 'get',
+    })
+      .then((response) => response.json().status)
+      .catch((error) => console.log(error))
+  );
 }
 
-export async function doWallpaper(geom, pattern, scenarioID) {
+export async function doWallpaper(targetCoords, patternID, scenarioID) {
   // side-effect here where feature w/ lulc table is added to scenario
-  return Promise.resolve('fooJobID');
+  console.log(targetCoords);
+  const targetWKT = `POLYGON((${
+    targetCoords.map(
+      (coords) => `${coords[0]} ${coords[1]}`
+    ).join(', ')
+  }))`;
+
+  console.log(targetWKT, scenarioID, patternID);
+  return (
+    window.fetch(`${apiBaseURL}/wallpaper`, {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenarioID: scenarioID,
+        target_parcel_wkt: targetWKT,
+        pattern_id: patternID,
+      }),
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
 }
 
 export async function convertToSingleLULC(geom, lulcCode, scenarioID) {

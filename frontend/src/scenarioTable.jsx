@@ -11,15 +11,7 @@ import {
 export default function ScenarioTable(props) {
   const { savedScenarios } = props;
 
-  // const [scenarioData, setScenarioData] = useState(null);
   const [lulcNames, setLulcNames] = useState([]);
-
-  // useEffect(async () => {
-  //   const scenarios = await Promise.all(
-  //     Object.keys(scenarioLookup).map((id) => getScenario(id))
-  //   );
-  //   setScenarioData(scenarios);
-  // }, [scenarioLookup]);
 
   useEffect(async () => {
     const lulcCodes = await getLulcCodes();

@@ -19,7 +19,7 @@ import {
   makeScenario,
   getLulcTableForParcel,
   getWallpaperResults,
-  getStatus,
+  getJobStatus,
   getPatterns,
   createPattern,
   convertToSingleLULC,
@@ -67,7 +67,7 @@ export default function EditMenu(props) {
 
   useInterval(async () => {
     console.log('checking status for', jobID);
-    const status = await getStatus(jobID);
+    const status = await getJobStatus(jobID);
     if (status === 'complete') {
       const results = await getWallpaperResults(jobID);
       setParcelTable(results);
@@ -91,7 +91,9 @@ export default function EditMenu(props) {
       setScenarioID(currentScenarioID);
     }
     let jid;
+    console.log(conversionOption, selectedPattern);
     if (conversionOption === 'wallpaper' && selectedPattern) {
+      console.log('do wallpaper');
       jid = await doWallpaper(parcel.coords, selectedPattern, currentScenarioID);
     }
     if (conversionOption === 'paint' && singleLULC) {
