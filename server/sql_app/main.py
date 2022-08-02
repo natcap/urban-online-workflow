@@ -50,12 +50,7 @@ app = FastAPI()
 
 
 origins = [
-    "http://localhost.tiangolo.com",
-    "https://localhost.tiangolo.com",
-    "http://localhost",
-    "http://localhost:8080",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
+    "http://localhost:3000",
 ]
 
 app.add_middleware(
@@ -159,7 +154,7 @@ def read_scenario(scenario_id: int, db: Session = Depends(get_db)):
     return db_scenario
 
 
-@app.get("/scenarios/", response_model=list[schemas.ScenarioAll])
+@app.get("/scenarios/{session_id}", response_model=list[schemas.Scenario])
 def read_scenarios(session_id: str, db: Session = Depends(get_db)):
     scenarios = crud.get_scenarios(db, session_id=session_id)
     return scenarios
@@ -318,8 +313,7 @@ def create_pattern(session_id: str, pattern: schemas.PatternBase, db: Session = 
 def get_patterns(db: Session = Depends(get_db)):
     """Get a list of the wallpapering patterns saved in the db."""
 
-    pattern_db = crud.get_patterns(
-        db=db, session_id=session_id, pattern=pattern)
+    pattern_db = crud.get_patterns(db=db)
 
     return pattern_db
 
@@ -390,7 +384,7 @@ def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
     return job_db
 
 #TODO: frontend will want preliminary stats under parcel wkt
-@app.get("/stats_under_parcel/", response_model=schemas.ParcelStatsResponse)
+@app.post("/stats_under_parcel/", response_model=schemas.ParcelStatsResponse)
 def get_lulc_stats_under_parcel(parcel_stats: schemas.ParcelStats,
                                 db: Session = Depends(get_db)):
     # Create job entry for wallpapering task
