@@ -55,7 +55,7 @@ export default function EditMenu(props) {
 
   // On first render, get the list of available patterns
   useEffect(async () => {
-    setPatterns(await getPatterns());
+    setPatterns(await getPatterns() || []);
   }, []);
 
   useEffect(async () => {
