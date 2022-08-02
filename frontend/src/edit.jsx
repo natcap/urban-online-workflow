@@ -19,7 +19,7 @@ import {
   makeScenario,
   getLulcTableForParcel,
   getWallpaperResults,
-  getStatus,
+  getJobStatus,
   getPatterns,
   createPattern,
   convertToSingleLULC,
@@ -39,6 +39,7 @@ export default function EditMenu(props) {
     patternSamplingMode,
     togglePatternSamplingMode,
     patternSampleWKT,
+    sessionID,
   } = props;
 
   const [activeTab, setActiveTab] = useState('create');
@@ -66,7 +67,7 @@ export default function EditMenu(props) {
 
   useInterval(async () => {
     console.log('checking status for', jobID);
-    const status = await getStatus(jobID);
+    const status = await getJobStatus(jobID);
     if (status === 'complete') {
       const results = await getWallpaperResults(jobID);
       setParcelTable(results);
@@ -85,9 +86,9 @@ export default function EditMenu(props) {
       return;
     }
     let currentScenarioID = scenarioID;
-    if (!Object.values(savedScenarios).includes(scenarioName)) {
-      currentScenarioID = await makeScenario(scenarioName, 'description');
-      setScenarioID(currentScenarioID);
+    if (savedScenarios.every((scen) => scen.name !== scenarioName)) {
+      currentScenarioID = await makeScenario(sessionID, scenarioName, 'description');
+      setScenarioID(currentScenarioID.scenario_id);
     }
     let jid;
     if (conversionOption === 'wallpaper' && selectedPattern) {
@@ -102,7 +103,7 @@ export default function EditMenu(props) {
 
   const handleSamplePattern = async (event) => {
     event.preventDefault();
-    await createPattern(patternSampleWKT, newPatternName);
+    await createPattern(patternSampleWKT, newPatternName, sessionID);
     setPatterns(await getPatterns());
     setSelectedPattern(newPatternName);
     togglePatternSamplingMode();
@@ -136,11 +137,19 @@ export default function EditMenu(props) {
         </Label>
         <HTMLSelect
           id="pattern-select"
-          onChange={setSelectedPattern}
+          onChange={
+            (event) => setSelectedPattern(event.currentTarget.value)
+          }
           disabled={patternSamplingMode}
           value={selectedPattern}
         >
-          {patterns.map((pattern) => <option key={pattern} value={pattern}>{pattern}</option>)}
+          {patterns.map(
+            (pattern) => (
+              <option key={pattern.pattern_id} value={pattern.pattern_id}>
+                {pattern.label}
+              </option>
+            ),
+          )}
         </HTMLSelect>
       </div>
       <Switch
@@ -219,7 +228,7 @@ export default function EditMenu(props) {
         <Tab
           id="explore"
           title="Explore"
-          panel={<ScenarioTable scenarioLookup={savedScenarios} />}
+          panel={<ScenarioTable savedScenarios={savedScenarios} />}
         />
       </Tabs>
     </div>
