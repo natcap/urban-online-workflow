@@ -154,7 +154,7 @@ def read_scenario(scenario_id: int, db: Session = Depends(get_db)):
     return db_scenario
 
 
-@app.get("/scenarios/{session_id}", response_model=list[schemas.ScenarioAll])
+@app.get("/scenarios/{session_id}", response_model=list[schemas.Scenario])
 def read_scenarios(session_id: str, db: Session = Depends(get_db)):
     scenarios = crud.get_scenarios(db, session_id=session_id)
     return scenarios

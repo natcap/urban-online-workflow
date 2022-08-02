@@ -43,15 +43,6 @@ class ScenarioResponse(BaseModel):
         orm_mode = True
 
 
-class ScenarioAll(BaseModel):
-    """Pydantic model for the response when requesting all scenarios."""
-    scenario_id: int
-    name: str
-
-    class Config:
-        orm_mode = True
-
-
 class User(BaseModel):
     """Pydantic model used when reading data, when returning it from API."""
     id: int
