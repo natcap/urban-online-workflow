@@ -1,7 +1,3 @@
-import store from './scenario';
-import WKT from 'ol/format/WKT';
-
-const wkt = new WKT();
 const apiBaseURL = 'http://127.0.0.1:8000';
 
 export async function createSession() {
@@ -66,7 +62,6 @@ export async function doWallpaper(targetCoords, patternID, scenarioID) {
     ).join(', ')
   }))`;
 
-  console.log(targetWKT, scenarioID, patternID);
   return (
     window.fetch(`${apiBaseURL}/wallpaper`, {
       method: 'post',
@@ -125,13 +120,12 @@ export async function getLulcCodes() {
   return Promise.resolve(table);
 }
 
-export async function getPatterns(sessionID) {
+export async function getPatterns() {
   return (
-    window.fetch(`${apiBaseURL}/pattern/${sessionID}`, {
+    window.fetch(`${apiBaseURL}/pattern`, {
       method: 'get',
     })
       .then((response) => response.json())
-      // .then((json) => console.log(json))
       .catch((error) => console.log(error))
   );
 }

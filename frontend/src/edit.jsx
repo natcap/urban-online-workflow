@@ -55,12 +55,8 @@ export default function EditMenu(props) {
 
   // On first render, get the list of available patterns
   useEffect(async () => {
-    if (sessionID) {
-      const p = await getPatterns(sessionID);
-      console.log(p);
-      setPatterns(p);
-    }
-  }, [sessionID]);
+    setPatterns(await getPatterns());
+  }, []);
 
   useEffect(async () => {
     if (parcel) {
@@ -108,7 +104,7 @@ export default function EditMenu(props) {
   const handleSamplePattern = async (event) => {
     event.preventDefault();
     await createPattern(patternSampleWKT, newPatternName);
-    setPatterns(await getPatterns(sessionID));
+    setPatterns(await getPatterns());
     setSelectedPattern(newPatternName);
     togglePatternSamplingMode();
   };
