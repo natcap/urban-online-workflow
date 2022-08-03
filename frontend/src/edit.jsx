@@ -1,15 +1,10 @@
 import React, { useState, useEffect } from 'react';
 
 import {
-  Button,
   FocusStyleManager,
-  FormGroup,
   HTMLSelect,
-  InputGroup,
-  Label,
   Radio,
   RadioGroup,
-  Switch,
   Tab,
   Tabs,
 } from '@blueprintjs/core';
@@ -28,6 +23,7 @@ import useInterval from './hooks/useInterval';
 import ScenarioTable from './scenarioTable';
 import ParcelTable from './parcelTable';
 import landuseCodes from './landuseCodes';
+import WallpaperingMenu from './wallpaperingMenu';
 
 FocusStyleManager.onlyShowFocusOnTabs();
 
@@ -109,58 +105,6 @@ export default function EditMenu(props) {
     togglePatternSamplingMode();
   };
 
-  const patternSampleForm = (
-    <>
-      <p>1. Drag the box over the map to sample a pattern</p>
-      <p>2. Name the new pattern:</p>
-      <FormGroup>
-        <InputGroup
-          id="text-input"
-          placeholder="Placeholder text"
-          value={newPatternName}
-          onChange={(event) => setNewPatternName(event.target.value)}
-        />
-      </FormGroup>
-      <Button
-        icon="camera"
-        text="Sample this pattern"
-        onClick={handleSamplePattern}
-      />
-    </>
-  );
-
-  const wallpaperingSelect = (
-    <>
-      <div className="edit-wallpaper">
-        <Label htmlFor="pattern-select">
-          Choose an existing pattern:
-        </Label>
-        <HTMLSelect
-          id="pattern-select"
-          onChange={
-            (event) => setSelectedPattern(event.currentTarget.value)
-          }
-          disabled={patternSamplingMode}
-          value={selectedPattern}
-        >
-          {patterns.map(
-            (pattern) => (
-              <option key={pattern.pattern_id} value={pattern.pattern_id}>
-                {pattern.label}
-              </option>
-            ),
-          )}
-        </HTMLSelect>
-      </div>
-      <Switch
-        checked={patternSamplingMode}
-        labelElement={<strong>Create new pattern</strong>}
-        onChange={togglePatternSamplingMode}
-      />
-      {patternSamplingMode ? patternSampleForm : <div />}
-    </>
-  );
-
   return (
     <div className="menu-container">
       <Tabs
@@ -200,7 +144,18 @@ export default function EditMenu(props) {
                                   .map(([code, data]) => <option key={code} value={code}>{data.name}</option>)}
                               </HTMLSelect>
                             )
-                            : wallpaperingSelect
+                            : (
+                              <WallpaperingMenu
+                                newPatternName={newPatternName}
+                                setNewPatternName={setNewPatternName}
+                                selectedPattern={selectedPattern}
+                                setSelectedPattern={setSelectedPattern}
+                                patternSamplingMode={patternSamplingMode}
+                                togglePatternSamplingMode={togglePatternSamplingMode}
+                                handleSamplePattern={handleSamplePattern}
+                                patterns={patterns}
+                              />
+                            )
                         }
                       </div>
                       <p className="sidebar-subheading">
@@ -225,11 +180,11 @@ export default function EditMenu(props) {
             </div>
           )}
         />
-        <Tab
+        {/*<Tab
           id="explore"
           title="Explore"
           panel={<ScenarioTable savedScenarios={savedScenarios} />}
-        />
+        />*/}
       </Tabs>
     </div>
   );

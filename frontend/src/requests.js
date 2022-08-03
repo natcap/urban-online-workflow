@@ -1,3 +1,5 @@
+import patternsTable from './patternsTable'; // TODO: this is temp
+
 const apiBaseURL = 'http://127.0.0.1:8000';
 
 export async function createSession() {
@@ -129,13 +131,14 @@ export async function getLulcTableForParcel(parcelCoords) {
 }
 
 export async function getPatterns() {
-  return (
-    window.fetch(`${apiBaseURL}/pattern`, {
-      method: 'get',
-    })
-      .then((response) => response.json())
-      .catch((error) => console.log(error))
-  );
+  // return (
+  //   window.fetch(`${apiBaseURL}/pattern`, {
+  //     method: 'get',
+  //   })
+  //     .then((response) => response.json())
+  //     .catch((error) => console.log(error))
+  // );
+  return Promise.resolve(patternsTable);
 }
 
 // Return a globally unique ID for the pattern

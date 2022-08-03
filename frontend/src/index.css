@@ -79,3 +79,28 @@ html, body, #root, .App {
   filter: drop-shadow(1px 1px 1px grey);
   padding: 0.5rem;
 }
+
+.pattern-catalog {
+  list-style-type: none;
+}
+
+.pattern-catalog li {
+  padding-top: 1rem;
+}
+
+.pattern-catalog button {
+  display: inline-block;
+}
+
+.pattern-catalog label {
+  display: inline-block;
+  padding-left: 1rem;
+  vertical-align: top;
+  padding-top: 0.5rem;
+  font-weight: 500;
+}
+
+.thumbnail {
+  width: 100px;
+  height: 100px;
+}
