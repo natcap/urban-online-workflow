@@ -8,6 +8,8 @@ services:
         volumes:
             - ./frontend/src:/opt/frontend/src
             - ./appdata:/opt/appdata
+            - ./frontend/vite.config.js:/opt/frontend/vite.config.js
+            - ./frontend/index.html:/opt/frontend/index.html
         secrets:
             - source: frontend-api-keys
               target: .env
@@ -21,7 +23,7 @@ services:
             - ./appdata:/opt/appdata
     worker:
         build: backend-worker
-        command: /opt/conda/bin/python /opt/worker/worker.py api 8000
+        command: /opt/conda/bin/python /opt/worker/worker.py api 8000 /opt/appdata
         restart: on-failure
         volumes:
             - ./backend-worker:/opt/worker
