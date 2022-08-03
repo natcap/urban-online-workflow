@@ -71,6 +71,7 @@ ENDPOINTS = {
     JOBTYPE_FILL: 'scenario',
     JOBTYPE_WALLPAPER: 'scenario',
     JOBTYPE_PARCEL_STATS: 'parcel_stats',
+    JOBTYPE_LULC_CLASSNAMES: 'raster_classnames',  # TODO: fixme!
 }
 
 
@@ -463,6 +464,20 @@ def pixelpercents_under_parcel(parcel_wkt_epsg3857, source_raster_path):
 
 
 def get_classnames_from_raster_attr_table(raster_path):
+    """Read classnames from a gdal-readable path.
+
+    Args:
+        raster_path (string): A GDAL raster path representing a raster.
+
+    Returns:
+        classes (dict): A mapping of int lulc codes to its string label.
+
+    Raises:
+        AssertionError: When the raster provided does not have an attribute
+            table.
+        AssertionError: When the target column name could not be found in the
+            attribute table.
+    """
     raster = gdal.OpenEx(raster_path)
     band = raster.GetRasterBand(1)
     attr_table = band.GetDefaultRAT()
@@ -473,12 +488,14 @@ def get_classnames_from_raster_attr_table(raster_path):
 
     # locate the name column
     name_col_idx = -1
-    for col_idx in range(attr_table.GetColumnCount()-1):
-        if attr_table.GetNameOfCol(col_idx) == 'NLCD Land Cover Class':
+    target_colname = 'NLCD Land Cover Class'
+    for col_idx in range(attr_table.GetColumnCount() - 1):
+        if attr_table.GetNameOfCol(col_idx) == target_colname:
             name_col_idx = col_idx
             break
     if name_col_idx == -1:
-        raise AssertionError(f"Could not find column NAME in {raster_path}")
+        raise AssertionError(
+            f"Could not find column {target_colname} in {raster_path}")
 
     classes = {}
     for row_idx in range(attr_table.GetRowCount()):
@@ -549,7 +566,7 @@ def do_work(host, port, outputs_location):
                         }
                     },
                 }
-            elif job_type == 'stats_under_parcel':
+            elif job_type == JOBTYPE_PARCEL_STATS:
                 data = {
                     'result': {
                         'lulc_stats': {
@@ -559,6 +576,11 @@ def do_work(host, port, outputs_location):
                             ),
                         }
                     }
+                }
+            elif job_type == JOBTYPE_LULC_CLASSNAMES:
+                data = {
+                    'result': get_classnames_from_raster_attr_table(
+                        NLCD_RASTER_PATH)
                 }
             else:
                 raise ValueError(f"Invalid job type: {job_type}")
