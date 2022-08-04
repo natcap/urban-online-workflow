@@ -66,9 +66,9 @@ export default function EditMenu(props) {
   }, [parcel]);
 
   useInterval(async () => {
-    console.log('checking status for', jobID);
+    console.log('checking status for job', jobID);
     const status = await getJobStatus(jobID);
-    if (status === 'complete') {
+    if (status === 'success') {
       const results = await getWallpaperResults(jobID);
       setParcelTable(results);
       setJobID(null);

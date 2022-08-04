@@ -49,7 +49,8 @@ export async function getJobStatus(jobID) {
     window.fetch(`${apiBaseURL}/job/${jobID}`, {
       method: 'get',
     })
-      .then((response) => response.json().status)
+      .then((response) => response.json())
+      .then((json) => json.status)
       .catch((error) => console.log(error))
   );
 }
@@ -73,6 +74,7 @@ export async function doWallpaper(targetCoords, patternID, scenarioID) {
       }),
     })
       .then((response) => response.json())
+      .then((json) => json.job_id)
       .catch((error) => console.log(error))
   );
 }
