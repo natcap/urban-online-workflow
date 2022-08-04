@@ -1,5 +1,9 @@
 """ Create SQLAlchemy models from the 'Base' class."""
-from sqlalchemy import DateTime, Column, ForeignKey, Integer, String
+from sqlalchemy import Column
+from sqlalchemy import DateTime
+from sqlalchemy import ForeignKey
+from sqlalchemy import Integer
+from sqlalchemy import String
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -57,7 +61,7 @@ class Scenario(Base):
     wkt = Column(String)
     lulc_url_result = Column(String)
     lulc_stats = Column(String)
-    lulc_url_base = Column(String, default="nlud.tif")
+    lulc_url_base = Column(String, default="NLCD_2016.tif")
     # each scenario has an associated user owner
     owner_id = Column(String, ForeignKey("users.session_id"))
 
