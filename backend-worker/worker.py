@@ -544,12 +544,14 @@ def do_work(host, port, outputs_location):
                         target_lulc_path=result_path
                     )
                 elif job_type == 'wallpaper':
+                    wallpaper_temp_dir = tempfile.mkdtemp(
+                        dir=model_outputs_dir, prefix='wallpaper-')
                     wallpaper_parcel(
                         parcel_wkt_epsg3857=job_args['target_parcel_wkt'],
                         pattern_wkt_epsg3857=job_args['pattern_bbox_wkt'],
                         source_nlud_raster_path=job_args['lulc_source_url'],
                         target_raster_path=result_path,
-                        working_dir=wallpaper_workspace
+                        working_dir=wallpaper_temp_dir
                     )
                 data = {
                     'result': {
