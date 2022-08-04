@@ -528,7 +528,7 @@ def do_work(host, port, outputs_location):
         model_outputs_dir = os.path.join(outputs_location, 'model_outputs')
         for path in (scenarios_dir, model_outputs_dir):
             if not os.path.exists(path):
-                shutil.makedirs(path)
+                os.makedirs(path)
 
         try:
             if job_type in {JOBTYPE_FILL, JOBTYPE_WALLPAPER}:
