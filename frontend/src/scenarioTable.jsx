@@ -5,7 +5,7 @@ import {
 } from '@blueprintjs/core';
 
 import {
-  getLulcCodes,
+  getScenario,
 } from './requests';
 
 export default function ScenarioTable(props) {
