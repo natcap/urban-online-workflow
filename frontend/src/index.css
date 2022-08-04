@@ -37,10 +37,6 @@ html, body, #root, .App {
   display: inline;
 }
 
-.scenario-table {
-  padding-top: 1rem;
-}
-
 .layers-control {
   position: absolute;
   top: 3.5rem;
@@ -60,14 +56,14 @@ html, body, #root, .App {
   filter: drop-shadow(2px 2px 2px grey);
 }
 
-.edit-wallpaper {
+/*.edit-wallpaper {
   display: flex;
   align-items: baseline;
 }
 
 .edit-wallpaper .bp4-html-select {
   margin-left: 1rem;
-}
+}*/
 
 .sidebar-subheading {
   padding-top: 1rem;
@@ -78,6 +74,32 @@ html, body, #root, .App {
   background-color: rgba(240, 240, 240, 1.0);
   filter: drop-shadow(1px 1px 1px grey);
   padding: 0.5rem;
+}
+
+.wallpaper-options {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.wallpaper-options button {
+  margin-bottom: 1rem;
+}
+
+.wallpaper-selected-pattern {
+  display: inline-block;
+  margin-left: 1rem;
+  width: 80px;
+  height: 80px;
+}
+
+.wallpaper-selected-pattern .bp4-non-ideal-state-visual {
+  margin-bottom: 0rem;
+  line-height: 0;
+}
+
+.wallpaper-selected-pattern .thumbnail {
+  width: 75px;
+  height: 75px;
 }
 
 .pattern-catalog {
@@ -103,4 +125,12 @@ html, body, #root, .App {
 .thumbnail {
   width: 100px;
   height: 100px;
+}
+
+.scenario-table {
+  padding-top: 1rem;
+}
+
+.scenario-table td {
+  text-align: end;
 }

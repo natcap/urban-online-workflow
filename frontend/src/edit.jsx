@@ -41,7 +41,7 @@ export default function EditMenu(props) {
   const [activeTab, setActiveTab] = useState('create');
   const [scenarioName, setScenarioName] = useState('');
   const [scenarioID, setScenarioID] = useState(null);
-  const [selectedPattern, setSelectedPattern] = useState('');
+  const [selectedPattern, setSelectedPattern] = useState(null);
   const [patterns, setPatterns] = useState([]);
   const [parcelTable, setParcelTable] = useState(null);
   const [jobID, setJobID] = useState(null);
@@ -88,7 +88,7 @@ export default function EditMenu(props) {
     }
     let jid;
     if (conversionOption === 'wallpaper' && selectedPattern) {
-      jid = await doWallpaper(parcel.coords, selectedPattern, currentScenarioID);
+      jid = await doWallpaper(parcel.coords, selectedPattern.label, currentScenarioID);
     }
     if (conversionOption === 'paint' && singleLULC) {
       jid = await convertToSingleLULC(parcel.coords, singleLULC, currentScenarioID);
@@ -101,7 +101,9 @@ export default function EditMenu(props) {
     event.preventDefault();
     await createPattern(patternSampleWKT, newPatternName, sessionID);
     setPatterns(await getPatterns());
-    setSelectedPattern(newPatternName);
+    setSelectedPattern(
+      patterns.filter((pattern) => pattern.label === newPatternName)
+    );
     togglePatternSamplingMode();
   };
 
@@ -180,11 +182,11 @@ export default function EditMenu(props) {
             </div>
           )}
         />
-        {/*<Tab
+        <Tab
           id="explore"
-          title="Explore"
+          title="Analyze"
           panel={<ScenarioTable savedScenarios={savedScenarios} />}
-        />*/}
+        />
       </Tabs>
     </div>
   );

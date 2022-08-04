@@ -7,7 +7,9 @@ import {
   Switch,
   FormGroup,
   InputGroup,
-  HTMLSelect
+  Icon,
+  NonIdealState,
+  NonIdealStateIconSize,
 } from '@blueprintjs/core';
 
 export default function WallpaperingMenu(props) {
@@ -23,31 +25,48 @@ export default function WallpaperingMenu(props) {
   } = props;
   const [drawerIsOpen, setDrawerIsOpen] = useState(false);
 
+  console.log(selectedPattern)
   return (
     <>
-      <div className="edit-wallpaper">
-        <Label htmlFor="pattern-select">
-          Choose an existing pattern:
-        </Label>
-        <Button
-          onClick={() => setDrawerIsOpen(true)}
-        >
-          Show
-        </Button>
-        <PatternCatalogDrawer
-          isOpen={drawerIsOpen}
-          closeDrawer={() => setDrawerIsOpen(false)}
-          setSelectedPattern={setSelectedPattern}
-          patternSamplingMode={patternSamplingMode}
-          selectedPattern={selectedPattern}
-          patterns={patterns}
+      <div className="wallpaper-options">
+        <div>
+          <Button
+            onClick={() => setDrawerIsOpen(true)}
+          >
+            Browse existing patterns
+          </Button>
+          <PatternCatalogDrawer
+            isOpen={drawerIsOpen}
+            closeDrawer={() => setDrawerIsOpen(false)}
+            setSelectedPattern={setSelectedPattern}
+            patternSamplingMode={patternSamplingMode}
+            selectedPattern={selectedPattern}
+            patterns={patterns}
+          />
+        </div>
+        <Switch
+          checked={patternSamplingMode}
+          labelElement={<strong>Create new pattern</strong>}
+          onChange={togglePatternSamplingMode}
         />
       </div>
-      <Switch
-        checked={patternSamplingMode}
-        labelElement={<strong>Create new pattern</strong>}
-        onChange={togglePatternSamplingMode}
-      />
+      <div className="wallpaper-selected-pattern">
+        {(selectedPattern)
+          ? (
+            <img
+              className="thumbnail"
+              src={selectedPattern.url}
+              alt={selectedPattern.label || 'no pattern selected'}
+            />
+          )
+          : (
+            <NonIdealState
+              icon="issue"
+              iconSize={NonIdealStateIconSize.SMALL}
+              description="no pattern selected"
+            />
+          )}
+      </div>
       {(patternSamplingMode)
         ? (
           <>
@@ -90,7 +109,10 @@ function PatternCatalogDrawer(props) {
     patternList.push(
       <li>
         <Button
-          onClick={() => console.log(pattern_id)}
+          onClick={() => {
+            setSelectedPattern(pattern);
+            closeDrawer();
+          }}
         >
           <img className="thumbnail" src={url} alt={label} />
         </Button>
