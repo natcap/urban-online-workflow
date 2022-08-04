@@ -26,10 +26,11 @@ class Scenario(ScenarioBase):
     """Pydantic model used when reading data, when returning it from API."""
     scenario_id: int
     owner_id: str
-    wkt: str
-    lulc_url_result: str
+    wkt: Union[str, None] = None
+    lulc_url_result: Union[str, None] = None
     lulc_url_base: str
-    lulc_stats: str
+    lulc_stats: Union[str, None] = None
+
 
     class Config:
         orm_mode = True
