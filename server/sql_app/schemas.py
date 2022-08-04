@@ -2,7 +2,7 @@
 #TODO: I suspect there are ways to condense the number of pydantic models.
 # There are so many listed as a convenience for working with FastAPI and SQLA.
 from datetime import datetime
-from typing import Optional, Union
+from typing import Optional, Union, Literal
 
 from pydantic import BaseModel
 
@@ -26,10 +26,11 @@ class Scenario(ScenarioBase):
     """Pydantic model used when reading data, when returning it from API."""
     scenario_id: int
     owner_id: str
-    wkt: str
-    lulc_url_result: str
+    wkt: Union[str, None] = None
+    lulc_url_result: Union[str, None] = None
     lulc_url_base: str
-    lulc_stats: str
+    lulc_stats: Union[str, None] = None
+
 
     class Config:
         orm_mode = True
@@ -74,7 +75,7 @@ class JobBase(BaseModel):
     """Pydantic model base for Jobs."""
     name: str
     description: Optional[str] = None
-    status: str
+    status: Literal['success', 'failed', 'pending', 'running']
 
 
 class Job(JobBase):
@@ -88,7 +89,7 @@ class Job(JobBase):
 
 class JobStatus(BaseModel):
     """Pydantic model used for returning status response of a job."""
-    status: str
+    status: Literal['success', 'failed', 'pending', 'running']
 
     class Config:
         orm_mode = True
@@ -162,7 +163,7 @@ class ParcelStatsResponse(BaseModel):
 class WorkerResponse(BaseModel):
     """Pydantic model used for the jobsqueue request from the worker."""
     result: Union[str, dict]
-    status: str
+    status: Literal['success', 'failed', 'pending', 'running']
     server_attrs: dict
 
     class Config:
