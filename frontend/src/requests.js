@@ -49,7 +49,23 @@ export async function getJobStatus(jobID) {
     window.fetch(`${apiBaseURL}/job/${jobID}`, {
       method: 'get',
     })
-      .then((response) => response.json().status)
+      .then((response) => response.json())
+      .then((json) => json.status)
+      .catch((error) => console.log(error))
+  );
+}
+
+export async function getJobResults(jobID, scenarioID) {
+  return (
+    window.fetch(`${apiBaseURL}/scenario/result/${jobID}/${scenarioID}`, {
+      method: 'get',
+      // headers: { 'Content-Type': 'application/json' },
+      // body: JSON.stringify({
+      //   job_id: jobID,
+      //   scenario_id: scenarioID,
+      // }),
+    })
+      .then((response) => response.json())
       .catch((error) => console.log(error))
   );
 }
@@ -73,6 +89,7 @@ export async function doWallpaper(targetCoords, patternID, scenarioID) {
       }),
     })
       .then((response) => response.json())
+      .then((json) => json.job_id)
       .catch((error) => console.log(error))
   );
 }
