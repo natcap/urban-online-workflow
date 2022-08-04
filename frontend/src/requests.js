@@ -55,6 +55,21 @@ export async function getJobStatus(jobID) {
   );
 }
 
+export async function getJobResults(jobID, scenarioID) {
+  return (
+    window.fetch(`${apiBaseURL}/scenario/result/${jobID}/${scenarioID}`, {
+      method: 'get',
+      // headers: { 'Content-Type': 'application/json' },
+      // body: JSON.stringify({
+      //   job_id: jobID,
+      //   scenario_id: scenarioID,
+      // }),
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
+}
+
 export async function doWallpaper(targetCoords, patternID, scenarioID) {
   // side-effect here where feature w/ lulc table is added to scenario
   const targetWKT = `POLYGON((${
