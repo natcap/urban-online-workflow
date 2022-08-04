@@ -545,7 +545,7 @@ def do_work(host, port, outputs_location):
                     )
                 elif job_type == 'wallpaper':
                     wallpaper_temp_dir = tempfile.mkdtemp(
-                        dir=model_outputs_dir, prefix='wallpaper-')
+                        dir=workspace, prefix='wallpaper-')
                     wallpaper_parcel(
                         parcel_wkt_epsg3857=job_args['target_parcel_wkt'],
                         pattern_wkt_epsg3857=job_args['pattern_bbox_wkt'],
@@ -553,6 +553,12 @@ def do_work(host, port, outputs_location):
                         target_raster_path=result_path,
                         working_dir=wallpaper_temp_dir
                     )
+                    try:
+                        shutil.rmtree(wallpaper_temp_dir)
+                    except OSError as e:
+                        LOGGER.exception(
+                            "Something went wrong removing "
+                            f"{wallpaper_temp_dir}: {e}")
                 data = {
                     'result': {
                         'lulc_path': result_path,
