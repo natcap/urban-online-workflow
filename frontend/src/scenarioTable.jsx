@@ -4,10 +4,6 @@ import {
   HTMLTable,
 } from '@blueprintjs/core';
 
-import {
-  getScenario,
-} from './requests';
-
 export default function ScenarioTable(props) {
   const { savedScenarios } = props;
 

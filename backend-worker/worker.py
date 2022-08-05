@@ -544,6 +544,7 @@ def do_work(host, port, outputs_location):
                 workspace = os.path.join(scenarios_dir, str(scenario_id))
                 result_path = os.path.join(
                     workspace, f'{scenario_id}_{job_type}.tif')
+                os.makedirs(workspace, exist_ok=True)
 
                 if job_type == 'parcel_fill':
                     fill_parcel(

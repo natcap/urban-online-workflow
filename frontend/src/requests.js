@@ -1,5 +1,13 @@
 const apiBaseURL = 'http://127.0.0.1:8000';
 
+function polygonCoordsToWKT(coords) {
+  return `POLYGON((${
+    coords.map(
+      (lonLat) => `${lonLat[0]} ${lonLat[1]}`,
+    ).join(', ')
+  }))`;
+}
+
 export async function createSession() {
   return (
     window.fetch(`${apiBaseURL}/users`, {
@@ -11,7 +19,7 @@ export async function createSession() {
   );
 }
 
-export async function getAllScenarios(sessionID) {
+export async function getScenarios(sessionID) {
   return (
     window.fetch(`${apiBaseURL}/scenarios/${sessionID}`, {
       method: 'get',
@@ -59,11 +67,6 @@ export async function getJobResults(jobID, scenarioID) {
   return (
     window.fetch(`${apiBaseURL}/scenario/result/${jobID}/${scenarioID}`, {
       method: 'get',
-      // headers: { 'Content-Type': 'application/json' },
-      // body: JSON.stringify({
-      //   job_id: jobID,
-      //   scenario_id: scenarioID,
-      // }),
     })
       .then((response) => response.json())
       .catch((error) => console.log(error))
@@ -71,20 +74,13 @@ export async function getJobResults(jobID, scenarioID) {
 }
 
 export async function doWallpaper(targetCoords, patternID, scenarioID) {
-  // side-effect here where feature w/ lulc table is added to scenario
-  const targetWKT = `POLYGON((${
-    targetCoords.map(
-      (coords) => `${coords[0]} ${coords[1]}`,
-    ).join(', ')
-  }))`;
-  console.log(targetWKT, patternID, scenarioID);
   return (
     window.fetch(`${apiBaseURL}/wallpaper`, {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         scenario_id: scenarioID,
-        target_parcel_wkt: targetWKT,
+        target_parcel_wkt: polygonCoordsToWKT(targetCoords),
         pattern_id: patternID,
       }),
     })
@@ -94,19 +90,21 @@ export async function doWallpaper(targetCoords, patternID, scenarioID) {
   );
 }
 
-export async function convertToSingleLULC(geom, lulcCode, scenarioID) {
-  return Promise.resolve('fooJobID');
-}
-
-export async function getWallpaperResults(jobID) {
-  const lulcTable = {
-    forest: window.crypto.getRandomValues(new Uint8Array(1))[0],
-    housing: window.crypto.getRandomValues(new Uint8Array(1))[0],
-    grass: window.crypto.getRandomValues(new Uint8Array(1))[0],
-    commercial: window.crypto.getRandomValues(new Uint8Array(1))[0],
-    orchard: window.crypto.getRandomValues(new Uint8Array(1))[0],
-  };
-  return Promise.resolve(lulcTable);
+export async function convertToSingleLULC(targetCoords, lulcCode, scenarioID) {
+  return (
+    window.fetch(`${apiBaseURL}/parcel_fill`, {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenario_id: scenarioID,
+        target_parcel_wkt: polygonCoordsToWKT(targetCoords),
+        lulc_class: lulcCode,
+      }),
+    })
+      .then((response) => response.json())
+      .then((json) => json.job_id)
+      .catch((error) => console.log(error))
+  );
 }
 
 export async function getLulcTableForParcel(parcelCoords) {
@@ -118,31 +116,26 @@ export async function getLulcTableForParcel(parcelCoords) {
 
   // TODO: re-instate this real fetch once the endpoint is ready,
   // https://github.com/natcap/urban-online-workflow/issues/42
-  // const parcelWKT = `POLYGON((${
-  //   parcelCoords.map(
-  //     (coords) => `${coords[0]} ${coords[1]}`,
-  //   ).join(', ')
-  // }))`;
 
-  // return (
-  //   window.fetch(`${apiBaseURL}/stats_under_parcel`, {
-  //     method: 'post',
-  //     headers: { 'Content-Type': 'application/json' },
-  //     body: JSON.stringify({
-  //       target_parcel_wkt: parcelWKT,
-  //       // stats_id: ?
-  //     }),
-  //   })
-  //     .then((response) => response.json())
-  //     .then((json) => console.log(json))
-  //     .catch((error) => console.log(error))
-  // );
-  const lulcTable = {
-    'Developed, Open Space': 24,
-    'Developed, Low Intensity': 8,
-    'Shrub/Scrub': 4,
-  };
-  return Promise.resolve(lulcTable);
+  return (
+    window.fetch(`${apiBaseURL}/stats_under_parcel`, {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        target_parcel_wkt: polygonCoordsToWKT(parcelCoords),
+        // stats_id: ?
+      }),
+    })
+      .then((response) => response.json())
+      .then((json) => console.log(json))
+      .catch((error) => console.log(error))
+  );
+  // const lulcTable = {
+  //   'Developed, Open Space': 24,
+  //   'Developed, Low Intensity': 8,
+  //   'Shrub/Scrub': 4,
+  // };
+  // return Promise.resolve(lulcTable);
 }
 
 export async function getPatterns() {
