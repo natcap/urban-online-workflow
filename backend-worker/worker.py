@@ -66,7 +66,6 @@ JOBTYPE_FILL = 'parcel_fill'
 JOBTYPE_WALLPAPER = 'wallpaper'
 JOBTYPE_PARCEL_STATS = 'stats_under_parcel'
 JOBTYPE_LULC_CLASSNAMES = 'raster_classnames'
-
 ENDPOINTS = {
     JOBTYPE_FILL: 'scenario',
     JOBTYPE_WALLPAPER: 'scenario',
@@ -82,7 +81,7 @@ class Tests(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.workspace_dir)
 
-    def test_pixelpercents_under_parcel(self):
+    def test_pixelcounts_under_parcel(self):
         # University of Texas: San Antonio, selected by hand in QGIS
         # Coordinates are in EPSG:3857 "Web Mercator"
         point_over_san_antonio = shapely.geometry.Point(
@@ -95,14 +94,14 @@ class Tests(unittest.TestCase):
             _WEB_MERCATOR_SRS.ExportToWkt(), 'FlatGeoBuf')
 
         nlud_path = 'appdata/nlud.tif'
-        pixelpercents = pixelpercents_under_parcel(
+        pixelcounts = pixelcounts_under_parcel(
             parcel.wkt, nlud_path)
 
         expected_values = {
-            262: 0.9756,
-            321: 0.0244,
+            262: 40,
+            321: 1,
         }
-        self.assertEqual(pixelpercents, expected_values)
+        self.assertEqual(pixelcounts, expected_values)
 
     def test_new_lulc(self):
         gtiff_path = os.path.join(self.workspace_dir, 'raster.tif')
@@ -376,8 +375,8 @@ def wallpaper_parcel(parcel_wkt_epsg3857, pattern_wkt_epsg3857,
     shutil.rmtree(working_dir)
 
 
-def pixelpercents_under_parcel(parcel_wkt_epsg3857, source_raster_path):
-    """Get a breakdown of the percent of pixels under a parcel per lulc code.
+def pixelcounts_under_parcel(parcel_wkt_epsg3857, source_raster_path):
+    """Get a breakdown of pixel counts under a parcel per lulc code.
 
     Args:
         parcel_wkt_epsg3857 (str): The parcel WKT in web mercator.
@@ -451,12 +450,10 @@ def pixelpercents_under_parcel(parcel_wkt_epsg3857, source_raster_path):
         array[parcel_mask == 1], return_counts=True)
 
     return_values = {}
-    n_values_under_parcel = numpy.sum(counts)
     for lulc_code, pixel_count in zip(values_under_parcel, counts):
         # cast lulc_codes to int from numpy_int16 for future json dump call
         # which does not allow numpy types for keys
-        return_values[int(lulc_code)] = round(
-            pixel_count / n_values_under_parcel, 4)
+        return_values[int(lulc_code)] = pixel_count
 
     return return_values
 
@@ -572,11 +569,11 @@ def do_work(host, port, outputs_location):
                     'result': {
                         'lulc_path': result_path,
                         'lulc_stats': {
-                            'base': pixelpercents_under_parcel(
+                            'base': pixelcounts_under_parcel(
                                 job_args['target_parcel_wkt'],
                                 job_args['lulc_source_url']
                             ),
-                            'result': pixelpercents_under_parcel(
+                            'result': pixelcounts_under_parcel(
                                 job_args['target_parcel_wkt'],
                                 result_path
                             ),
@@ -587,7 +584,7 @@ def do_work(host, port, outputs_location):
                 data = {
                     'result': {
                         'lulc_stats': {
-                            'base': pixelpercents_under_parcel(
+                            'base': pixelcounts_under_parcel(
                                 job_args['target_parcel_wkt'],
                                 job_args['lulc_source_url']
                             ),
