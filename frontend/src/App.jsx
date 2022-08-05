@@ -12,13 +12,11 @@ export default function App() {
   const [sessionID, setSessionID] = useState(null);
 
   const refreshSavedScenarios = async () => {
-    const scenarios = await getScenarios(sessionID);
-    setSavedScenarios(scenarios);
+    setSavedScenarios(await getScenarios(sessionID));
   };
 
   useEffect(async () => {
-    const sID = await createSession();
-    setSessionID(sID.session_id);
+    setSessionID(await createSession());
     refreshSavedScenarios();
   }, []);
 
