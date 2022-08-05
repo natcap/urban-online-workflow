@@ -176,12 +176,10 @@ class Tests(unittest.TestCase):
 
         # See https://www.mrlc.gov/data/legends/national-land-cover-database-class-legend-and-description
         # for a list of classes in NLCD.
-        # only 20 actual classnames in NLCD, 4 are specific to Alaska.
-        # Unclassified is also a label, as is the empty string. 20-4+2=18
-        self.assertEqual(len({v for v in classes.values()}), 18)
-
-        # But there are 256 total entries (most are the empty string)
-        self.assertEqual(len(classes), 256)
+        # 20 classes total 4 are specific to Alaska and so not in our dataset.
+        self.assertEqual(len(classes), 16)
+        for _, attrs in classes.items():
+            self.assertRegexpMatches(attrs['color'], '#[0-9a-fA-F]{6}')
 
 
 def _reproject_to_nlud(parcel_wkt_epsg3857):
@@ -497,9 +495,19 @@ def get_classnames_from_raster_attr_table(raster_path):
         raise AssertionError(
             f"Could not find column {target_colname} in {raster_path}")
 
+    color_table = band.GetColorTable()
+
+    def _to_hex(r, g, b, a):
+        return f"#{r:02x}{g:02x}{b:02x}"
+
     classes = {}
     for row_idx in range(attr_table.GetRowCount()):
-        classes[row_idx] = attr_table.GetValueAsString(row_idx, col_idx)
+        name = attr_table.GetValueAsString(row_idx, name_col_idx)
+        if name and name != 'Unclassified':
+            classes[row_idx] = {
+                'name': name,
+                'color': _to_hex(*color_table.GetColorEntry(row_idx)),
+            }
 
     return classes
 
