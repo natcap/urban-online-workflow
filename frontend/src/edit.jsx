@@ -13,7 +13,7 @@ import {
   doWallpaper,
   makeScenario,
   getLulcTableForParcel,
-  getWallpaperResults,
+  getJobResults,
   getJobStatus,
   getPatterns,
   createPattern,
@@ -62,14 +62,15 @@ export default function EditMenu(props) {
   }, [parcel]);
 
   useInterval(async () => {
-    console.log('checking status for', jobID);
+    console.log('checking status for job', jobID);
     const status = await getJobStatus(jobID);
-    if (status === 'complete') {
-      const results = await getWallpaperResults(jobID);
+    if (status === 'success') {
+      const results = await getJobResults(jobID, scenarioID);
+      console.log(results);
       setParcelTable(results);
       setJobID(null);
     }
-  }, jobID ? 1000 : null);
+  }, (jobID && scenarioID) ? 1000 : null);
 
   async function handleSubmitNew(event) {
     event.preventDefault();
@@ -84,7 +85,7 @@ export default function EditMenu(props) {
     let currentScenarioID = scenarioID;
     if (savedScenarios.every((scen) => scen.name !== scenarioName)) {
       currentScenarioID = await makeScenario(sessionID, scenarioName, 'description');
-      setScenarioID(currentScenarioID.scenario_id);
+      setScenarioID(currentScenarioID);
     }
     let jid;
     if (conversionOption === 'wallpaper' && selectedPattern) {

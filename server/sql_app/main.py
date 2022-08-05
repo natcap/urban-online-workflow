@@ -14,7 +14,7 @@ from .database import SessionLocal, engine
 
 # This will help with flexibility of where we store our files and DB
 # When gathering URL result for frontend request build the URL with this:
-WORKING_ENV = "appdata"
+WORKING_ENV = "/opt/appdata"
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -415,11 +415,12 @@ def get_lulc_stats_under_parcel(parcel_stats: schemas.ParcelStats,
     return worker_task['server_attrs']
 
 
-@app.get("/scenario/result")
+@app.get("/scenario/result/{job_id}/{scenario_id}")
 def get_scenario_results(
         job_id: int, scenario_id: int, db: Session = Depends(get_db)):
     """Return the wallpapering or fill results if the job was successful."""
     # Check job status and return URL and Stats from table
+    LOGGER.info(f'{job_id}, {scenario_id}')
     job_db = crud.get_job(db, job_id=job_id)
     if job_db is None:
         raise HTTPException(status_code=404, detail="Job not found")
