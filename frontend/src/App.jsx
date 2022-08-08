@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import MapComponent from './map';
 import EditMenu from './edit';
 
-import { getAllScenarios, createSession } from './requests';
+import { getScenarios, createSession } from './requests';
 
 export default function App() {
   const [parcel, setParcel] = useState(null);
@@ -12,13 +12,11 @@ export default function App() {
   const [sessionID, setSessionID] = useState(null);
 
   const refreshSavedScenarios = async () => {
-    const scenarios = await getAllScenarios(sessionID);
-    setSavedScenarios(scenarios);
+    setSavedScenarios(await getScenarios(sessionID));
   };
 
   useEffect(async () => {
-    const sID = await createSession();
-    setSessionID(sID.session_id);
+    setSessionID(await createSession());
     refreshSavedScenarios();
   }, []);
 

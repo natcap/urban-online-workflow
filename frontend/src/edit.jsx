@@ -37,6 +37,7 @@ export default function EditMenu(props) {
     patternSampleWKT,
     sessionID,
   } = props;
+  console.log(savedScenarios);
 
   const [activeTab, setActiveTab] = useState('create');
   const [scenarioName, setScenarioName] = useState('');
@@ -45,7 +46,7 @@ export default function EditMenu(props) {
   const [patterns, setPatterns] = useState([]);
   const [parcelTable, setParcelTable] = useState(null);
   const [jobID, setJobID] = useState(null);
-  const [newPatternName, setNewPatternName] = useState("New Pattern 1");
+  const [newPatternName, setNewPatternName] = useState('New Pattern 1');
   const [singleLULC, setSingleLULC] = useState('');
   const [conversionOption, setConversionOption] = useState('paint');
 
@@ -165,14 +166,21 @@ export default function EditMenu(props) {
                         Add this modification to a scenario
                       </p>
                       <datalist id="scenariolist">
-                        {Object.values(savedScenarios)
-                          .map(item => <option key={item} value={item} />)}
+                        {Object.values(savedScenarios).map(
+                          (scenario) => (
+                            <option
+                              key={scenario.scenario_id}
+                              value={scenario.name} />
+                            ),
+                          )
+                        }
                       </datalist>
                       <input
                         type="search"
                         id="scenarioName"
                         list="scenariolist"
                         value={scenarioName}
+                        autoComplete="off"
                         onChange={(event) => setScenarioName(event.currentTarget.value)}
                       />
                       <button type="submit">Submit</button>
