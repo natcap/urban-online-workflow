@@ -384,8 +384,8 @@ def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
     return job_db
 
 #TODO: frontend will want preliminary stats under parcel wkt
-@app.post("/stats_under_parcel/", response_model=schemas.ParcelStatsResponse)
-def get_lulc_stats_under_parcel(parcel_stats: schemas.ParcelStats,
+@app.post("/stats_under_parcel/", response_model=schemas.JobResponse)
+def get_lulc_stats_under_parcel(parcel_wkt: schemas.ParcelStatsBase,
                                 db: Session = Depends(get_db)):
     # Create job entry for wallpapering task
     job_schema = schemas.JobBase(
@@ -395,7 +395,7 @@ def get_lulc_stats_under_parcel(parcel_stats: schemas.ParcelStats,
         db=db, session_id=session_id, job=job_schema)
 
     parcel_stats_db = crud.create_parcel_stats(
-        db=db, parcel_stats=parcel_stats)
+        db=db, parcel_wkt=parcel_wkt, job_id=job_db.job_id)
 
     # Construct worker job and add to the queue
     worker_task = {
@@ -433,6 +433,24 @@ def get_scenario_results(
             "lulc_stats": json.loads(scenario_db.lulc_stats),
             }
         return scenario_results
+    else:
+        return job_db.status
+
+
+@app.get("/stats_under_parcel/result/{job_id}")
+def get_parcel_stats_results(job_id: int, db: Session = Depends(get_db)):
+    """Return the stats under parcel if the job was successful."""
+    # Check job status and return URL and Stats from table
+    LOGGER.info(f'Job ID: {job_id}')
+    job_db = crud.get_job(db, job_id=job_id)
+    if job_db is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if job_db.status == STATUS_SUCCESS:
+        stats_db = crud.get_parcel_stats_by_job(db, job_id=job_id)
+        if stats_db is None:
+            raise HTTPException(status_code=404, detail="Stats result not found")
+        stats_results = stats_db.lulc_stats
+        return stats_results
     else:
         return job_db.status
 

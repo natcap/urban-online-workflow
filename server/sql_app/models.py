@@ -27,6 +27,7 @@ class Job(Base):
     owner_id = Column(String, ForeignKey("users.session_id"))
 
     owner = relationship("User", back_populates="jobs")
+    #jobs = relationship("ParcelStats", back_populates="jobs_id")
 
 
 class User(Base):
@@ -91,6 +92,6 @@ class ParcelStats(Base):
     lulc_stats = Column(String)
     #TODO: I'm not sure if parcel stats not associated with a scenario
     # should be related to another table...
-    #owner_id = Column(String, ForeignKey("scenarios.scenario_id"))
+    job_id = Column(String, ForeignKey("jobs.job_id"))
 
-    #owner = relationship("Scenario", back_populates="parcel_stats")
+    #owner = relationship("Job", back_populates="parcel_stats")

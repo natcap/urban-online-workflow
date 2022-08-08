@@ -112,9 +112,9 @@ def delete_scenario(db: Session, scenario_id: int):
     db.commit()
     return STATUS_SUCCESS
 
-def create_parcel_stats(db: Session, parcel_stats: schemas.ParcelStats):
+def create_parcel_stats(db: Session, parcel_wkt: schemas.ParcelStatsBase, job_id: int):
     """Create a stats entry in parcel stats table."""
-    db_parcel_stats = models.ParcelStats(**parcel_stats.dict())
+    db_parcel_stats = models.ParcelStats(**parcel_wkt.dict(), job_id=job_id)
     db.add(db_parcel_stats)
     db.commit()
     db.refresh(db_parcel_stats)
@@ -124,6 +124,11 @@ def get_parcel_stats(db: Session, stats_id: int):
     """Read a single stats entry by ID."""
     return db.query(models.ParcelStats).filter(
             models.ParcelStats.stats_id == stats_id).first()
+
+def get_parcel_stats_by_job(db: Session, job_id: int):
+    """Read a single stats entry by job ID."""
+    return db.query(models.ParcelStats).filter(
+            models.ParcelStats.job_id == job_id).first()
 
 def update_parcel_stats(
         db: Session, parcel_stats: schemas.ParcelStatsUpdate, stats_id: int):

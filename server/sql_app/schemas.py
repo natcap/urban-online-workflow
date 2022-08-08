@@ -155,7 +155,7 @@ class ParcelStatsUpdate(BaseModel):
 class ParcelStatsResponse(BaseModel):
     """Pydantic model for the response after parcel stats creation request."""
     job_id: int
-    stats_id: int
+    #stats_id: int
 
     class Config:
         orm_mode = True
