@@ -143,7 +143,7 @@ class ParcelStats(ParcelStatsBase):
 
 class ParcelStatsRequest(BaseModel):
     """Pydantic model used in establishing the request to create stats."""
-    scenario_id: int
+    session_id: str
     target_parcel_wkt: str
 
 

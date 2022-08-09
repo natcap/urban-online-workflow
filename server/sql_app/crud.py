@@ -114,7 +114,7 @@ def delete_scenario(db: Session, scenario_id: int):
 
 def create_parcel_stats(db: Session, parcel_wkt: schemas.ParcelStatsBase, job_id: int):
     """Create a stats entry in parcel stats table."""
-    db_parcel_stats = models.ParcelStats(**parcel_wkt.dict(), job_id=job_id)
+    db_parcel_stats = models.ParcelStats(target_parcel_wkt=parcel_wkt, job_id=job_id)
     db.add(db_parcel_stats)
     db.commit()
     db.refresh(db_parcel_stats)

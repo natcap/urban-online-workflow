@@ -15,6 +15,7 @@ from .database import SessionLocal, engine
 # This will help with flexibility of where we store our files and DB
 # When gathering URL result for frontend request build the URL with this:
 WORKING_ENV = "/opt/appdata"
+BASE_LULC = "NLCD_2016.tif"
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -146,6 +147,7 @@ def delete_scenario(scenario_id: int, db: Session = Depends(get_db)):
     return crud.delete_scenario(db=db, scenario_id=scenario_id)
 
 
+#TODO: No need right now for individual scenarios per session
 @app.get("/scenario/{scenario_id}", response_model=schemas.Scenario)
 def read_scenario(scenario_id: int, db: Session = Depends(get_db)):
     db_scenario = crud.get_scenario(db, scenario_id=scenario_id)
@@ -385,17 +387,19 @@ def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
 
 #TODO: frontend will want preliminary stats under parcel wkt
 @app.post("/stats_under_parcel/", response_model=schemas.JobResponse)
-def get_lulc_stats_under_parcel(parcel_wkt: schemas.ParcelStatsBase,
+def get_lulc_stats_under_parcel(parcel_stats_req: schemas.ParcelStatsRequest,
                                 db: Session = Depends(get_db)):
     # Create job entry for wallpapering task
     job_schema = schemas.JobBase(
-        **{"name": "stats_under_parcel", "description": "get lulc base stats under parcel",
+        **{"name": "stats_under_parcel",
+           "description": "get lulc base stats under parcel",
            "status": STATUS_PENDING})
     job_db = crud.create_job(
-        db=db, session_id=session_id, job=job_schema)
+        db=db, session_id=parcel_stats_req.session_id, job=job_schema)
 
     parcel_stats_db = crud.create_parcel_stats(
-        db=db, parcel_wkt=parcel_wkt, job_id=job_db.job_id)
+        db=db, parcel_wkt=parcel_stats_req.target_parcel_wkt,
+        job_id=job_db.job_id)
 
     # Construct worker job and add to the queue
     worker_task = {
@@ -404,14 +408,14 @@ def get_lulc_stats_under_parcel(parcel_wkt: schemas.ParcelStatsBase,
             "job_id": job_db.job_id, "stats_id": parcel_stats_db.stats_id
         },
         "job_args": {
-            "target_parcel_wkt": parcel_fill.target_parcel_wkt,
-            "lulc_source_url": f'{WORKING_ENV}/{scenario_db.lulc_url_base}',
+            "target_parcel_wkt": parcel_stats_req.target_parcel_wkt,
+            "lulc_source_url": f'{WORKING_ENV}/{BASE_LULC}',
             }
         }
 
-    QUEUE.put_nowait((MEDIUM_PRIORITY, worker_task))
+    QUEUE.put_nowait((HIGH_PRIORITY, worker_task))
 
-    # Return job_id and stats_id for response
+    # Return job_id
     return worker_task['server_attrs']
 
 
