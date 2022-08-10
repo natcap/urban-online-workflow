@@ -101,15 +101,9 @@ export default function EditMenu(props) {
     togglePatternSamplingMode();
   };
 
-  const addParcel = (parcel) => {
-    const addition = {
-      [parcel.parcelID]: {
-        coords: parcel.coords,
-        table: parcel.table,
-      },
-    };
+  const addParcel = async (parcel) => {
     setParcelSet((prev) => {
-      const newSet = { ...prev, ...addition };
+      const newSet = { ...prev, ...parcel };
       return newSet;
     });
   };
@@ -140,6 +134,7 @@ export default function EditMenu(props) {
               <ParcelTable
                 parcel={selectedParcel}
                 addParcel={addParcel}
+                sessionID={sessionID}
               />
               <br />
               {

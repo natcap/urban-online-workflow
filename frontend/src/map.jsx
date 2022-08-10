@@ -182,11 +182,11 @@ export default function MapComponent(props) {
         }
         selectedFeature = feature;
         selectionLayer.changed();
-        const table = await getLulcTableForParcel(coords);
+        // const jid = await getLulcTableForParcel(sessionID, coords);
         setSelectedParcel({
           parcelID: feature.properties_.OBJECTID,
+          address: feature.properties_.address,
           coords: coords,
-          table: table,
         });
       });
     });
