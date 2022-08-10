@@ -193,25 +193,25 @@ export async function getLulcTableForParcel(parcelCoords) {
   // TODO: re-instate this real fetch once the endpoint is ready,
   // https://github.com/natcap/urban-online-workflow/issues/42
 
-  return (
-    window.fetch(`${apiBaseURL}/stats_under_parcel`, {
-      method: 'post',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        target_parcel_wkt: polygonCoordsToWKT(parcelCoords),
-        // stats_id: ?
-      }),
-    })
-      .then((response) => response.json())
-      .then((json) => console.log(json))
-      .catch((error) => console.log(error))
-  );
-  // const lulcTable = {
-  //   'Developed, Open Space': 24,
-  //   'Developed, Low Intensity': 8,
-  //   'Shrub/Scrub': 4,
-  // };
-  // return Promise.resolve(lulcTable);
+  // return (
+  //   window.fetch(`${apiBaseURL}/stats_under_parcel`, {
+  //     method: 'post',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify({
+  //       target_parcel_wkt: polygonCoordsToWKT(parcelCoords),
+  //       // stats_id: ?
+  //     }),
+  //   })
+  //     .then((response) => response.json())
+  //     .then((json) => console.log(json))
+  //     .catch((error) => console.log(error))
+  // );
+  const lulcTable = {
+    'Developed, Open Space': 24,
+    'Developed, Low Intensity': 8,
+    'Shrub/Scrub': 4,
+  };
+  return Promise.resolve(lulcTable);
 }
 
 /**

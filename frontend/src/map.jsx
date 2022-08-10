@@ -29,6 +29,7 @@ import {
   patternSamplerBoxStyle,
   styleParcel,
 } from './map/styles';
+import { getLulcTableForParcel } from './requests';
 
 function getCoords(geometry) {
   const flatCoords = geometry.getFlatCoordinates();
@@ -120,7 +121,11 @@ const map = new Map({
 });
 
 export default function MapComponent(props) {
-  const { setParcel, patternSamplingMode, setPatternSampleWKT } = props;
+  const {
+    setSelectedParcel,
+    patternSamplingMode,
+    setPatternSampleWKT,
+  } = props;
   const [layers, setLayers] = useState([]);
   const [showLayerControl, setShowLayerControl] = useState(false);
   const [basemap, setBasemap] = useState('Satellite');
@@ -166,9 +171,9 @@ export default function MapComponent(props) {
     );
 
     map.on(['click'], async (event) => {
-      parcelLayer.getFeatures(event.pixel).then((features) => {
-        const feature = features.length ? features[0] : undefined;
+      parcelLayer.getFeatures(event.pixel).then(async (features) => {
         let coords;
+        const feature = features.length ? features[0] : undefined;
         if (feature) {
           // NOTE that a feature's geometry can change with the tile/zoom level and view position
           // and so its coordinates will change slightly.
@@ -177,7 +182,12 @@ export default function MapComponent(props) {
         }
         selectedFeature = feature;
         selectionLayer.changed();
-        setParcel({ coords: coords });
+        const table = await getLulcTableForParcel(coords);
+        setSelectedParcel({
+          parcelID: feature.properties_.OBJECTID,
+          coords: coords,
+          table: table,
+        });
       });
     });
 

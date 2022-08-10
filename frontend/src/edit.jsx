@@ -12,7 +12,6 @@ import {
 import {
   doWallpaper,
   makeScenario,
-  getLulcTableForParcel,
   getJobResults,
   getJobStatus,
   getPatterns,
@@ -29,7 +28,9 @@ FocusStyleManager.onlyShowFocusOnTabs();
 
 export default function EditMenu(props) {
   const {
-    parcel,
+    selectedParcel,
+    parcelSet,
+    addParcel,
     savedScenarios,
     refreshSavedScenarios,
     patternSamplingMode,
@@ -37,14 +38,13 @@ export default function EditMenu(props) {
     patternSampleWKT,
     sessionID,
   } = props;
-  console.log(savedScenarios);
+  console.log(parcelSet);
 
   const [activeTab, setActiveTab] = useState('create');
   const [scenarioName, setScenarioName] = useState('');
   const [scenarioID, setScenarioID] = useState(null);
   const [selectedPattern, setSelectedPattern] = useState(null);
   const [patterns, setPatterns] = useState([]);
-  const [parcelTable, setParcelTable] = useState(null);
   const [jobID, setJobID] = useState(null);
   const [newPatternName, setNewPatternName] = useState('New Pattern 1');
   const [singleLULC, setSingleLULC] = useState('');
@@ -54,13 +54,6 @@ export default function EditMenu(props) {
   useEffect(async () => {
     setPatterns(await getPatterns() || []);
   }, []);
-
-  useEffect(async () => {
-    if (parcel) {
-      const table = await getLulcTableForParcel(parcel.coords);
-      setParcelTable(table);
-    }
-  }, [parcel]);
 
   useInterval(async () => {
     console.log('checking status for job', jobID);
@@ -79,7 +72,7 @@ export default function EditMenu(props) {
       alert('no scenario was selected');
       return;
     }
-    if (!parcel) {
+    if (!parcelSet) {
       alert('no parcel was selected; no changes to make');
       return;
     }
@@ -90,10 +83,10 @@ export default function EditMenu(props) {
     }
     let jid;
     if (conversionOption === 'wallpaper' && selectedPattern) {
-      jid = await doWallpaper(parcel.coords, selectedPattern.label, currentScenarioID);
+      jid = await doWallpaper(undefined, selectedPattern.label, currentScenarioID);
     }
     if (conversionOption === 'paint' && singleLULC) {
-      jid = await convertToSingleLULC(parcel.coords, singleLULC, currentScenarioID);
+      jid = await convertToSingleLULC(undefined, singleLULC, currentScenarioID);
     }
     setJobID(jid);
     refreshSavedScenarios();
@@ -121,10 +114,13 @@ export default function EditMenu(props) {
           title="Create"
           panel={(
             <div>
-              <ParcelTable parcelTable={parcelTable} />
+              <ParcelTable
+                parcel={selectedParcel}
+                addParcel={addParcel}
+              />
               <br />
               {
-                (parcel)
+                (Object.keys(parcelSet).length)
                   ? (
                     <form onSubmit={handleSubmitNew}>
                       <RadioGroup
