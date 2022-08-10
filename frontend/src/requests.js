@@ -24,7 +24,7 @@ function polygonCoordsToWKT(coords) {
  */
 export async function createSession() {
   return (
-    window.fetch(`${apiBaseURL}/users`, {
+    window.fetch(`${apiBaseURL}/sessions`, {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
     })
@@ -183,35 +183,35 @@ export async function convertToSingleLULC(targetCoords, lulcCode, scenarioID) {
  *  representing [lon, lat] coordinate pairs outlining the parcel to query
  * @return {[object]} ? - fill in when this endpoint is working
  */
-export async function getLulcTableForParcel(parcelCoords) {
+export async function getLulcTableForParcel(sessionID, parcelCoords) {
   // In general, this table will be built as part of a
   // wallpapering action, but there is the case where we
   // want to see this table for a parcel we select, before
   // doing any wallpapering. The values will come from the
   // baseline LULC.
 
-  // TODO: re-instate this real fetch once the endpoint is ready,
-  // https://github.com/natcap/urban-online-workflow/issues/42
-
-  // return (
-  //   window.fetch(`${apiBaseURL}/stats_under_parcel`, {
-  //     method: 'post',
-  //     headers: { 'Content-Type': 'application/json' },
-  //     body: JSON.stringify({
-  //       target_parcel_wkt: polygonCoordsToWKT(parcelCoords),
-  //       // stats_id: ?
-  //     }),
-  //   })
-  //     .then((response) => response.json())
-  //     .then((json) => console.log(json))
-  //     .catch((error) => console.log(error))
-  // );
   const lulcTable = {
     'Developed, Open Space': 24,
     'Developed, Low Intensity': 8,
     'Shrub/Scrub': 4,
   };
   return Promise.resolve(lulcTable);
+
+  // TODO: re-instate this real fetch once the endpoint is ready,
+  // https://github.com/natcap/urban-online-workflow/issues/42
+  // return (
+  //   window.fetch(`${apiBaseURL}/stats_under_parcel`, {
+  //     method: 'post',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify({
+  //       session_id: sessionID,
+  //       target_parcel_wkt: polygonCoordsToWKT(parcelCoords),
+  //     }),
+  //   })
+  //     .then((response) => response.json())
+  //     .then((json) => console.log(json))
+  //     .catch((error) => console.log(error))
+  // );
 }
 
 /**

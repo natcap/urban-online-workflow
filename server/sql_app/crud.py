@@ -28,17 +28,17 @@ STATUS_FAIL = "fail"
 # you can more easily reuse them in multiple parts and also add unit tests for
 # them.
 
-def get_user(db: Session, session_id: str):
-    """Read a single user by ``session_id``."""
-    return db.query(models.User).filter(
-            models.User.session_id == session_id).first()
+def get_session(db: Session, session_id: str):
+    """Read a single session by ``session_id``."""
+    return db.query(models.Session).filter(
+            models.Session.session_id == session_id).first()
 
-def get_users(db: Session, skip: int = 0, limit: int = 100):
-    """Read multiple users."""
-    return db.query(models.User).offset(skip).limit(limit).all()
+def get_sessions(db: Session, skip: int = 0, limit: int = 100):
+    """Read multiple sessions."""
+    return db.query(models.Session).offset(skip).limit(limit).all()
 
-def create_user(db: Session):
-    """Create user session using UUID as unique ID."""
+def create_session(db: Session):
+    """Create session using UUID as unique ID."""
     # It is unlikely that a UUID would be duplicated but we can do three
     # attempts in case it does happen. After the three attempts if a unique
     # UUID still has not been found then we'll return a HTTPException
@@ -47,7 +47,7 @@ def create_user(db: Session):
         session_uuid = uuid.uuid4()
         session_id = str(session_uuid)
 
-        session = get_user(db, session_id)
+        session = get_session(db, session_id)
 
         # If no session is found then we're duplicate safe
         if not session:
@@ -59,15 +59,15 @@ def create_user(db: Session):
                             detail="Unique session could not be created.")
 
     # create SQLA model instance with your data
-    db_user = models.User(session_id=session_id)
+    db_session = models.Session(session_id=session_id)
     # add instance object to your db session
-    db.add(db_user)
+    db.add(db_session)
     # commit the changes to the db (so that they are saved)
     db.commit()
     # refresh your instance (so that it contains any new data from the db,
     # like the generated ID)
-    db.refresh(db_user)
-    return db_user
+    db.refresh(db_session)
+    return db_session
 
 def create_scenario(db: Session, scenario: schemas.Scenario, session_id: str):
     """Create scenario linking with ``session_id``."""
@@ -112,9 +112,9 @@ def delete_scenario(db: Session, scenario_id: int):
     db.commit()
     return STATUS_SUCCESS
 
-def create_parcel_stats(db: Session, parcel_stats: schemas.ParcelStats):
+def create_parcel_stats(db: Session, parcel_wkt: schemas.ParcelStatsBase, job_id: int):
     """Create a stats entry in parcel stats table."""
-    db_parcel_stats = models.ParcelStats(**parcel_stats.dict())
+    db_parcel_stats = models.ParcelStats(target_parcel_wkt=parcel_wkt, job_id=job_id)
     db.add(db_parcel_stats)
     db.commit()
     db.refresh(db_parcel_stats)
@@ -124,6 +124,11 @@ def get_parcel_stats(db: Session, stats_id: int):
     """Read a single stats entry by ID."""
     return db.query(models.ParcelStats).filter(
             models.ParcelStats.stats_id == stats_id).first()
+
+def get_parcel_stats_by_job(db: Session, job_id: int):
+    """Read a single stats entry by job ID."""
+    return db.query(models.ParcelStats).filter(
+            models.ParcelStats.job_id == job_id).first()
 
 def update_parcel_stats(
         db: Session, parcel_stats: schemas.ParcelStatsUpdate, stats_id: int):

@@ -44,7 +44,7 @@ class ScenarioResponse(BaseModel):
         orm_mode = True
 
 
-class User(BaseModel):
+class Session(BaseModel):
     """Pydantic model used when reading data, when returning it from API."""
     id: int
     session_id: str
@@ -63,8 +63,8 @@ class User(BaseModel):
         orm_mode = True
 
 
-class UserResponse(BaseModel):
-    """Pydantic model for the response after user creation."""
+class SessionResponse(BaseModel):
+    """Pydantic model for the response after session creation."""
     session_id: str
 
     class Config:
@@ -143,7 +143,7 @@ class ParcelStats(ParcelStatsBase):
 
 class ParcelStatsRequest(BaseModel):
     """Pydantic model used in establishing the request to create stats."""
-    scenario_id: int
+    session_id: str
     target_parcel_wkt: str
 
 
@@ -155,7 +155,7 @@ class ParcelStatsUpdate(BaseModel):
 class ParcelStatsResponse(BaseModel):
     """Pydantic model for the response after parcel stats creation request."""
     job_id: int
-    stats_id: int
+    #stats_id: int
 
     class Config:
         orm_mode = True

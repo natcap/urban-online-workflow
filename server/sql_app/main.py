@@ -15,6 +15,7 @@ from .database import SessionLocal, engine
 # This will help with flexibility of where we store our files and DB
 # When gathering URL result for frontend request build the URL with this:
 WORKING_ENV = "/opt/appdata"
+BASE_LULC = "NLCD_2016.tif"
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -88,15 +89,15 @@ def get_db():
 # operation function and use that session.
 
 
-### User / Session Endpoints ###
+### Session Endpoints ###
 
-@app.post("/users/", response_model=schemas.UserResponse)
-def create_user(db: Session = Depends(get_db)):
+@app.post("/sessions/", response_model=schemas.SessionResponse)
+def create_session(db: Session = Depends(get_db)):
     # Notice that the values returned are SQLA models. But as all path operations
     # have a 'response_model' with Pydantic models / schemas using orm_mode,
     # the data declared in your Pydantic models will be extracted from them
     # and returned to the client, w/ all the normal filtering and validation.
-    return crud.create_user(db=db)
+    return crud.create_session(db=db)
 
 
 # Type annotations in the function arguments will give you editor support
@@ -106,20 +107,18 @@ def create_user(db: Session = Depends(get_db)):
 # All the data validation is performed under the hood by Pydantic, so you get
 # all the benefits from it.
 
-### User / Session Endpoints ###
-
-@app.get("/users/", response_model=list[schemas.User])
-def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    users = crud.get_users(db, skip=skip, limit=limit)
-    return users
+@app.get("/sessions/", response_model=list[schemas.Session])
+def read_sessions(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    sessions = crud.get_sessions(db, skip=skip, limit=limit)
+    return sessions
 
 
-@app.get("/users/{session_id}", response_model=schemas.User)
-def read_user(session_id: str, db: Session = Depends(get_db)):
-    db_user = crud.get_user(db, session_id=session_id)
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return db_user
+@app.get("/session/{session_id}", response_model=schemas.Session)
+def read_session(session_id: str, db: Session = Depends(get_db)):
+    db_session = crud.get_session(db, session_id=session_id)
+    if db_session is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return db_session
 
 ### Scenario Endpoints ###
 
@@ -146,6 +145,7 @@ def delete_scenario(scenario_id: int, db: Session = Depends(get_db)):
     return crud.delete_scenario(db=db, scenario_id=scenario_id)
 
 
+#TODO: No need right now for individual scenarios per session
 @app.get("/scenario/{scenario_id}", response_model=schemas.Scenario)
 def read_scenario(scenario_id: int, db: Session = Depends(get_db)):
     db_scenario = crud.get_scenario(db, scenario_id=scenario_id)
@@ -384,18 +384,20 @@ def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
     return job_db
 
 #TODO: frontend will want preliminary stats under parcel wkt
-@app.post("/stats_under_parcel/", response_model=schemas.ParcelStatsResponse)
-def get_lulc_stats_under_parcel(parcel_stats: schemas.ParcelStats,
+@app.post("/stats_under_parcel/", response_model=schemas.JobResponse)
+def get_lulc_stats_under_parcel(parcel_stats_req: schemas.ParcelStatsRequest,
                                 db: Session = Depends(get_db)):
     # Create job entry for wallpapering task
     job_schema = schemas.JobBase(
-        **{"name": "stats_under_parcel", "description": "get lulc base stats under parcel",
+        **{"name": "stats_under_parcel",
+           "description": "get lulc base stats under parcel",
            "status": STATUS_PENDING})
     job_db = crud.create_job(
-        db=db, session_id=session_id, job=job_schema)
+        db=db, session_id=parcel_stats_req.session_id, job=job_schema)
 
     parcel_stats_db = crud.create_parcel_stats(
-        db=db, parcel_stats=parcel_stats)
+        db=db, parcel_wkt=parcel_stats_req.target_parcel_wkt,
+        job_id=job_db.job_id)
 
     # Construct worker job and add to the queue
     worker_task = {
@@ -404,14 +406,14 @@ def get_lulc_stats_under_parcel(parcel_stats: schemas.ParcelStats,
             "job_id": job_db.job_id, "stats_id": parcel_stats_db.stats_id
         },
         "job_args": {
-            "target_parcel_wkt": parcel_fill.target_parcel_wkt,
-            "lulc_source_url": f'{WORKING_ENV}/{scenario_db.lulc_url_base}',
+            "target_parcel_wkt": parcel_stats_req.target_parcel_wkt,
+            "lulc_source_url": f'{WORKING_ENV}/{BASE_LULC}',
             }
         }
 
-    QUEUE.put_nowait((MEDIUM_PRIORITY, worker_task))
+    QUEUE.put_nowait((HIGH_PRIORITY, worker_task))
 
-    # Return job_id and stats_id for response
+    # Return job_id
     return worker_task['server_attrs']
 
 
@@ -433,6 +435,24 @@ def get_scenario_results(
             "lulc_stats": json.loads(scenario_db.lulc_stats),
             }
         return scenario_results
+    else:
+        return job_db.status
+
+
+@app.get("/stats_under_parcel/result/{job_id}")
+def get_parcel_stats_results(job_id: int, db: Session = Depends(get_db)):
+    """Return the stats under parcel if the job was successful."""
+    # Check job status and return URL and Stats from table
+    LOGGER.info(f'Job ID: {job_id}')
+    job_db = crud.get_job(db, job_id=job_id)
+    if job_db is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if job_db.status == STATUS_SUCCESS:
+        stats_db = crud.get_parcel_stats_by_job(db, job_id=job_id)
+        if stats_db is None:
+            raise HTTPException(status_code=404, detail="Stats result not found")
+        stats_results = stats_db.lulc_stats
+        return stats_results
     else:
         return job_db.status
 
