@@ -20,6 +20,7 @@ import {
 } from './requests';
 import useInterval from './hooks/useInterval';
 import ScenarioTable from './scenarioTable';
+import portfolioTable from './portfolioTable';
 import ParcelTable from './parcelTable';
 import landuseCodes from './landuseCodes';
 import WallpaperingMenu from './wallpaperingMenu';
@@ -29,8 +30,6 @@ FocusStyleManager.onlyShowFocusOnTabs();
 export default function EditMenu(props) {
   const {
     selectedParcel,
-    parcelSet,
-    addParcel,
     savedScenarios,
     refreshSavedScenarios,
     patternSamplingMode,
@@ -49,6 +48,7 @@ export default function EditMenu(props) {
   const [newPatternName, setNewPatternName] = useState('New Pattern 1');
   const [singleLULC, setSingleLULC] = useState('');
   const [conversionOption, setConversionOption] = useState('paint');
+  const [parcelSet, setParcelSet] = useState({});
 
   // On first render, get the list of available patterns
   useEffect(async () => {
@@ -102,6 +102,27 @@ export default function EditMenu(props) {
     togglePatternSamplingMode();
   };
 
+  const addParcel = (parcel) => {
+    const addition = {
+      [parcel.parcelID]: {
+        coords: parcel.coords,
+        table: parcel.table,
+      },
+    };
+    setParcelSet((prev) => {
+      const newSet = { ...prev, ...addition };
+      return newSet;
+    });
+  };
+
+  const removeParcel = (parcel) => {
+    setParcelSet((prev) => {
+      const newSet = { ...prev };
+      newSet.delete(parcel.parcelID);
+      return newSet;
+    });
+  };
+
   return (
     <div className="menu-container">
       <Tabs
@@ -114,6 +135,9 @@ export default function EditMenu(props) {
           title="Create"
           panel={(
             <div>
+              <ScenarioTable
+                parcelSet={parcelSet}
+              />
               <ParcelTable
                 parcel={selectedParcel}
                 addParcel={addParcel}
@@ -190,7 +214,7 @@ export default function EditMenu(props) {
         <Tab
           id="explore"
           title="Analyze"
-          panel={<ScenarioTable savedScenarios={savedScenarios} />}
+          panel={<portfolioTable savedScenarios={savedScenarios} />}
         />
       </Tabs>
     </div>
