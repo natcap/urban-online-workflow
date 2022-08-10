@@ -20,7 +20,7 @@ import {
 } from './requests';
 import useInterval from './hooks/useInterval';
 import ScenarioTable from './scenarioTable';
-import portfolioTable from './portfolioTable';
+import PortfolioTable from './portfolioTable';
 import ParcelTable from './parcelTable';
 import landuseCodes from './landuseCodes';
 import WallpaperingMenu from './wallpaperingMenu';
@@ -37,7 +37,6 @@ export default function EditMenu(props) {
     patternSampleWKT,
     sessionID,
   } = props;
-  console.log(parcelSet);
 
   const [activeTab, setActiveTab] = useState('create');
   const [scenarioName, setScenarioName] = useState('');
@@ -214,7 +213,7 @@ export default function EditMenu(props) {
         <Tab
           id="explore"
           title="Analyze"
-          panel={<portfolioTable savedScenarios={savedScenarios} />}
+          panel={<PortfolioTable savedScenarios={savedScenarios} />}
         />
       </Tabs>
     </div>
