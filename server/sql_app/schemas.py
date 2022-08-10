@@ -44,7 +44,7 @@ class ScenarioResponse(BaseModel):
         orm_mode = True
 
 
-class User(BaseModel):
+class Session(BaseModel):
     """Pydantic model used when reading data, when returning it from API."""
     id: int
     session_id: str
@@ -63,8 +63,8 @@ class User(BaseModel):
         orm_mode = True
 
 
-class UserResponse(BaseModel):
-    """Pydantic model for the response after user creation."""
+class SessionResponse(BaseModel):
+    """Pydantic model for the response after session creation."""
     session_id: str
 
     class Config:

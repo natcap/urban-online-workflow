@@ -89,15 +89,15 @@ def get_db():
 # operation function and use that session.
 
 
-### User / Session Endpoints ###
+### Session Endpoints ###
 
-@app.post("/users/", response_model=schemas.UserResponse)
-def create_user(db: Session = Depends(get_db)):
+@app.post("/sessions/", response_model=schemas.SessionResponse)
+def create_session(db: Session = Depends(get_db)):
     # Notice that the values returned are SQLA models. But as all path operations
     # have a 'response_model' with Pydantic models / schemas using orm_mode,
     # the data declared in your Pydantic models will be extracted from them
     # and returned to the client, w/ all the normal filtering and validation.
-    return crud.create_user(db=db)
+    return crud.create_session(db=db)
 
 
 # Type annotations in the function arguments will give you editor support
@@ -107,20 +107,18 @@ def create_user(db: Session = Depends(get_db)):
 # All the data validation is performed under the hood by Pydantic, so you get
 # all the benefits from it.
 
-### User / Session Endpoints ###
-
-@app.get("/users/", response_model=list[schemas.User])
-def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    users = crud.get_users(db, skip=skip, limit=limit)
-    return users
+@app.get("/sessions/", response_model=list[schemas.Session])
+def read_sessions(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    sessions = crud.get_sessions(db, skip=skip, limit=limit)
+    return sessions
 
 
-@app.get("/users/{session_id}", response_model=schemas.User)
-def read_user(session_id: str, db: Session = Depends(get_db)):
-    db_user = crud.get_user(db, session_id=session_id)
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return db_user
+@app.get("/session/{session_id}", response_model=schemas.Session)
+def read_session(session_id: str, db: Session = Depends(get_db)):
+    db_session = crud.get_session(db, session_id=session_id)
+    if db_session is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return db_session
 
 ### Scenario Endpoints ###
 
