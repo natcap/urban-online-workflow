@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import {
   Drawer,
@@ -7,23 +7,42 @@ import {
   Switch,
   FormGroup,
   InputGroup,
-  Icon,
   NonIdealState,
   NonIdealStateIconSize,
 } from '@blueprintjs/core';
 
+import {
+  getPatterns,
+  createPattern,
+} from './requests';
+
 export default function WallpaperingMenu(props) {
   const {
+    sessionID,
+    patternSampleWKT,
     patternSamplingMode,
     togglePatternSamplingMode,
-    newPatternName,
-    setNewPatternName,
     selectedPattern,
     setSelectedPattern,
-    handleSamplePattern,
-    patterns,
   } = props;
+
   const [drawerIsOpen, setDrawerIsOpen] = useState(false);
+  const [patterns, setPatterns] = useState([]);
+  const [newPatternName, setNewPatternName] = useState('New Pattern 1');
+
+  useEffect(async () => {
+    setPatterns(await getPatterns() || []);
+  }, []);
+
+  const handleSamplePattern = async (event) => {
+    event.preventDefault();
+    await createPattern(patternSampleWKT, newPatternName, sessionID);
+    setPatterns(await getPatterns());
+    setSelectedPattern(
+      patterns.filter((pattern) => pattern.label === newPatternName)
+    );
+    togglePatternSamplingMode();
+  };
 
   console.log(selectedPattern)
   return (
@@ -107,7 +126,7 @@ function PatternCatalogDrawer(props) {
   patterns.forEach((pattern) => {
     const { pattern_id, label, url } = pattern;
     patternList.push(
-      <li>
+      <li key={pattern_id}>
         <Button
           onClick={() => {
             setSelectedPattern(pattern);

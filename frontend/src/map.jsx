@@ -29,7 +29,6 @@ import {
   patternSamplerBoxStyle,
   styleParcel,
 } from './map/styles';
-import { getLulcTableForParcel } from './requests';
 
 function getCoords(geometry) {
   const flatCoords = geometry.getFlatCoordinates();
