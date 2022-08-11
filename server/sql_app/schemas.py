@@ -135,6 +135,7 @@ class ParcelStatsBase(BaseModel):
 class ParcelStats(ParcelStatsBase):
     """Pydantic model used when reading data, when returning it from API."""
     stats_id: int
+    job_id: int
     #owner_id: str
 
     class Config:

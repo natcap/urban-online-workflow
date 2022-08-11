@@ -92,6 +92,6 @@ class ParcelStats(Base):
     lulc_stats = Column(String)
     #TODO: I'm not sure if parcel stats not associated with a scenario
     # should be related to another table...
-    job_id = Column(String, ForeignKey("jobs.job_id"))
+    job_id = Column(Integer, ForeignKey("jobs.job_id"))
 
     #owner = relationship("Job", back_populates="parcel_stats")
