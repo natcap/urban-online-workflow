@@ -167,7 +167,6 @@ async def worker_job_request(db: Session = Depends(get_db)):
     try:
         # Get job from queue, ignoring returned priority value
         _, job_details = QUEUE.get_nowait()
-        LOGGER.info(f"Sending job [{job_details['job_type']}] to worker.")
         return json.dumps(job_details)
     except queue.Empty:
         return None
