@@ -26,6 +26,7 @@ export default function EditMenu(props) {
   } = props;
 
   const [activeTab, setActiveTab] = useState('create');
+  const [studyArea, setStudyArea] = useState('');
 
   return (
     <div className="menu-container">

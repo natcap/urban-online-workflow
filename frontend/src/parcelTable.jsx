@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import {
   HTMLTable,
   Button,
-  Icon,
 } from '@blueprintjs/core';
 
 import useInterval from './hooks/useInterval';
@@ -24,20 +23,22 @@ export default function ParcelTable(props) {
 
   useInterval(async () => {
     const results = await getLulcTableForParcel(jobID);
-    const addition = {
-      [parcel.parcelID]: {
-        coords: parcel.coords,
-        table: results,
-      },
-    };
-    setJobID(null);
-    addParcel(addition);
-  }, (jobID) ? 1000 : null);
+    if (!['pending', 'running'].includes(results)) {
+      const addition = {
+        [parcel.parcelID]: {
+          coords: parcel.coords,
+          table: results,
+        },
+      };
+      setJobID(null);
+      addParcel(addition);
+    }
+  }, (jobID) ? 200 : null); // This server operation should be quick
 
   const handleClick = async (parcel) => {
     const jid = await postLulcTableForParcel(sessionID, parcel.coords);
-    setJobID(jid);
-  }
+    setJobID(jid.job_id);
+  };
 
   // const nPixels = Object.values(parcel.table)
   //   .reduce((partialSum, x) => partialSum + x, 0);

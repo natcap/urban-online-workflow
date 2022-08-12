@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import {
   Button,
   InputGroup,
-  HTMLTable,
   HTMLSelect,
   Radio,
   RadioGroup,
@@ -11,6 +10,7 @@ import {
 
 import useInterval from './hooks/useInterval';
 import landuseCodes from './landuseCodes';
+import StudyAreaForm from './studyAreaForm';
 import WallpaperingMenu from './wallpaperingMenu';
 import {
   doWallpaper,
@@ -21,27 +21,8 @@ import {
 } from './requests';
 
 export default function ScenarioTable(props) {
-  const parcelSet = {
-    1234: {
-      coords: 'POLYGON',
-      table: {
-        21: 87,
-        43: 12,
-        52: 4,
-      },
-    },
-    5678: {
-      coords: 'POLYGON',
-      table: {
-        21: 87,
-        43: 12,
-        52: 4,
-      },
-    },
-  };
-  // const parcelSet = {};
   const {
-    // parcelSet,
+    parcelSet,
     sessionID,
     removeParcel,
     patternSamplingMode,
@@ -55,7 +36,6 @@ export default function ScenarioTable(props) {
   const [scenarioID, setScenarioID] = useState(null);
   const [selectedPattern, setSelectedPattern] = useState(null);
   const [jobID, setJobID] = useState(null);
-  const [studyAreaName, setStudyAreaName] = useState('');
   const [studyArea, setStudyArea] = useState('');
 
   useInterval(async () => {
@@ -63,7 +43,6 @@ export default function ScenarioTable(props) {
     const status = await getJobStatus(jobID);
     if (status === 'success') {
       const results = await getJobResults(jobID, scenarioID);
-      console.log(results);
       // setParcelTable(results);
       setJobID(null);
     }
@@ -85,57 +64,42 @@ export default function ScenarioTable(props) {
     setScenarioID(currentScenarioID);
     let jid;
     if (conversionOption === 'wallpaper' && selectedPattern) {
-      jid = await doWallpaper(undefined, selectedPattern.label, currentScenarioID);
+      jid = await doWallpaper(
+        undefined,
+        selectedPattern.label,
+        currentScenarioID
+      );
     }
     if (conversionOption === 'paint' && singleLULC) {
-      jid = await convertToSingleLULC(undefined, singleLULC, currentScenarioID);
+      jid = await convertToSingleLULC(
+        undefined,
+        singleLULC,
+        currentScenarioID
+      );
     }
     setJobID(jid);
     refreshSavedScenarios();
-  }
-
-  const submitStudyArea = (event) => {
-    console.log(event.target.value);
-    setStudyArea(studyAreaName);
   };
 
-  const rows = [];
-  Object.entries(parcelSet).forEach(([id, data]) => {
-    rows.push(
-      <tr key={id}>
-        <td>{id}</td>
-        <td>{JSON.stringify(data.table)}</td>
-      </tr>
-    );
-  })
+  const submitStudyArea = (name) => {
+    setStudyArea(name);
+  };
+
+  if (!Object.keys(parcelSet).length) {
+    return <div />;
+  }
 
   return (
     <>
-      <p className="sidebar-subheading">
-        {`Parcels in study area ${studyArea}:`}
-      </p>
-      <HTMLTable bordered striped className="scenario-table">
-        <tbody>
-          {rows}
-        </tbody>
-      </HTMLTable>
+      <StudyAreaForm
+        submitStudyArea={submitStudyArea}
+        parcelSet={parcelSet}
+        removeParcel={removeParcel}
+        studyArea={studyArea}
+      />
       {
-        (!studyArea)
+        (studyArea)
           ? (
-            <InputGroup
-              placeholder="name this study area"
-              value={studyAreaName}
-              onChange={(event) => setStudyAreaName(event.currentTarget.value)}
-              rightElement={(
-                <Button
-                  onClick={submitStudyArea}
-                >
-                  Save
-                </Button>
-              )}
-            />
-          )
-          : (
             <form>
               <RadioGroup
                 className="sidebar-subheading"
@@ -186,6 +150,7 @@ export default function ScenarioTable(props) {
               />
             </form>
           )
+          : <div />
       }
     </>
   );

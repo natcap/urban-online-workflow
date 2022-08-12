@@ -184,21 +184,6 @@ export async function convertToSingleLULC(targetCoords, lulcCode, scenarioID) {
  * @return {[object]} ? - fill in when this endpoint is working
  */
 export async function postLulcTableForParcel(sessionID, parcelCoords) {
-  // In general, this table will be built as part of a
-  // wallpapering action, but there is the case where we
-  // want to see this table for a parcel we select, before
-  // doing any wallpapering. The values will come from the
-  // baseline LULC.
-
-  // const lulcTable = {
-  //   'Developed, Open Space': 24,
-  //   'Developed, Low Intensity': 8,
-  //   'Shrub/Scrub': 4,
-  // };
-  // return Promise.resolve(lulcTable);
-
-  // TODO: re-instate this real fetch once the endpoint is ready,
-  // https://github.com/natcap/urban-online-workflow/issues/42
   return (
     window.fetch(`${apiBaseURL}/stats_under_parcel`, {
       method: 'post',
@@ -209,7 +194,6 @@ export async function postLulcTableForParcel(sessionID, parcelCoords) {
       }),
     })
       .then((response) => response.json())
-      .then((json) => console.log(json))
       .catch((error) => console.log(error))
   );
 }
@@ -221,15 +205,20 @@ export async function postLulcTableForParcel(sessionID, parcelCoords) {
  * @return {[object]} ? - fill in when this endpoint is working
  */
 export async function getLulcTableForParcel(jobID) {
-  return (
-    window.fetch(`${apiBaseURL}/stats_under_parcel/result/${jobID}`, {
-      method: 'get',
-      headers: { 'Content-Type': 'application/json' },
-    })
-      .then((response) => response.json())
-      .then((json) => console.log(json))
-      .catch((error) => console.log(error))
-  );
+  const lulcTable = {
+    'Developed, Open Space': 24,
+    'Developed, Low Intensity': 8,
+    'Shrub/Scrub': 4,
+  };
+  return Promise.resolve(lulcTable);
+  // return (
+  //   window.fetch(`${apiBaseURL}/stats_under_parcel/result/${jobID}`, {
+  //     method: 'get',
+  //     headers: { 'Content-Type': 'application/json' },
+  //   })
+  //     .then((response) => response.json())
+  //     .catch((error) => console.log(error))
+  // );
 }
 
 /**

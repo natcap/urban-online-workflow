@@ -27,10 +27,10 @@ export default function App() {
     });
   };
 
-  const removeParcel = (parcel) => {
+  const removeParcel = (parcelID) => {
     setParcelSet((prev) => {
       const newSet = { ...prev };
-      newSet.delete(parcel.parcelID);
+      delete newSet[parcelID];
       return newSet;
     });
   };
