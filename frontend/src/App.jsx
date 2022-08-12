@@ -1,27 +1,28 @@
+import React, { useState, useEffect } from 'react';
 import MapComponent from './map';
 import EditMenu from './edit';
-import React, { useState, useEffect } from 'react';
 
-import { getAllScenarios } from './requests';
+import { getScenarios, createSession } from './requests';
 
 export default function App() {
   const [parcel, setParcel] = useState(null);
   const [savedScenarios, setSavedScenarios] = useState([]);
   const [patternSamplingMode, setPatternSamplingMode] = useState(false);
   const [patternSampleWKT, setPatternSampleWKT] = useState(null);
+  const [sessionID, setSessionID] = useState(null);
 
   const refreshSavedScenarios = async () => {
-    const scenarios = await getAllScenarios();
-    setSavedScenarios(scenarios);
+    setSavedScenarios(await getScenarios(sessionID));
   };
 
   useEffect(async () => {
+    setSessionID(await createSession());
     refreshSavedScenarios();
   }, []);
 
   const togglePatternSamplingMode = () => {
-    setPatternSamplingMode(patternSamplingMode => !patternSamplingMode);
-  }
+    setPatternSamplingMode((mode) => !mode);
+  };
 
   return (
     <div className="App">
@@ -38,6 +39,7 @@ export default function App() {
           patternSamplingMode={patternSamplingMode}
           togglePatternSamplingMode={togglePatternSamplingMode}
           patternSampleWKT={patternSampleWKT}
+          sessionID={sessionID}
         />
       </div>
     </div>

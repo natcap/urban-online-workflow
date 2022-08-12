@@ -18,8 +18,8 @@ import {
   doWallpaper,
   makeScenario,
   getLulcTableForParcel,
-  getWallpaperResults,
-  getStatus,
+  getJobResults,
+  getJobStatus,
   getPatterns,
   createPattern,
   convertToSingleLULC,
@@ -39,7 +39,9 @@ export default function EditMenu(props) {
     patternSamplingMode,
     togglePatternSamplingMode,
     patternSampleWKT,
+    sessionID,
   } = props;
+  console.log(savedScenarios);
 
   const [activeTab, setActiveTab] = useState('create');
   const [scenarioName, setScenarioName] = useState('');
@@ -48,13 +50,13 @@ export default function EditMenu(props) {
   const [patterns, setPatterns] = useState([]);
   const [parcelTable, setParcelTable] = useState(null);
   const [jobID, setJobID] = useState(null);
-  const [newPatternName, setNewPatternName] = useState("New Pattern 1");
+  const [newPatternName, setNewPatternName] = useState('New Pattern 1');
   const [singleLULC, setSingleLULC] = useState('');
   const [conversionOption, setConversionOption] = useState('paint');
 
   // On first render, get the list of available patterns
   useEffect(async () => {
-    setPatterns(await getPatterns());
+    setPatterns(await getPatterns() || []);
   }, []);
 
   useEffect(async () => {
@@ -65,14 +67,15 @@ export default function EditMenu(props) {
   }, [parcel]);
 
   useInterval(async () => {
-    console.log('checking status for', jobID);
-    const status = await getStatus(jobID);
-    if (status === 'complete') {
-      const results = await getWallpaperResults(jobID);
+    console.log('checking status for job', jobID);
+    const status = await getJobStatus(jobID);
+    if (status === 'success') {
+      const results = await getJobResults(jobID, scenarioID);
+      console.log(results);
       setParcelTable(results);
       setJobID(null);
     }
-  }, jobID ? 1000 : null);
+  }, (jobID && scenarioID) ? 1000 : null);
 
   async function handleSubmitNew(event) {
     event.preventDefault();
@@ -85,8 +88,8 @@ export default function EditMenu(props) {
       return;
     }
     let currentScenarioID = scenarioID;
-    if (!Object.values(savedScenarios).includes(scenarioName)) {
-      currentScenarioID = await makeScenario(scenarioName, 'description');
+    if (savedScenarios.every((scen) => scen.name !== scenarioName)) {
+      currentScenarioID = await makeScenario(sessionID, scenarioName, 'description');
       setScenarioID(currentScenarioID);
     }
     let jid;
@@ -102,7 +105,7 @@ export default function EditMenu(props) {
 
   const handleSamplePattern = async (event) => {
     event.preventDefault();
-    await createPattern(patternSampleWKT, newPatternName);
+    await createPattern(patternSampleWKT, newPatternName, sessionID);
     setPatterns(await getPatterns());
     setSelectedPattern(newPatternName);
     togglePatternSamplingMode();
@@ -136,11 +139,19 @@ export default function EditMenu(props) {
         </Label>
         <HTMLSelect
           id="pattern-select"
-          onChange={setSelectedPattern}
+          onChange={
+            (event) => setSelectedPattern(event.currentTarget.value)
+          }
           disabled={patternSamplingMode}
           value={selectedPattern}
         >
-          {patterns.map((pattern) => <option key={pattern} value={pattern}>{pattern}</option>)}
+          {patterns.map(
+            (pattern) => (
+              <option key={pattern.pattern_id} value={pattern.pattern_id}>
+                {pattern.label}
+              </option>
+            ),
+          )}
         </HTMLSelect>
       </div>
       <Switch
@@ -198,14 +209,21 @@ export default function EditMenu(props) {
                         Add this modification to a scenario
                       </p>
                       <datalist id="scenariolist">
-                        {Object.values(savedScenarios)
-                          .map(item => <option key={item} value={item} />)}
+                        {Object.values(savedScenarios).map(
+                          (scenario) => (
+                            <option
+                              key={scenario.scenario_id}
+                              value={scenario.name} />
+                            ),
+                          )
+                        }
                       </datalist>
                       <input
                         type="search"
                         id="scenarioName"
                         list="scenariolist"
                         value={scenarioName}
+                        autoComplete="off"
                         onChange={(event) => setScenarioName(event.currentTarget.value)}
                       />
                       <button type="submit">Submit</button>
@@ -219,7 +237,7 @@ export default function EditMenu(props) {
         <Tab
           id="explore"
           title="Explore"
-          panel={<ScenarioTable scenarioLookup={savedScenarios} />}
+          panel={<ScenarioTable savedScenarios={savedScenarios} />}
         />
       </Tabs>
     </div>

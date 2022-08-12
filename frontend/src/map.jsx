@@ -158,11 +158,11 @@ export default function MapComponent(props) {
     // update state with its new location
     translate.on(
       'translateend',
-      () => setPatternSampleWKT(wkt.writeFeature(patternSamplerFeature))
+      () => setPatternSampleWKT(wkt.writeFeature(patternSamplerFeature)),
     );
     patternSamplerLayer.on(
       'change:visible',
-      () => setPatternSampleWKT(wkt.writeFeature(patternSamplerFeature))
+      () => setPatternSampleWKT(wkt.writeFeature(patternSamplerFeature)),
     );
 
     map.on(['click'], async (event) => {

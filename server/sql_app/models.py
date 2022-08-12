@@ -1,5 +1,9 @@
 """ Create SQLAlchemy models from the 'Base' class."""
-from sqlalchemy import DateTime, Column, ForeignKey, Integer, String
+from sqlalchemy import Column
+from sqlalchemy import DateTime
+from sqlalchemy import ForeignKey
+from sqlalchemy import Integer
+from sqlalchemy import String
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -19,15 +23,16 @@ class Job(Base):
     name = Column(String, index=True)
     description = Column(String)
     status = Column(String)
-    # each job has an associated user owner
-    owner_id = Column(String, ForeignKey("users.session_id"))
+    # each job has an associated session owner
+    owner_id = Column(String, ForeignKey("sessions.session_id"))
 
-    owner = relationship("User", back_populates="jobs")
+    owner = relationship("Session", back_populates="jobs")
+    #jobs = relationship("ParcelStats", back_populates="jobs_id")
 
 
-class User(Base):
-    """SQLAlchemy model for user sessions."""
-    __tablename__ = "users"
+class Session(Base):
+    """SQLAlchemy model for sessions."""
+    __tablename__ = "sessions"
 
     id = Column(Integer, primary_key=True, index=True)
     session_id = Column(String, unique=True, index=True)
@@ -57,12 +62,12 @@ class Scenario(Base):
     wkt = Column(String)
     lulc_url_result = Column(String)
     lulc_stats = Column(String)
-    lulc_url_base = Column(String, default="nlud.tif")
-    # each scenario has an associated user owner
-    owner_id = Column(String, ForeignKey("users.session_id"))
+    lulc_url_base = Column(String, default="NLCD_2016.tif")
+    # each scenario has an associated session owner
+    owner_id = Column(String, ForeignKey("sessions.session_id"))
 
     #parcel_stats = relationship("ParcelStats", back_populates="owner")
-    owner = relationship("User", back_populates="scenarios")
+    owner = relationship("Session", back_populates="scenarios")
 
 
 class Pattern(Base):
@@ -72,10 +77,10 @@ class Pattern(Base):
     pattern_id = Column(Integer, primary_key=True, index=True)
     label = Column(String, index=True)
     wkt = Column(String)
-    # each pattern has an associated user owner
-    owner_id = Column(String, ForeignKey("users.session_id"))
+    # each pattern has an associated session owner
+    owner_id = Column(String, ForeignKey("sessions.session_id"))
 
-    owner = relationship("User", back_populates="patterns")
+    owner = relationship("Session", back_populates="patterns")
 
 
 class ParcelStats(Base):
@@ -87,6 +92,6 @@ class ParcelStats(Base):
     lulc_stats = Column(String)
     #TODO: I'm not sure if parcel stats not associated with a scenario
     # should be related to another table...
-    #owner_id = Column(String, ForeignKey("scenarios.scenario_id"))
+    job_id = Column(Integer, ForeignKey("jobs.job_id"))
 
-    #owner = relationship("Scenario", back_populates="parcel_stats")
+    #owner = relationship("Job", back_populates="parcel_stats")
