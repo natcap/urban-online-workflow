@@ -5,11 +5,11 @@ import EditMenu from './edit';
 import { getScenarios, createSession } from './requests';
 
 export default function App() {
-  const [selectedParcel, setSelectedParcel] = useState(null);
   const [savedScenarios, setSavedScenarios] = useState([]);
   const [patternSamplingMode, setPatternSamplingMode] = useState(false);
   const [patternSampleWKT, setPatternSampleWKT] = useState(null);
   const [sessionID, setSessionID] = useState(null);
+  const [parcelSet, setParcelSet] = useState({});
 
   const refreshSavedScenarios = async () => {
     setSavedScenarios(await getScenarios(sessionID));
@@ -20,6 +20,21 @@ export default function App() {
     refreshSavedScenarios();
   }, []);
 
+  const addParcel = async (parcel) => {
+    setParcelSet((prev) => {
+      const newSet = { ...prev, ...parcel };
+      return newSet;
+    });
+  };
+
+  const removeParcel = (parcel) => {
+    setParcelSet((prev) => {
+      const newSet = { ...prev };
+      newSet.delete(parcel.parcelID);
+      return newSet;
+    });
+  };
+
   const togglePatternSamplingMode = () => {
     setPatternSamplingMode((mode) => !mode);
   };
@@ -28,12 +43,14 @@ export default function App() {
     <div className="App">
       <div className="map-and-menu-container">
         <MapComponent
-          setSelectedParcel={setSelectedParcel}
+          addParcel={addParcel}
           patternSamplingMode={patternSamplingMode}
           setPatternSampleWKT={setPatternSampleWKT}
+          sessionID={sessionID}
         />
         <EditMenu
-          selectedParcel={selectedParcel}
+          parcelSet={parcelSet}
+          removeParcel={removeParcel}
           refreshSavedScenarios={refreshSavedScenarios}
           savedScenarios={savedScenarios}
           patternSamplingMode={patternSamplingMode}

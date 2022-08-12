@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import {
   HTMLTable,
   Button,
+  Icon,
 } from '@blueprintjs/core';
 
 import useInterval from './hooks/useInterval';
@@ -15,6 +16,7 @@ export default function ParcelTable(props) {
   const {
     parcel,
     addParcel,
+    clearSelection,
     sessionID,
   } = props;
 
@@ -37,10 +39,6 @@ export default function ParcelTable(props) {
     setJobID(jid);
   }
 
-  if (!parcel) {
-    return <p className="sidebar-subheading">Select a parcel to modify</p>;
-  }
-
   // const nPixels = Object.values(parcel.table)
   //   .reduce((partialSum, x) => partialSum + x, 0);
   // const rows = [];
@@ -52,23 +50,33 @@ export default function ParcelTable(props) {
   //     </tr>,
   //   );
   // });
-  const rows = [
-    <tr key="parcel">
-      <td key="id">{parcel.parcelID}</td>
-      <td key="address">{parcel.address || '123 Main St'}</td>
-    </tr>,
-  ];
+
   return (
-    <div>
-      <p className="sidebar-subheading">Selected parcel:</p>
-      <HTMLTable bordered striped>
-        <tbody>
-          {rows}
-        </tbody>
-      </HTMLTable>
-      <Button onClick={() => handleClick(parcel)}>
-        Add to scenario
-      </Button>
+    <div className="layer-info">
+      {(!parcel)
+        ? <p>Select a parcel</p>
+        : (
+          <>
+            <HTMLTable bordered>
+              <tbody>
+                <tr key="parcel">
+                  <td key="id">{parcel.parcelID}</td>
+                  <td key="address">{parcel.address || '123 Main St'}</td>
+                </tr>
+              </tbody>
+            </HTMLTable>
+            <Button
+              onClick={() => handleClick(parcel)}
+              icon="Add"
+            >
+              Add to study area
+            </Button>
+            <Button
+              onClick={clearSelection}
+              icon="remove"
+            />
+          </>
+        )}
     </div>
   );
 }

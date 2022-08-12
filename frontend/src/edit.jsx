@@ -14,7 +14,9 @@ FocusStyleManager.onlyShowFocusOnTabs();
 
 export default function EditMenu(props) {
   const {
+    parcelSet,
     selectedParcel,
+    removeParcel,
     savedScenarios,
     refreshSavedScenarios,
     patternSamplingMode,
@@ -24,22 +26,6 @@ export default function EditMenu(props) {
   } = props;
 
   const [activeTab, setActiveTab] = useState('create');
-  const [parcelSet, setParcelSet] = useState({});
-
-  const addParcel = async (parcel) => {
-    setParcelSet((prev) => {
-      const newSet = { ...prev, ...parcel };
-      return newSet;
-    });
-  };
-
-  const removeParcel = (parcel) => {
-    setParcelSet((prev) => {
-      const newSet = { ...prev };
-      newSet.delete(parcel.parcelID);
-      return newSet;
-    });
-  };
 
   return (
     <div className="menu-container">
@@ -60,11 +46,6 @@ export default function EditMenu(props) {
                 patternSamplingMode={patternSamplingMode}
                 togglePatternSamplingMode={togglePatternSamplingMode}
                 refreshSavedScenarios={refreshSavedScenarios}
-              />
-              <ParcelTable
-                sessionID={sessionID}
-                parcel={selectedParcel}
-                addParcel={addParcel}
               />
             </div>
           )}

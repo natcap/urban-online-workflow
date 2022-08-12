@@ -17,6 +17,7 @@ import { defaults } from 'ol/control';
 
 import { Button, Icon } from '@blueprintjs/core';
 
+import ParcelTable from './parcelTable';
 import lulcLayer from './map/lulcLayer';
 import LayerPanel from './map/LayerPanel';
 import {
@@ -121,13 +122,15 @@ const map = new Map({
 
 export default function MapComponent(props) {
   const {
-    setSelectedParcel,
+    sessionID,
+    addParcel,
     patternSamplingMode,
     setPatternSampleWKT,
   } = props;
   const [layers, setLayers] = useState([]);
   const [showLayerControl, setShowLayerControl] = useState(false);
   const [basemap, setBasemap] = useState('Satellite');
+  const [selectedParcel, setSelectedParcel] = useState(null);
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
 
@@ -150,6 +153,14 @@ export default function MapComponent(props) {
       }
     });
     setBasemap(title);
+  };
+
+  const clearSelection = () => {
+    // It feels kinda weird to have selectedFeature outside
+    // React scope, but it works.
+    selectedFeature = null;
+    selectionLayer.changed();
+    setSelectedParcel(null);
   };
 
   // useEffect with no dependencies: only runs after first render
@@ -234,6 +245,12 @@ export default function MapComponent(props) {
           basemap={basemap}
         />
       </div>
+      <ParcelTable
+        sessionID={sessionID}
+        parcel={selectedParcel}
+        addParcel={addParcel}
+        clearSelection={clearSelection}
+      />
     </div>
   );
 }
