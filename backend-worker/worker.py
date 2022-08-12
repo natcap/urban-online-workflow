@@ -17,6 +17,7 @@ import shapely.wkt
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
+from PIL import Image
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
@@ -167,6 +168,36 @@ class Tests(unittest.TestCase):
         wallpaper_parcel(parcel.wkt, pattern.wkt, nlud_path,
                          target_raster_path, self.workspace_dir)
 
+    def test_wallpaper_nlcd(self):
+        # University of Texas: San Antonio, selected by hand in QGIS
+        # Coordinates are in EPSG:3857 "Web Mercator"
+        point_over_san_antonio = shapely.geometry.Point(
+            -10965275.57, 3429693.30)
+        parcel = point_over_san_antonio.buffer(100)
+
+        # Apache Creek, urban residential area, San Antonio, TX.
+        # Selected by hand in QGIS.  Coordinates are in EPSG:3857 "Web
+        # Mercator"
+        pattern = shapely.geometry.box(
+            *shapely.geometry.Point(
+                -10968418.16, 3429347.98).buffer(100).bounds)
+
+        target_raster_path = os.path.join(
+            self.workspace_dir, 'wallpapered_raster.tif')
+
+        nlcd_path = 'appdata/NLCD_2016.tif'
+        wallpaper_parcel(parcel.wkt, pattern.wkt, nlcd_path,
+                         target_raster_path, self.workspace_dir)
+
+        thumbnail = os.path.join('thumbnail_wallpaper.png')
+        colors = dict(
+            (k, v['color']) for (k, v) in
+            get_classnames_from_raster_attr_table(NLCD_RASTER_PATH).items())
+        make_thumbnail(target_raster_path, colors, thumbnail)
+
+        # This is useful for debugging
+        # import pdb; pdb.set_trace()  # print(self.workspace_dir)
+
         # This is useful for debugging
         # import pdb; pdb.set_trace()  # print(self.workspace_dir)
 
@@ -179,6 +210,30 @@ class Tests(unittest.TestCase):
         self.assertEqual(len(classes), 16)
         for _, attrs in classes.items():
             self.assertRegexpMatches(attrs['color'], '#[0-9a-fA-F]{6}')
+
+    def test_thumbnail(self):
+
+        gtiff_path = os.path.join(self.workspace_dir, 'raster.tif')
+
+        # University of Texas: San Antonio, selected by hand in QGIS
+        # Coordinates are in EPSG:3857 "Web Mercator"
+        point_over_san_antonio = shapely.geometry.Point(
+            -10965275.57, 3429693.30)
+
+        # Raster units are in meters (mercator)
+        parcel = point_over_san_antonio.buffer(100)
+        pygeoprocessing.geoprocessing.shapely_geometry_to_vector(
+            [point_over_san_antonio, parcel],
+            os.path.join(self.workspace_dir, 'parcel.shp'),
+            _WEB_MERCATOR_SRS.ExportToWkt(), 'ESRI Shapefile')
+
+        _create_new_lulc(parcel.wkt, gtiff_path)
+
+        thumbnail = os.path.join('thumbnail.png')
+        colors = dict(
+            (k, v['color']) for (k, v) in
+            get_classnames_from_raster_attr_table(NLCD_RASTER_PATH).items())
+        make_thumbnail(gtiff_path, colors, thumbnail)
 
 
 def _reproject_to_nlud(parcel_wkt_epsg3857):
@@ -507,6 +562,34 @@ def get_classnames_from_raster_attr_table(raster_path):
             }
 
     return classes
+
+
+def make_thumbnail(thumbnail_gtiff_path, colors_dict, target_thumnail_path):
+    raw_image = Image.open(thumbnail_gtiff_path)
+    # 'P' mode indicates palletted color
+    image = raw_image.convert('P')
+
+    rgb_colors = {}
+    for lucode, hex_color in colors_dict.items():
+        rgb_colors[lucode] = [
+            int(f'0x{"".join(hex_color[1:3])}', 16),
+            int(f'0x{"".join(hex_color[3:5])}', 16),
+            int(f'0x{"".join(hex_color[5:7])}', 16)
+        ]
+
+    rgb_colors_list = []
+    for i in range(0, 256):
+        try:
+            rgb_colors_list.extend(rgb_colors[i])
+        except KeyError:
+            rgb_colors_list.extend([0, 0, 0])
+
+    print(rgb_colors_list)
+    image.putpalette(rgb_colors_list)
+    factor = 50
+    image = image.resize((image.width * factor,
+                          image.height * factor))
+    image.save(target_thumnail_path)
 
 
 def do_work(host, port, outputs_location):
