@@ -12,12 +12,14 @@ import numpy
 import numpy.testing
 import pygeoprocessing
 import requests
+import shapely.affinity
 import shapely.geometry
 import shapely.wkt
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
 from PIL import Image
+from PIL import ImageDraw
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
@@ -184,6 +186,11 @@ class Tests(unittest.TestCase):
             *shapely.geometry.Point(
                 -10968418.16, 3429347.98).buffer(100).bounds)
 
+        # write this output to a file for testing
+        pygeoprocessing.geoprocessing.shapely_geometry_to_vector(
+            [pattern], os.path.join(self.workspace_dir, 'pattern.geojson'),
+            _WEB_MERCATOR_SRS.ExportToWkt(), 'GeoJSON')
+
         target_raster_path = os.path.join(
             self.workspace_dir, 'wallpapered_raster.tif')
 
@@ -198,7 +205,7 @@ class Tests(unittest.TestCase):
         make_thumbnail(pattern.wkt, colors, thumbnail, self.workspace_dir)
 
         # This is useful for debugging
-        # import pdb; pdb.set_trace()  # print(self.workspace_dir)
+        #import pdb; pdb.set_trace()  # print(self.workspace_dir)
 
     def test_classnames(self):
         classes = get_classnames_from_raster_attr_table(NLCD_RASTER_PATH)
@@ -301,8 +308,8 @@ def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path,
     if copy_pixel_values:
         source_raster = gdal.Open(NLCD_RASTER_PATH)
         source_band = source_raster.GetRasterBand(1)
-        xoff = math.floor(abs((NLCD_ORIGIN_X - buf_minx) / PIXELSIZE_X))
-        yoff = math.floor(abs((NLCD_ORIGIN_Y - buf_miny) / PIXELSIZE_Y))
+        xoff = round(abs((buf_minx - NLCD_ORIGIN_X) / PIXELSIZE_X))
+        yoff = round(abs((buf_maxy - NLCD_ORIGIN_Y) / PIXELSIZE_Y))
         source_array = source_band.ReadAsArray(
             xoff=xoff,
             yoff=yoff,
@@ -616,9 +623,24 @@ def make_thumbnail(pattern_wkt_epsg3857, colors_dict, target_thumnail_path,
 
     print(rgb_colors_list)
     image.putpalette(rgb_colors_list)
-    factor = 30
+    factor = 30  # taken from the pixelsize so we can just deal in native units
     image = image.resize((image.width * factor,
                           image.height * factor))
+
+    # Show the areas that represents the pattern; it's not the whole image
+    reprojected_pattern = _reproject_to_nlud(pattern_wkt_epsg3857)
+    minx, miny, maxx, maxy = reprojected_pattern.bounds
+    x_origin, _, _, y_origin, _, _ = pygeoprocessing.get_raster_info(
+        thumbnail_gtiff_path)['geotransform']
+    translated_pattern = shapely.affinity.translate(
+        reprojected_pattern, xoff=-x_origin, yoff=-y_origin)
+    draw = ImageDraw.Draw(image)
+    draw.polygon(
+        [(math.fabs(math.floor(x)), math.fabs(math.floor(y)))
+         for (x, y) in translated_pattern.exterior.coords],
+        outline='cyan', width=10
+    )
+
     image.save(target_thumnail_path)
     shutil.rmtree(working_dir, ignore_errors=True)
 
