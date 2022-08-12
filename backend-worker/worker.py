@@ -178,6 +178,8 @@ class Tests(unittest.TestCase):
         # Apache Creek, urban residential area, San Antonio, TX.
         # Selected by hand in QGIS.  Coordinates are in EPSG:3857 "Web
         # Mercator"
+        # Near the intersection of South Laredo street and South Zarzamora
+        # Street.
         pattern = shapely.geometry.box(
             *shapely.geometry.Point(
                 -10968418.16, 3429347.98).buffer(100).bounds)
@@ -189,14 +191,11 @@ class Tests(unittest.TestCase):
         wallpaper_parcel(parcel.wkt, pattern.wkt, nlcd_path,
                          target_raster_path, self.workspace_dir)
 
-        thumbnail = os.path.join('thumbnail_wallpaper.png')
+        thumbnail = os.path.join('thumbnail_pattern.png')
         colors = dict(
             (k, v['color']) for (k, v) in
             get_classnames_from_raster_attr_table(NLCD_RASTER_PATH).items())
-        make_thumbnail(target_raster_path, colors, thumbnail)
-
-        # This is useful for debugging
-        # import pdb; pdb.set_trace()  # print(self.workspace_dir)
+        make_thumbnail(pattern.wkt, colors, thumbnail, self.workspace_dir)
 
         # This is useful for debugging
         # import pdb; pdb.set_trace()  # print(self.workspace_dir)
@@ -211,6 +210,7 @@ class Tests(unittest.TestCase):
         for _, attrs in classes.items():
             self.assertRegexpMatches(attrs['color'], '#[0-9a-fA-F]{6}')
 
+    @unittest.skip
     def test_thumbnail(self):
 
         gtiff_path = os.path.join(self.workspace_dir, 'raster.tif')
@@ -258,12 +258,16 @@ def _reproject_to_nlud(parcel_wkt_epsg3857):
     return parcel_geom
 
 
-def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path):
+def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path,
+                     copy_pixel_values=False):
     """Create an LULC raster in the NLCD projection covering the parcel.
 
     Args:
         parcel_wkt_epsg3857 (str): The parcel WKT in EPSG:3857 (Web Mercator)
         target_local_gtiff_path (str): Where the target raster should be saved
+        copy_pixel_values=False (bool): Whether to copy pixel values from the
+            original raster into the new one.  If False, the raster will be
+            filled with nodata.
 
     Returns:
         ``None``
@@ -294,8 +298,27 @@ def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path):
         [buf_minx, PIXELSIZE_X, 0, buf_maxy, 0, PIXELSIZE_Y])
     band = target_raster.GetRasterBand(1)
     band.SetNoDataValue(NLCD_NODATA)
-    band.Fill(NLCD_NODATA)
+    if copy_pixel_values:
+        source_raster = gdal.Open(NLCD_RASTER_PATH)
+        source_band = source_raster.GetRasterBand(1)
+        xoff = math.floor(abs((NLCD_ORIGIN_X - buf_minx) / PIXELSIZE_X))
+        yoff = math.floor(abs((NLCD_ORIGIN_Y - buf_miny) / PIXELSIZE_Y))
+        source_array = source_band.ReadAsArray(
+            xoff=xoff,
+            yoff=yoff,
+            win_xsize=n_cols,
+            win_ysize=n_rows
+        )
+        print(source_array)
+        band.WriteArray(source_array)
+
+        source_band = None
+        source_raster = None
+
+    else:
+        band.Fill(NLCD_NODATA)
     target_raster = None
+    band = None
 
 
 def fill_parcel(parcel_wkt_epsg3857, fill_lulc_class,
@@ -564,10 +587,17 @@ def get_classnames_from_raster_attr_table(raster_path):
     return classes
 
 
-def make_thumbnail(thumbnail_gtiff_path, colors_dict, target_thumnail_path):
+def make_thumbnail(pattern_wkt_epsg3857, colors_dict, target_thumnail_path,
+                   working_dir=None):
+    working_dir = tempfile.mkdtemp(dir=working_dir, prefix='thumbnail-')
+    thumbnail_gtiff_path = os.path.join(working_dir, 'pattern.tif')
+    _create_new_lulc(pattern_wkt_epsg3857, thumbnail_gtiff_path,
+                     copy_pixel_values=True)
+
     raw_image = Image.open(thumbnail_gtiff_path)
     # 'P' mode indicates palletted color
     image = raw_image.convert('P')
+    print(numpy.asarray(image))
 
     rgb_colors = {}
     for lucode, hex_color in colors_dict.items():
@@ -586,10 +616,11 @@ def make_thumbnail(thumbnail_gtiff_path, colors_dict, target_thumnail_path):
 
     print(rgb_colors_list)
     image.putpalette(rgb_colors_list)
-    factor = 50
+    factor = 30
     image = image.resize((image.width * factor,
                           image.height * factor))
     image.save(target_thumnail_path)
+    shutil.rmtree(working_dir, ignore_errors=True)
 
 
 def do_work(host, port, outputs_location):
