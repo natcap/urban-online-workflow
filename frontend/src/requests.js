@@ -9,12 +9,30 @@ const apiBaseURL = 'http://127.0.0.1:8000';
  *  representing [lon, lat] coordinate pairs that outline a polygon
  * @return {string} Well-Known Text representation of the polygon
  */
-function polygonCoordsToWKT(coords) {
+export function polygonCoordsToWKT(coords) {
   return `POLYGON((${
     coords.map(
       (lonLat) => `${lonLat[0]} ${lonLat[1]}`,
     ).join(', ')
   }))`;
+}
+
+/**
+ * Convert an array of polygons to WKT representation.
+ *
+ * @param  {array[array[array[number]]]} polygons - an array of arrays
+ *  of two-element arrays representing [lon, lat] coordinate pairs
+ *  that outline a polygon
+ * @return {string} Well-Known Text representation of the polygon
+ */
+export function mulitPolygonCoordsToWKT(polygons) {
+  return `MULTIPOLYGON(${
+    polygons.map(
+      (polygon) => `((${polygon.map(
+        (lonLat) => `${lonLat[0]} ${lonLat[1]}`,
+      ).join(', ')}))`,
+    )
+  })`;
 }
 
 /**
@@ -132,14 +150,14 @@ export async function getJobResults(jobID, scenarioID) {
  *  lulc modification
  * @return {integer} id of the job that will create the modified LULC raster
  */
-export async function doWallpaper(targetCoords, patternID, scenarioID) {
+export async function doWallpaper(targetParcelWkt, patternID, scenarioID) {
   return (
     window.fetch(`${apiBaseURL}/wallpaper`, {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         scenario_id: scenarioID,
-        target_parcel_wkt: polygonCoordsToWKT(targetCoords),
+        target_parcel_wkt: targetParcelWkt,
         pattern_id: patternID,
       }),
     })
@@ -159,14 +177,14 @@ export async function doWallpaper(targetCoords, patternID, scenarioID) {
  *  lulc modification
  * @return {integer} id of the job that will create the modified LULC raster
  */
-export async function convertToSingleLULC(targetCoords, lulcCode, scenarioID) {
+export async function convertToSingleLULC(targetParcelWkt, lulcCode, scenarioID) {
   return (
     window.fetch(`${apiBaseURL}/parcel_fill`, {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         scenario_id: scenarioID,
-        target_parcel_wkt: polygonCoordsToWKT(targetCoords),
+        target_parcel_wkt: targetParcelWkt,
         lulc_class: lulcCode,
       }),
     })

@@ -18,6 +18,8 @@ import {
   getJobResults,
   getJobStatus,
   convertToSingleLULC,
+  mulitPolygonCoordsToWKT,
+  polygonCoordsToWKT,
 } from './requests';
 
 export default function ScenarioTable(props) {
@@ -30,7 +32,7 @@ export default function ScenarioTable(props) {
     refreshSavedScenarios,
   } = props;
 
-  const [singleLULC, setSingleLULC] = useState('');
+  const [singleLULC, setSingleLULC] = useState(Object.keys(landuseCodes)[0]);
   const [conversionOption, setConversionOption] = useState('paint');
   const [scenarioName, setScenarioName] = useState('');
   const [scenarioID, setScenarioID] = useState(null);
@@ -43,6 +45,7 @@ export default function ScenarioTable(props) {
     const status = await getJobStatus(jobID);
     if (status === 'success') {
       const results = await getJobResults(jobID, scenarioID);
+      console.log(results)
       // setParcelTable(results);
       setJobID(null);
     }
@@ -63,16 +66,21 @@ export default function ScenarioTable(props) {
     currentScenarioID = await makeScenario(sessionID, scenarioName, 'description');
     setScenarioID(currentScenarioID);
     let jid;
+    const parcelWkt = (Object.keys(parcelSet).length > 1)
+      ? mulitPolygonCoordsToWKT(
+        Object.values(parcelSet).map((parcel) => parcel.coords),
+      )
+      : polygonCoordsToWKT(Object.values(parcelSet)[0].coords);
     if (conversionOption === 'wallpaper' && selectedPattern) {
       jid = await doWallpaper(
-        undefined,
-        selectedPattern.label,
+        parcelWkt,
+        selectedPattern.pattern_id,
         currentScenarioID
       );
     }
     if (conversionOption === 'paint' && singleLULC) {
       jid = await convertToSingleLULC(
-        undefined,
+        parcelWkt,
         singleLULC,
         currentScenarioID
       );

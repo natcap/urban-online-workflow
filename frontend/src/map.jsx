@@ -192,7 +192,6 @@ export default function MapComponent(props) {
         }
         selectedFeature = feature;
         selectionLayer.changed();
-        // const jid = await getLulcTableForParcel(sessionID, coords);
         setSelectedParcel({
           parcelID: feature.properties_.OBJECTID,
           address: feature.properties_.address,

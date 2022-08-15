@@ -44,7 +44,6 @@ export default function WallpaperingMenu(props) {
     togglePatternSamplingMode();
   };
 
-  console.log(selectedPattern)
   return (
     <>
       <div className="wallpaper-options">
@@ -121,7 +120,6 @@ function PatternCatalogDrawer(props) {
     patterns,
   } = props;
 
-  console.log(patterns)
   const patternList = [];
   patterns.forEach((pattern) => {
     const { pattern_id, label, url } = pattern;
