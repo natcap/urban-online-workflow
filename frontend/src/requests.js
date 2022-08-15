@@ -229,6 +229,7 @@ export async function getLulcTableForParcel(jobID) {
     'Shrub/Scrub': 4,
   };
   return Promise.resolve(lulcTable);
+  // TODO: make the real request again once we can get a result other than "pending"
   // return (
   //   window.fetch(`${apiBaseURL}/stats_under_parcel/result/${jobID}`, {
   //     method: 'get',
@@ -266,10 +267,6 @@ export async function getPatterns() {
  * @return {integer} id of the pattern that was created
  */
 export async function createPattern(wkt, label, sessionID) {
-  console.log(JSON.stringify({
-        label: label,
-        wkt: wkt,
-      }))
   return (
     window.fetch(`${apiBaseURL}/pattern/${sessionID}`, {
       method: 'post',

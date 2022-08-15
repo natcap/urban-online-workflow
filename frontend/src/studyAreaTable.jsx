@@ -1,3 +1,10 @@
+/*
+This component needs a refactor. It now shows
+a static example of what we might want to display.
+We want to display a table letting people compare all
+the scenarios they have created for a single study area.
+ */
+
 import React, { useState, useEffect } from 'react';
 
 import {
@@ -5,7 +12,7 @@ import {
   Button
 } from '@blueprintjs/core';
 
-export default function ScenarioTable(props) {
+export default function StudyAreaTable(props) {
   // const { savedScenarios } = props;
 
   const [lulcNames, setLulcNames] = useState([]);
