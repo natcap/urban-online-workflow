@@ -43,6 +43,7 @@ export default function EditMenu(props) {
                 parcelSet={parcelSet}
                 removeParcel={removeParcel}
                 patternSamplingMode={patternSamplingMode}
+                patternSampleWKT={patternSampleWKT}
                 togglePatternSamplingMode={togglePatternSamplingMode}
                 refreshSavedScenarios={refreshSavedScenarios}
               />

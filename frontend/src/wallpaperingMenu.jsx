@@ -36,10 +36,10 @@ export default function WallpaperingMenu(props) {
 
   const handleSamplePattern = async (event) => {
     event.preventDefault();
-    await createPattern(patternSampleWKT, newPatternName, sessionID);
+    const patternID = await createPattern(patternSampleWKT, newPatternName, sessionID);
     setPatterns(await getPatterns());
     setSelectedPattern(
-      patterns.filter((pattern) => pattern.label === newPatternName)
+      patterns.filter((pattern) => pattern.pattern_id === patternID),
     );
     togglePatternSamplingMode();
   };

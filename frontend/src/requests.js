@@ -245,14 +245,14 @@ export async function getLulcTableForParcel(jobID) {
  * @return {array[object]} array of pattern objects
  */
 export async function getPatterns() {
-  // return (
-  //   window.fetch(`${apiBaseURL}/pattern`, {
-  //     method: 'get',
-  //   })
-  //     .then((response) => response.json())
-  //     .catch((error) => console.log(error))
-  // );
-  return Promise.resolve(patternsTable);
+  return (
+    window.fetch(`${apiBaseURL}/pattern`, {
+      method: 'get',
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
+  // return Promise.resolve(patternsTable);
 }
 
 /**
@@ -266,6 +266,10 @@ export async function getPatterns() {
  * @return {integer} id of the pattern that was created
  */
 export async function createPattern(wkt, label, sessionID) {
+  console.log(JSON.stringify({
+        label: label,
+        wkt: wkt,
+      }))
   return (
     window.fetch(`${apiBaseURL}/pattern/${sessionID}`, {
       method: 'post',

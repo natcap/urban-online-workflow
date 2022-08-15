@@ -29,6 +29,7 @@ export default function ScenarioTable(props) {
     removeParcel,
     patternSamplingMode,
     togglePatternSamplingMode,
+    patternSampleWKT,
     refreshSavedScenarios,
   } = props;
 
@@ -137,6 +138,7 @@ export default function ScenarioTable(props) {
                         setSelectedPattern={setSelectedPattern}
                         patternSamplingMode={patternSamplingMode}
                         togglePatternSamplingMode={togglePatternSamplingMode}
+                        patternSampleWKT={patternSampleWKT}
                       />
                     )
                 }
