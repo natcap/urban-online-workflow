@@ -12,14 +12,12 @@ import numpy
 import numpy.testing
 import pygeoprocessing
 import requests
-import shapely.affinity
 import shapely.geometry
 import shapely.wkt
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
 from PIL import Image
-from PIL import ImageDraw
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
