@@ -266,16 +266,12 @@ def _reproject_to_nlud(parcel_wkt_epsg3857):
     return parcel_geom
 
 
-def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path,
-                     copy_pixel_values=False):
+def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path):
     """Create an LULC raster in the NLCD projection covering the parcel.
 
     Args:
         parcel_wkt_epsg3857 (str): The parcel WKT in EPSG:3857 (Web Mercator)
         target_local_gtiff_path (str): Where the target raster should be saved
-        copy_pixel_values=False (bool): Whether to copy pixel values from the
-            original raster into the new one.  If False, the raster will be
-            filled with nodata.
 
     Returns:
         ``None``
@@ -306,25 +302,7 @@ def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path,
         [buf_minx, PIXELSIZE_X, 0, buf_maxy, 0, PIXELSIZE_Y])
     band = target_raster.GetRasterBand(1)
     band.SetNoDataValue(NLCD_NODATA)
-    if copy_pixel_values:
-        source_raster = gdal.Open(NLCD_RASTER_PATH)
-        source_band = source_raster.GetRasterBand(1)
-        xoff = round(abs((buf_minx - NLCD_ORIGIN_X) / PIXELSIZE_X))
-        yoff = round(abs((buf_maxy - NLCD_ORIGIN_Y) / PIXELSIZE_Y))
-        source_array = source_band.ReadAsArray(
-            xoff=xoff,
-            yoff=yoff,
-            win_xsize=n_cols,
-            win_ysize=n_rows
-        )
-        print(source_array)
-        band.WriteArray(source_array)
-
-        source_band = None
-        source_raster = None
-
-    else:
-        band.Fill(NLCD_NODATA)
+    band.Fill(NLCD_NODATA)
     target_raster = None
     band = None
 
