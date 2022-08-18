@@ -188,7 +188,8 @@ class Tests(unittest.TestCase):
 
         # write this output to a file for testing
         pygeoprocessing.geoprocessing.shapely_geometry_to_vector(
-            [pattern], os.path.join(self.workspace_dir, 'pattern.geojson'),
+            [pattern],
+            os.path.join(self.workspace_dir, 'pattern_webmercator.geojson'),
             _WEB_MERCATOR_SRS.ExportToWkt(), 'GeoJSON')
 
         target_raster_path = os.path.join(
@@ -281,9 +282,9 @@ def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path,
     """
     parcel_geom = _reproject_to_nlud(parcel_wkt_epsg3857)
     parcel_min_x, parcel_min_y, parcel_max_x, parcel_max_y = parcel_geom.bounds
-    buffered_parcel_geom = parcel_geom.buffer(
-        abs(min(parcel_max_x - parcel_min_x,
-                parcel_max_y - parcel_min_y)))
+    buffer_dist = abs(min(parcel_max_x - parcel_min_x,
+                          parcel_max_y - parcel_min_y))
+    buffered_parcel_geom = parcel_geom.buffer(buffer_dist)
     buf_minx, buf_miny, buf_maxx, buf_maxy = buffered_parcel_geom.bounds
 
     # Round "up" to the nearest pixel, sort of the pixel-math version of
@@ -598,8 +599,15 @@ def make_thumbnail(pattern_wkt_epsg3857, colors_dict, target_thumnail_path,
                    working_dir=None):
     working_dir = tempfile.mkdtemp(dir=working_dir, prefix='thumbnail-')
     thumbnail_gtiff_path = os.path.join(working_dir, 'pattern.tif')
-    _create_new_lulc(pattern_wkt_epsg3857, thumbnail_gtiff_path,
-                     copy_pixel_values=True)
+
+    # Buffer the bbox by a half-pixel to make sure we get the whole pattern and
+    # just a small bit of the surrounding context.
+    pygeoprocessing.geoprocessing.warp_raster(
+        NLCD_RASTER_PATH, _NLCD_RASTER_INFO['pixel_size'],
+        thumbnail_gtiff_path, 'nearest',
+        target_bb=_reproject_to_nlud(pattern_wkt_epsg3857).buffer(
+            PIXELSIZE_X/2).bounds
+    )
 
     raw_image = Image.open(thumbnail_gtiff_path)
     # 'P' mode indicates palletted color
@@ -621,26 +629,10 @@ def make_thumbnail(pattern_wkt_epsg3857, colors_dict, target_thumnail_path,
         except KeyError:
             rgb_colors_list.extend([0, 0, 0])
 
-    print(rgb_colors_list)
     image.putpalette(rgb_colors_list)
     factor = 30  # taken from the pixelsize so we can just deal in native units
     image = image.resize((image.width * factor,
                           image.height * factor))
-
-    # Show the areas that represents the pattern; it's not the whole image
-    reprojected_pattern = _reproject_to_nlud(pattern_wkt_epsg3857)
-    minx, miny, maxx, maxy = reprojected_pattern.bounds
-    x_origin, _, _, y_origin, _, _ = pygeoprocessing.get_raster_info(
-        thumbnail_gtiff_path)['geotransform']
-    translated_pattern = shapely.affinity.translate(
-        reprojected_pattern, xoff=-x_origin, yoff=-y_origin)
-    draw = ImageDraw.Draw(image)
-    draw.polygon(
-        [(math.fabs(math.floor(x)), math.fabs(math.floor(y)))
-         for (x, y) in translated_pattern.exterior.coords],
-        outline='cyan', width=10
-    )
-
     image.save(target_thumnail_path)
     shutil.rmtree(working_dir, ignore_errors=True)
 
