@@ -17,6 +17,7 @@ import { defaults } from 'ol/control';
 
 import { Button, Icon } from '@blueprintjs/core';
 
+import ParcelTable from './parcelTable';
 import lulcLayer from './map/lulcLayer';
 import LayerPanel from './map/LayerPanel';
 import {
@@ -120,10 +121,16 @@ const map = new Map({
 });
 
 export default function MapComponent(props) {
-  const { setParcel, patternSamplingMode, setPatternSampleWKT } = props;
+  const {
+    sessionID,
+    addParcel,
+    patternSamplingMode,
+    setPatternSampleWKT,
+  } = props;
   const [layers, setLayers] = useState([]);
   const [showLayerControl, setShowLayerControl] = useState(false);
   const [basemap, setBasemap] = useState('Satellite');
+  const [selectedParcel, setSelectedParcel] = useState(null);
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
 
@@ -148,6 +155,14 @@ export default function MapComponent(props) {
     setBasemap(title);
   };
 
+  const clearSelection = () => {
+    // It feels kinda weird to have selectedFeature outside
+    // React scope, but it works.
+    selectedFeature = null;
+    selectionLayer.changed();
+    setSelectedParcel(null);
+  };
+
   // useEffect with no dependencies: only runs after first render
   useEffect(() => {
     map.setTarget(mapElementRef.current);
@@ -166,9 +181,9 @@ export default function MapComponent(props) {
     );
 
     map.on(['click'], async (event) => {
-      parcelLayer.getFeatures(event.pixel).then((features) => {
-        const feature = features.length ? features[0] : undefined;
+      parcelLayer.getFeatures(event.pixel).then(async (features) => {
         let coords;
+        const feature = features.length ? features[0] : undefined;
         if (feature) {
           // NOTE that a feature's geometry can change with the tile/zoom level and view position
           // and so its coordinates will change slightly.
@@ -177,7 +192,11 @@ export default function MapComponent(props) {
         }
         selectedFeature = feature;
         selectionLayer.changed();
-        setParcel({ coords: coords });
+        setSelectedParcel({
+          parcelID: feature.properties_.OBJECTID,
+          address: feature.properties_.address,
+          coords: coords,
+        });
       });
     });
 
@@ -225,6 +244,12 @@ export default function MapComponent(props) {
           basemap={basemap}
         />
       </div>
+      <ParcelTable
+        sessionID={sessionID}
+        parcel={selectedParcel}
+        addParcel={addParcel}
+        clearSelection={clearSelection}
+      />
     </div>
   );
 }

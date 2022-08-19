@@ -1,3 +1,5 @@
+import patternsTable from './patternsTable'; // TODO: this is temp
+
 const apiBaseURL = 'http://127.0.0.1:8000';
 
 /**
@@ -7,12 +9,30 @@ const apiBaseURL = 'http://127.0.0.1:8000';
  *  representing [lon, lat] coordinate pairs that outline a polygon
  * @return {string} Well-Known Text representation of the polygon
  */
-function polygonCoordsToWKT(coords) {
+export function polygonCoordsToWKT(coords) {
   return `POLYGON((${
     coords.map(
       (lonLat) => `${lonLat[0]} ${lonLat[1]}`,
     ).join(', ')
   }))`;
+}
+
+/**
+ * Convert an array of polygons to WKT representation.
+ *
+ * @param  {array[array[array[number]]]} polygons - an array of arrays
+ *  of two-element arrays representing [lon, lat] coordinate pairs
+ *  that outline a polygon
+ * @return {string} Well-Known Text representation of the polygon
+ */
+export function mulitPolygonCoordsToWKT(polygons) {
+  return `MULTIPOLYGON(${
+    polygons.map(
+      (polygon) => `((${polygon.map(
+        (lonLat) => `${lonLat[0]} ${lonLat[1]}`,
+      ).join(', ')}))`,
+    )
+  })`;
 }
 
 /**
@@ -130,14 +150,14 @@ export async function getJobResults(jobID, scenarioID) {
  *  lulc modification
  * @return {integer} id of the job that will create the modified LULC raster
  */
-export async function doWallpaper(targetCoords, patternID, scenarioID) {
+export async function doWallpaper(targetParcelWkt, patternID, scenarioID) {
   return (
     window.fetch(`${apiBaseURL}/wallpaper`, {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         scenario_id: scenarioID,
-        target_parcel_wkt: polygonCoordsToWKT(targetCoords),
+        target_parcel_wkt: targetParcelWkt,
         pattern_id: patternID,
       }),
     })
@@ -157,14 +177,14 @@ export async function doWallpaper(targetCoords, patternID, scenarioID) {
  *  lulc modification
  * @return {integer} id of the job that will create the modified LULC raster
  */
-export async function convertToSingleLULC(targetCoords, lulcCode, scenarioID) {
+export async function convertToSingleLULC(targetParcelWkt, lulcCode, scenarioID) {
   return (
     window.fetch(`${apiBaseURL}/parcel_fill`, {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         scenario_id: scenarioID,
-        target_parcel_wkt: polygonCoordsToWKT(targetCoords),
+        target_parcel_wkt: targetParcelWkt,
         lulc_class: lulcCode,
       }),
     })
@@ -181,16 +201,7 @@ export async function convertToSingleLULC(targetCoords, lulcCode, scenarioID) {
  *  representing [lon, lat] coordinate pairs outlining the parcel to query
  * @return {[object]} ? - fill in when this endpoint is working
  */
-export async function getLulcTableForParcel(sessionID, parcelCoords) {
-  // In general, this table will be built as part of a
-  // wallpapering action, but there is the case where we
-  // want to see this table for a parcel we select, before
-  // doing any wallpapering. The values will come from the
-  // baseline LULC.
-
-  // TODO: re-instate this real fetch once the endpoint is ready,
-  // https://github.com/natcap/urban-online-workflow/issues/42
-
+export async function postLulcTableForParcel(sessionID, parcelCoords) {
   return (
     window.fetch(`${apiBaseURL}/stats_under_parcel`, {
       method: 'post',
@@ -201,15 +212,32 @@ export async function getLulcTableForParcel(sessionID, parcelCoords) {
       }),
     })
       .then((response) => response.json())
-      .then((json) => console.log(json))
       .catch((error) => console.log(error))
   );
-  // const lulcTable = {
-  //   'Developed, Open Space': 24,
-  //   'Developed, Low Intensity': 8,
-  //   'Shrub/Scrub': 4,
-  // };
-  // return Promise.resolve(lulcTable);
+}
+
+/**
+ * Get stats about the baseline LULC on a given parcel.
+ *
+ * @param  {number} jobID - unique identifier for the job
+ * @return {[object]} ? - fill in when this endpoint is working
+ */
+export async function getLulcTableForParcel(jobID) {
+  const lulcTable = {
+    'Developed, Open Space': 24,
+    'Developed, Low Intensity': 8,
+    'Shrub/Scrub': 4,
+  };
+  return Promise.resolve(lulcTable);
+  // TODO: make the real request again once we can get a result other than "pending"
+  // return (
+  //   window.fetch(`${apiBaseURL}/stats_under_parcel/result/${jobID}`, {
+  //     method: 'get',
+  //     headers: { 'Content-Type': 'application/json' },
+  //   })
+  //     .then((response) => response.json())
+  //     .catch((error) => console.log(error))
+  // );
 }
 
 /**
@@ -225,6 +253,7 @@ export async function getPatterns() {
       .then((response) => response.json())
       .catch((error) => console.log(error))
   );
+  // return Promise.resolve(patternsTable);
 }
 
 /**
