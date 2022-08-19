@@ -60,6 +60,7 @@ ALBERS_EQ_AREA_TO_WEB_MERCATOR = osr.CreateCoordinateTransformation(
 # NLCD raster attributes copied in by hand from gdalinfo
 NLCD_ORIGIN_X, _, _, NLCD_ORIGIN_Y, _, _ = _NLCD_RASTER_INFO['geotransform']
 PIXELSIZE_X, PIXELSIZE_Y = _NLCD_RASTER_INFO['pixel_size']
+NLCD_COLORS = {}  # update this dict later in file once function is defined.
 
 STATUS_SUCCESS = 'success'
 STATUS_FAILURE = 'failed'
@@ -67,11 +68,13 @@ JOBTYPE_FILL = 'parcel_fill'
 JOBTYPE_WALLPAPER = 'wallpaper'
 JOBTYPE_PARCEL_STATS = 'stats_under_parcel'
 JOBTYPE_LULC_CLASSNAMES = 'raster_classnames'
+JOBTYPE_PATTERN_THUMBNAIL = 'pattern_thumbnail'
 ENDPOINTS = {
     JOBTYPE_FILL: 'scenario',
     JOBTYPE_WALLPAPER: 'scenario',
     JOBTYPE_PARCEL_STATS: 'parcel_stats',
     JOBTYPE_LULC_CLASSNAMES: 'raster_classnames',  # TODO: fixme!
+    JOBTYPE_PATTERN_THUMBNAIL: 'pattern',
 }
 
 
@@ -198,10 +201,7 @@ class Tests(unittest.TestCase):
                          target_raster_path, self.workspace_dir)
 
         thumbnail = os.path.join('thumbnail_pattern.png')
-        colors = dict(
-            (k, v['color']) for (k, v) in
-            get_classnames_from_raster_attr_table(NLCD_RASTER_PATH).items())
-        make_thumbnail(pattern.wkt, colors, thumbnail, self.workspace_dir)
+        make_thumbnail(pattern.wkt, NLCD_COLORS, thumbnail, self.workspace_dir)
 
         # This is useful for debugging
         #import pdb; pdb.set_trace()  # print(self.workspace_dir)
@@ -571,6 +571,11 @@ def get_classnames_from_raster_attr_table(raster_path):
     return classes
 
 
+NLCD_COLORS.update(dict(
+    (k, v['color']) for (k, v) in
+    get_classnames_from_raster_attr_table(NLCD_RASTER_PATH).items()))
+
+
 def make_thumbnail(pattern_wkt_epsg3857, colors_dict, target_thumnail_path,
                    working_dir=None):
     working_dir = tempfile.mkdtemp(dir=working_dir, prefix='thumbnail-')
@@ -647,13 +652,13 @@ def do_work(host, port, outputs_location):
                     workspace, f'{scenario_id}_{job_type}.tif')
                 os.makedirs(workspace, exist_ok=True)
 
-                if job_type == 'parcel_fill':
+                if job_type == JOBTYPE_FILL:
                     fill_parcel(
                         parcel_wkt_epsg3857=job_args['target_parcel_wkt'],
                         fill_lulc_class=job_args['lulc_class'],
                         target_lulc_path=result_path
                     )
-                elif job_type == 'wallpaper':
+                elif job_type == JOBTYPE_WALLPAPER:
                     wallpaper_temp_dir = tempfile.mkdtemp(
                         dir=workspace, prefix='wallpaper-')
                     wallpaper_parcel(
@@ -699,6 +704,27 @@ def do_work(host, port, outputs_location):
                 data = {
                     'result': get_classnames_from_raster_attr_table(
                         NLCD_RASTER_PATH)
+                }
+            elif job_type == JOBTYPE_PATTERN_THUMBNAIL:
+                thumbnails_dir = os.path.join(
+                    model_outputs_dir, 'thumbnails')
+                if not os.path.exists(thumbnails_dir):
+                    os.makedirs(thumbnails_dir)
+                pattern_id = server_args['pattern_id']
+                thumbnail_path = os.path.join(
+                    thumbnails_dir,
+                    f'pattern_{pattern_id}_thumbnail.png')
+                make_thumbnail(
+                    pattern_wkt_epsg3857=job_args['pattern_wkt'],
+                    colors_dict=NLCD_COLORS,
+                    target_thumbnail_path=thumbnail_path,
+                    working_dir=thumbnails_dir
+                )
+
+                data = {
+                    'result': {
+                        'pattern_thumbnail_path': thumbnail_path,
+                    }
                 }
             else:
                 raise ValueError(f"Invalid job type: {job_type}")
