@@ -3,6 +3,6 @@
 FROM --platform=linux/amd64 mambaorg/micromamba:0.24.0-buster
 
 ARG MAMBA_DOCKERFILE_ACTIVATE=1
-RUN micromamba install -c conda-forge -y pygeoprocessing natcap.invest requests flask_cors
+RUN micromamba install -c conda-forge -y pygeoprocessing natcap.invest requests flask_cors pillow
 
 CMD /opt/conda/bin/python
