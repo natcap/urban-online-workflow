@@ -275,6 +275,61 @@ def worker_parcel_stats_response(
         db=db, parcel_stats=stats_update,
         stats_id=parcel_stats_job.server_attrs['stats_id'])
 
+
+@app.post("/jobsqueue/pattern")
+def worker_pattern_response(
+    pattern_job: schemas.WorkerResponse, db: Session = Depends(get_db)):
+    """Update the db given the job details from the worker.
+
+    Returned URL result will be partial to allow for local vs cloud stored
+    depending on production vs dev environment.
+
+    Args:
+        pattern_job (pydantic model): a pydantic model with the following 
+            key/vals
+
+            "result": {
+                "pattern_thumbnail_path": "relative path to file location",
+                "status": "success | failed",
+                "server_attrs": {
+                   "job_id": int, "scenario_id": int
+                   }
+    """
+    LOGGER.debug("Entering jobsqueue/pattern")
+    LOGGER.debug(pattern_job)
+    # Update job in db based on status
+    job_db = crud.get_job(db, job_id=pattern_job.server_attrs['job_id'])
+    # Update Pattern in db with the result
+    pattern_db = crud.get_pattern(db, pattern_id=pattern_job.server_attrs['pattern_id'])
+
+    job_status = scenario_job.status
+    if job_status == "success":
+        # Update the job status in the DB to "success"
+        job_update = schemas.JobBase(
+            status=STATUS_SUCCESS,
+            name=job_db.name, description=job_db.description)
+        # Update the scenario lulc path and stats
+        scenario_update = schemas.ScenarioUpdate(
+            lulc_url_result=scenario_job.result['lulc_path'],
+            lulc_stats=json.dumps(scenario_job.result['lulc_stats']))
+    else:
+        # Update the job status in the DB to "failed"
+        job_update = schemas.JobBase(
+            status=STATUS_FAILED,
+            name=job_db.name, description=job_db.description)
+        # Update the the scenario lulc path stats with None
+        scenario_update = schemas.ScenarioUpdate(
+            lulc_url_result=None, lulc_stats=None)
+
+    LOGGER.debug('Update job status')
+    _ = crud.update_job(
+        db=db, job=job_update, job_id=scenario_job.server_attrs['job_id'])
+    LOGGER.debug('Update scenario result')
+    _ = crud.update_scenario(
+        db=db, scenario=scenario_update,
+        scenario_id=scenario_job.server_attrs['scenario_id'])
+
+
 @app.post("/jobs/", response_model=schemas.Job)
 def create_job(
     job: schemas.JobBase, db: Session = Depends(get_db)
