@@ -17,6 +17,7 @@ import shapely.wkt
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
+from PIL import Image
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
@@ -59,6 +60,7 @@ ALBERS_EQ_AREA_TO_WEB_MERCATOR = osr.CreateCoordinateTransformation(
 # NLCD raster attributes copied in by hand from gdalinfo
 NLCD_ORIGIN_X, _, _, NLCD_ORIGIN_Y, _, _ = _NLCD_RASTER_INFO['geotransform']
 PIXELSIZE_X, PIXELSIZE_Y = _NLCD_RASTER_INFO['pixel_size']
+NLCD_COLORS = {}  # update this dict later in file once function is defined.
 
 STATUS_SUCCESS = 'success'
 STATUS_FAILURE = 'failed'
@@ -66,11 +68,13 @@ JOBTYPE_FILL = 'parcel_fill'
 JOBTYPE_WALLPAPER = 'wallpaper'
 JOBTYPE_PARCEL_STATS = 'stats_under_parcel'
 JOBTYPE_LULC_CLASSNAMES = 'raster_classnames'
+JOBTYPE_PATTERN_THUMBNAIL = 'pattern_thumbnail'
 ENDPOINTS = {
     JOBTYPE_FILL: 'scenario',
     JOBTYPE_WALLPAPER: 'scenario',
     JOBTYPE_PARCEL_STATS: 'parcel_stats',
     JOBTYPE_LULC_CLASSNAMES: 'raster_classnames',  # TODO: fixme!
+    JOBTYPE_PATTERN_THUMBNAIL: 'pattern',
 }
 
 
@@ -167,8 +171,40 @@ class Tests(unittest.TestCase):
         wallpaper_parcel(parcel.wkt, pattern.wkt, nlud_path,
                          target_raster_path, self.workspace_dir)
 
+    def test_wallpaper_nlcd(self):
+        # University of Texas: San Antonio, selected by hand in QGIS
+        # Coordinates are in EPSG:3857 "Web Mercator"
+        point_over_san_antonio = shapely.geometry.Point(
+            -10965275.57, 3429693.30)
+        parcel = point_over_san_antonio.buffer(100)
+
+        # Apache Creek, urban residential area, San Antonio, TX.
+        # Selected by hand in QGIS.  Coordinates are in EPSG:3857 "Web
+        # Mercator"
+        # Near the intersection of South Laredo street and South Zarzamora
+        # Street.
+        pattern = shapely.geometry.box(
+            *shapely.geometry.Point(
+                -10968418.16, 3429347.98).buffer(100).bounds)
+
+        # write this output to a file for testing
+        pygeoprocessing.geoprocessing.shapely_geometry_to_vector(
+            [pattern],
+            os.path.join(self.workspace_dir, 'pattern_webmercator.geojson'),
+            _WEB_MERCATOR_SRS.ExportToWkt(), 'GeoJSON')
+
+        target_raster_path = os.path.join(
+            self.workspace_dir, 'wallpapered_raster.tif')
+
+        nlcd_path = 'appdata/NLCD_2016.tif'
+        wallpaper_parcel(parcel.wkt, pattern.wkt, nlcd_path,
+                         target_raster_path, self.workspace_dir)
+
+        thumbnail = os.path.join('thumbnail_pattern.png')
+        make_thumbnail(pattern.wkt, NLCD_COLORS, thumbnail, self.workspace_dir)
+
         # This is useful for debugging
-        # import pdb; pdb.set_trace()  # print(self.workspace_dir)
+        #import pdb; pdb.set_trace()  # print(self.workspace_dir)
 
     def test_classnames(self):
         classes = get_classnames_from_raster_attr_table(NLCD_RASTER_PATH)
@@ -179,6 +215,31 @@ class Tests(unittest.TestCase):
         self.assertEqual(len(classes), 16)
         for _, attrs in classes.items():
             self.assertRegexpMatches(attrs['color'], '#[0-9a-fA-F]{6}')
+
+    @unittest.skip
+    def test_thumbnail(self):
+
+        gtiff_path = os.path.join(self.workspace_dir, 'raster.tif')
+
+        # University of Texas: San Antonio, selected by hand in QGIS
+        # Coordinates are in EPSG:3857 "Web Mercator"
+        point_over_san_antonio = shapely.geometry.Point(
+            -10965275.57, 3429693.30)
+
+        # Raster units are in meters (mercator)
+        parcel = point_over_san_antonio.buffer(100)
+        pygeoprocessing.geoprocessing.shapely_geometry_to_vector(
+            [point_over_san_antonio, parcel],
+            os.path.join(self.workspace_dir, 'parcel.shp'),
+            _WEB_MERCATOR_SRS.ExportToWkt(), 'ESRI Shapefile')
+
+        _create_new_lulc(parcel.wkt, gtiff_path)
+
+        thumbnail = os.path.join('thumbnail.png')
+        colors = dict(
+            (k, v['color']) for (k, v) in
+            get_classnames_from_raster_attr_table(NLCD_RASTER_PATH).items())
+        make_thumbnail(gtiff_path, colors, thumbnail)
 
 
 def _reproject_to_nlud(parcel_wkt_epsg3857):
@@ -215,9 +276,9 @@ def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path):
     """
     parcel_geom = _reproject_to_nlud(parcel_wkt_epsg3857)
     parcel_min_x, parcel_min_y, parcel_max_x, parcel_max_y = parcel_geom.bounds
-    buffered_parcel_geom = parcel_geom.buffer(
-        abs(min(parcel_max_x - parcel_min_x,
-                parcel_max_y - parcel_min_y)))
+    buffer_dist = abs(min(parcel_max_x - parcel_min_x,
+                          parcel_max_y - parcel_min_y))
+    buffered_parcel_geom = parcel_geom.buffer(buffer_dist)
     buf_minx, buf_miny, buf_maxx, buf_maxy = buffered_parcel_geom.bounds
 
     # Round "up" to the nearest pixel, sort of the pixel-math version of
@@ -241,6 +302,7 @@ def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path):
     band.SetNoDataValue(NLCD_NODATA)
     band.Fill(NLCD_NODATA)
     target_raster = None
+    band = None
 
 
 def fill_parcel(parcel_wkt_epsg3857, fill_lulc_class,
@@ -509,6 +571,53 @@ def get_classnames_from_raster_attr_table(raster_path):
     return classes
 
 
+NLCD_COLORS.update(dict(
+    (k, v['color']) for (k, v) in
+    get_classnames_from_raster_attr_table(NLCD_RASTER_PATH).items()))
+
+
+def make_thumbnail(pattern_wkt_epsg3857, colors_dict, target_thumnail_path,
+                   working_dir=None):
+    working_dir = tempfile.mkdtemp(dir=working_dir, prefix='thumbnail-')
+    thumbnail_gtiff_path = os.path.join(working_dir, 'pattern.tif')
+
+    # Buffer the bbox by a half-pixel to make sure we get the whole pattern and
+    # just a small bit of the surrounding context.
+    pygeoprocessing.geoprocessing.warp_raster(
+        NLCD_RASTER_PATH, _NLCD_RASTER_INFO['pixel_size'],
+        thumbnail_gtiff_path, 'nearest',
+        target_bb=_reproject_to_nlud(pattern_wkt_epsg3857).buffer(
+            PIXELSIZE_X/2).bounds
+    )
+
+    raw_image = Image.open(thumbnail_gtiff_path)
+    # 'P' mode indicates palletted color
+    image = raw_image.convert('P')
+    print(numpy.asarray(image))
+
+    rgb_colors = {}
+    for lucode, hex_color in colors_dict.items():
+        rgb_colors[lucode] = [
+            int(f'0x{"".join(hex_color[1:3])}', 16),
+            int(f'0x{"".join(hex_color[3:5])}', 16),
+            int(f'0x{"".join(hex_color[5:7])}', 16)
+        ]
+
+    rgb_colors_list = []
+    for i in range(0, 256):
+        try:
+            rgb_colors_list.extend(rgb_colors[i])
+        except KeyError:
+            rgb_colors_list.extend([0, 0, 0])
+
+    image.putpalette(rgb_colors_list)
+    factor = 30  # taken from the pixelsize so we can just deal in native units
+    image = image.resize((image.width * factor,
+                          image.height * factor))
+    image.save(target_thumnail_path)
+    shutil.rmtree(working_dir, ignore_errors=True)
+
+
 def do_work(host, port, outputs_location):
     job_queue_url = f'http://{host}:{port}/jobsqueue/'
     LOGGER.info(f'Starting worker, queueing {job_queue_url}')
@@ -543,13 +652,13 @@ def do_work(host, port, outputs_location):
                     workspace, f'{scenario_id}_{job_type}.tif')
                 os.makedirs(workspace, exist_ok=True)
 
-                if job_type == 'parcel_fill':
+                if job_type == JOBTYPE_FILL:
                     fill_parcel(
                         parcel_wkt_epsg3857=job_args['target_parcel_wkt'],
                         fill_lulc_class=job_args['lulc_class'],
                         target_lulc_path=result_path
                     )
-                elif job_type == 'wallpaper':
+                elif job_type == JOBTYPE_WALLPAPER:
                     wallpaper_temp_dir = tempfile.mkdtemp(
                         dir=workspace, prefix='wallpaper-')
                     wallpaper_parcel(
@@ -595,6 +704,27 @@ def do_work(host, port, outputs_location):
                 data = {
                     'result': get_classnames_from_raster_attr_table(
                         NLCD_RASTER_PATH)
+                }
+            elif job_type == JOBTYPE_PATTERN_THUMBNAIL:
+                thumbnails_dir = os.path.join(
+                    model_outputs_dir, 'thumbnails')
+                if not os.path.exists(thumbnails_dir):
+                    os.makedirs(thumbnails_dir)
+                pattern_id = server_args['pattern_id']
+                thumbnail_path = os.path.join(
+                    thumbnails_dir,
+                    f'pattern_{pattern_id}_thumbnail.png')
+                make_thumbnail(
+                    pattern_wkt_epsg3857=job_args['pattern_wkt'],
+                    colors_dict=NLCD_COLORS,
+                    target_thumbnail_path=thumbnail_path,
+                    working_dir=thumbnails_dir
+                )
+
+                data = {
+                    'result': {
+                        'pattern_thumbnail_path': thumbnail_path,
+                    }
                 }
             else:
                 raise ValueError(f"Invalid job type: {job_type}")
