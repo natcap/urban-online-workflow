@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import queue
 import sys
 
@@ -288,46 +289,47 @@ def worker_pattern_response(
         pattern_job (pydantic model): a pydantic model with the following 
             key/vals
 
+        {
             "result": {
                 "pattern_thumbnail_path": "relative path to file location",
-                "status": "success | failed",
-                "server_attrs": {
-                   "job_id": int, "scenario_id": int
-                   }
+                }
+            "status": "success | failed",
+            "server_attrs": {
+               "job_id": int, "scenario_id": int
+               }
+       }
     """
-    LOGGER.debug("Entering jobsqueue/pattern")
-    LOGGER.debug(pattern_job)
     # Update job in db based on status
     job_db = crud.get_job(db, job_id=pattern_job.server_attrs['job_id'])
     # Update Pattern in db with the result
     pattern_db = crud.get_pattern(db, pattern_id=pattern_job.server_attrs['pattern_id'])
 
-    job_status = scenario_job.status
+    job_status = pattern_job.status
     if job_status == "success":
         # Update the job status in the DB to "success"
         job_update = schemas.JobBase(
             status=STATUS_SUCCESS,
             name=job_db.name, description=job_db.description)
-        # Update the scenario lulc path and stats
-        scenario_update = schemas.ScenarioUpdate(
-            lulc_url_result=scenario_job.result['lulc_path'],
-            lulc_stats=json.dumps(scenario_job.result['lulc_stats']))
+        # Update the pattern thumbnail path
+        pattern_update = schemas.PatternUpdate(
+            pattern_thumbnail_path=pattern_job.result['pattern_thumbnail_path'],
+            )
     else:
         # Update the job status in the DB to "failed"
         job_update = schemas.JobBase(
             status=STATUS_FAILED,
             name=job_db.name, description=job_db.description)
-        # Update the the scenario lulc path stats with None
-        scenario_update = schemas.ScenarioUpdate(
-            lulc_url_result=None, lulc_stats=None)
+        # Update the pattern thumbnail path with None
+        pattern_update = schemas.PatternUpdate(
+            pattern_thumbnail_path=None)
 
     LOGGER.debug('Update job status')
     _ = crud.update_job(
-        db=db, job=job_update, job_id=scenario_job.server_attrs['job_id'])
-    LOGGER.debug('Update scenario result')
-    _ = crud.update_scenario(
-        db=db, scenario=scenario_update,
-        scenario_id=scenario_job.server_attrs['scenario_id'])
+        db=db, job=job_update, job_id=pattern_job.server_attrs['job_id'])
+    LOGGER.debug('Update pattern result')
+    _ = crud.update_pattern(
+        db=db, pattern=pattern_update,
+        pattern_id=pattern_job.server_attrs['pattern_id'])
 
 
 @app.post("/jobs/", response_model=schemas.Job)
@@ -354,19 +356,41 @@ def read_jobs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
 ### Task Endpoints ###
 
 @app.post("/pattern/{session_id}", response_model=schemas.PatternResponse)
-def create_pattern(session_id: str, pattern: schemas.PatternBase, db: Session = Depends(get_db)):
-    """Create a wallpapering pattern by just saving the wkt in the db."""
+def create_pattern(session_id: str, pattern: schemas.PatternBase,
+                   db: Session = Depends(get_db)):
+    """Create a wallpapering pattern by saving the wkt and a thumbnail."""
+    # Create job entry for pattern task
+    job_schema = schemas.JobBase(
+        **{"name": "create_pattern",
+           "description": "create pattern thumbnail",
+           "status": STATUS_PENDING})
+
+    job_db = crud.create_job(
+        db=db, session_id=session_id, job=job_schema)
 
     pattern_db = crud.create_pattern(
         db=db, session_id=session_id, pattern=pattern)
 
-    return pattern_db
+    # Construct worker job and add to the queue
+    worker_task = {
+        "job_type": "pattern_thumbnail",
+        "server_attrs": {
+            "job_id": job_db.job_id, "pattern_id": pattern_db.pattern_id
+        },
+        "job_args": {
+            "pattern_wkt": pattern_db.wkt,
+            "lulc_source_url": os.path.join(WORKING_ENV,BASE_LULC),
+        }
+    }
+
+    QUEUE.put_nowait((HIGH_PRIORITY, worker_task))
+
+    return {**worker_task['server_attrs'], "label": pattern.label}
 
 
-@app.get("/pattern/", response_model=list[schemas.PatternResponse])
+@app.get("/pattern/", response_model=list[schemas.Pattern])
 def get_patterns(db: Session = Depends(get_db)):
     """Get a list of the wallpapering patterns saved in the db."""
-
     pattern_db = crud.get_patterns(db=db)
 
     return pattern_db

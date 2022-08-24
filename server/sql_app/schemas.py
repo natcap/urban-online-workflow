@@ -112,7 +112,7 @@ class PatternBase(BaseModel):
 class Pattern(PatternBase):
     """Pydantic model used when reading data, when returning it from API."""
     pattern_id: int
-    owner_id: str
+    pattern_thumbnail_path: Union[str, None] = None
 
     class Config:
         orm_mode = True
@@ -122,9 +122,15 @@ class PatternResponse(BaseModel):
     """Pydantic model for the response after the pattern creation."""
     pattern_id: int
     label: str
+    job_id: int
 
     class Config:
         orm_mode = True
+
+
+class PatternUpdate(BaseModel):
+    """Pydantic model for updating Pattern in the DB."""
+    pattern_thumbnail_path: Union[str, None] = None
 
 
 class ParcelStatsBase(BaseModel):
