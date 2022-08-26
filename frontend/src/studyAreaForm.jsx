@@ -57,7 +57,7 @@ export default function StudyAreaForm(props) {
             : null
         }
         <td>{id}</td>
-        <td className="parcel-block">{plot(data.table)}</td>
+        <td><div className="parcel-block">{plot(data.table)}</div></td>
       </tr>,
     );
   });
@@ -86,7 +86,6 @@ export default function StudyAreaForm(props) {
           : <div />
       }
       <HTMLTable
-        striped
         className="study-area-table bp4-html-table-condensed"
       >
         <tbody>
