@@ -224,9 +224,9 @@ export async function postLulcTableForParcel(sessionID, parcelCoords) {
  */
 export async function getLulcTableForParcel(jobID) {
   const lulcTable = {
-    'Developed, Open Space': 24,
-    'Developed, Low Intensity': 8,
-    'Shrub/Scrub': 4,
+    21: 24,
+    22: 8,
+    52: 4,
   };
   return Promise.resolve(lulcTable);
   // TODO: make the real request again once we can get a result other than "pending"

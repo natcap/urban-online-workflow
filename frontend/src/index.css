@@ -142,10 +142,16 @@ html, body, #root, .App {
   height: 100px;
 }
 
-.scenario-table {
+.study-area-table {
   padding-top: 1rem;
 }
 
-.scenario-table td {
-  text-align: end;
+.study-area-table .parcel-block {
+  display: flex;
+  flex-wrap:  wrap;
+}
+
+.study-area-legend {
+  display: flex;
+  height: 1rem;
 }

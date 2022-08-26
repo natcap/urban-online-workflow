@@ -6,6 +6,8 @@ import {
   HTMLTable,
 } from '@blueprintjs/core';
 
+import landuseCodes from './landuseCodes';
+
 export default function StudyAreaForm(props) {
   const {
     submitStudyArea,
@@ -14,6 +16,29 @@ export default function StudyAreaForm(props) {
     studyArea,
   } = props;
   const [studyAreaName, setStudyAreaName] = useState('');
+  const [highlightedCode, setHighlightedCode] = useState(null);
+
+  function plot(table) {
+    const blocks = [];
+    Object.entries(table).forEach(([code, count]) => {
+      let n = 0;
+      while (n < count) {
+        blocks.push(
+          <div
+            style={{
+              backgroundColor: landuseCodes[code].color,
+              width: '10px',
+              height: '10px',
+            }}
+            onMouseOver={() => setHighlightedCode(code)}
+            onMouseOut={() => setHighlightedCode(null)}
+          />,
+        );
+        n++;
+      }
+    });
+    return blocks;
+  }
 
   const rows = [];
   Object.entries(parcelSet).forEach(([id, data]) => {
@@ -32,7 +57,7 @@ export default function StudyAreaForm(props) {
             : null
         }
         <td>{id}</td>
-        <td>{JSON.stringify(data.table)}</td>
+        <td className="parcel-block">{plot(data.table)}</td>
       </tr>,
     );
   });
@@ -42,11 +67,6 @@ export default function StudyAreaForm(props) {
       <p className="sidebar-subheading">
         {`Parcels in study area ${studyArea}:`}
       </p>
-      <HTMLTable bordered striped className="scenario-table">
-        <tbody>
-          {rows}
-        </tbody>
-      </HTMLTable>
       {
         (!studyArea)
           ? (
@@ -65,6 +85,34 @@ export default function StudyAreaForm(props) {
           )
           : <div />
       }
+      <HTMLTable
+        striped
+        className="study-area-table bp4-html-table-condensed"
+      >
+        <tbody>
+          {rows}
+        </tbody>
+      </HTMLTable>
+      <div className="study-area-legend">
+        {
+          (highlightedCode)
+            ? (
+              <>
+                <div
+                  style={{
+                    backgroundColor: landuseCodes[highlightedCode].color,
+                    width: '20px',
+                    height: '20px',
+                    display: 'inline-block',
+                    marginRight: '0.5em'
+                  }}
+                />
+                <span>{landuseCodes[highlightedCode].name}</span>
+              </>
+            )
+            : <div />
+        }
+      </div>
     </div>
   );
 }

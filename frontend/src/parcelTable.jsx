@@ -40,18 +40,6 @@ export default function ParcelTable(props) {
     setJobID(jid.job_id);
   };
 
-  // const nPixels = Object.values(parcel.table)
-  //   .reduce((partialSum, x) => partialSum + x, 0);
-  // const rows = [];
-  // Object.entries(parcel.table).forEach(([name, count]) => {
-  //   rows.push(
-  //     <tr key={name}>
-  //       <td key="name">{name}</td>
-  //       <td key="count">{`${Math.round((count / nPixels) * 100)} %`}</td>
-  //     </tr>,
-  //   );
-  // });
-
   return (
     <div className="layer-info">
       {(!parcel)
