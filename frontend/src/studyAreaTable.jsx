@@ -13,7 +13,8 @@ import {
 } from '@blueprintjs/core';
 
 export default function StudyAreaTable(props) {
-  // const { savedScenarios } = props;
+  const { savedScenarios } = props;
+  console.log(savedScenarios)
 
   const [lulcNames, setLulcNames] = useState([]);
 

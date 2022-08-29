@@ -17,7 +17,7 @@ import { defaults } from 'ol/control';
 
 import { Button, Icon } from '@blueprintjs/core';
 
-import ParcelTable from './parcelTable';
+import ParcelControl from './parcelControl';
 import lulcLayer from './map/lulcLayer';
 import LayerPanel from './map/LayerPanel';
 import {
@@ -244,7 +244,7 @@ export default function MapComponent(props) {
           basemap={basemap}
         />
       </div>
-      <ParcelTable
+      <ParcelControl
         sessionID={sessionID}
         parcel={selectedParcel}
         addParcel={addParcel}

@@ -11,7 +11,7 @@ import {
   postLulcTableForParcel,
 } from './requests';
 
-export default function ParcelTable(props) {
+export default function ParcelControl(props) {
   const {
     parcel,
     addParcel,
@@ -23,6 +23,7 @@ export default function ParcelTable(props) {
 
   useInterval(async () => {
     const results = await getLulcTableForParcel(jobID);
+    console.log(results)
     if (!['pending', 'running'].includes(results)) {
       const addition = {
         [parcel.parcelID]: {

@@ -22,7 +22,7 @@ import {
   polygonCoordsToWKT,
 } from './requests';
 
-export default function ScenarioTable(props) {
+export default function ScenarioBuilder(props) {
   const {
     parcelSet,
     sessionID,
