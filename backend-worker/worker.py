@@ -577,7 +577,7 @@ NLCD_COLORS.update(dict(
     get_classnames_from_raster_attr_table(NLCD_RASTER_PATH).items()))
 
 
-def make_thumbnail(pattern_wkt_epsg3857, colors_dict, target_thumnail_path,
+def make_thumbnail(pattern_wkt_epsg3857, colors_dict, target_thumbnail_path,
                    working_dir=None):
     working_dir = tempfile.mkdtemp(dir=working_dir, prefix='thumbnail-')
     thumbnail_gtiff_path = os.path.join(working_dir, 'pattern.tif')
@@ -594,7 +594,6 @@ def make_thumbnail(pattern_wkt_epsg3857, colors_dict, target_thumnail_path,
     raw_image = Image.open(thumbnail_gtiff_path)
     # 'P' mode indicates palletted color
     image = raw_image.convert('P')
-    print(numpy.asarray(image))
 
     rgb_colors = {}
     for lucode, hex_color in colors_dict.items():
@@ -615,7 +614,7 @@ def make_thumbnail(pattern_wkt_epsg3857, colors_dict, target_thumnail_path,
     factor = 30  # taken from the pixelsize so we can just deal in native units
     image = image.resize((image.width * factor,
                           image.height * factor))
-    image.save(target_thumnail_path)
+    image.save(target_thumbnail_path)
     shutil.rmtree(working_dir, ignore_errors=True)
 
 

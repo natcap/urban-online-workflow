@@ -77,6 +77,7 @@ class Pattern(Base):
     pattern_id = Column(Integer, primary_key=True, index=True)
     label = Column(String, index=True)
     wkt = Column(String)
+    pattern_thumbnail_path = Column(String)
     # each pattern has an associated session owner
     owner_id = Column(String, ForeignKey("sessions.session_id"))
 
