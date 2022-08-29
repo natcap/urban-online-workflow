@@ -52,6 +52,20 @@ class Session(Base):
     jobs = relationship("Job", back_populates="owner")
 
 
+class StudyArea(Base):
+    """SQLAlchemy model for study areas."""
+    __tablename__ = "study_area"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    # each scenario has an associated session owner
+    owner_id = Column(String, ForeignKey("sessions.session_id"))
+
+    owner = relationship("Session", back_populates="study_area")
+    scenarios = relationship("Scenario", back_populates="study_area")
+    parcels = relationship("Parcel", back_populates="study_area")
+
+
 class Scenario(Base):
     """SQLAlchemy model for scenarios."""
     __tablename__ = "scenarios"
@@ -59,15 +73,17 @@ class Scenario(Base):
     scenario_id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     description = Column(String)
-    wkt = Column(String)
     lulc_url_result = Column(String)
     lulc_stats = Column(String)
     lulc_url_base = Column(String, default="NLCD_2016.tif")
+    operation = Column(String, default="NLCD_2016.tif")
     # each scenario has an associated session owner
     owner_id = Column(String, ForeignKey("sessions.session_id"))
+    study_area_id = Column(String, ForeignKey("study_area.id"))
 
     #parcel_stats = relationship("ParcelStats", back_populates="owner")
     owner = relationship("Session", back_populates="scenarios")
+    study_area = relationship("StudyArea", back_populates="scenarios")
 
 
 class Pattern(Base):
@@ -96,3 +112,11 @@ class ParcelStats(Base):
     job_id = Column(Integer, ForeignKey("jobs.job_id"))
 
     #owner = relationship("Job", back_populates="parcel_stats")
+
+
+class Parcel(Base):
+    """SQLAlchemy model for parcels."""
+    __tablename__ = "parcel"
+
+    id = Column(Integer, primary_key=True, index=True)
+    parcel_wkt = Column(String)
