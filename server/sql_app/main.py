@@ -202,15 +202,13 @@ def worker_scenario_response(
                 "job_id": int, "scenario_id": int
                 }
     """
-    LOGGER.debug("Entering jobsqueue/scenario")
-    LOGGER.debug(scenario_job)
     # Update job in db based on status
     job_db = crud.get_job(db, job_id=scenario_job.server_attrs['job_id'])
     # Update Scenario in db with the result
     scenario_db = crud.get_scenario(db, scenario_id=scenario_job.server_attrs['scenario_id'])
 
     job_status = scenario_job.status
-    if job_status == "success":
+    if job_status == STATUS_SUCCESS:
         # Update the job status in the DB to "success"
         job_update = schemas.JobBase(
             status=STATUS_SUCCESS,
@@ -297,6 +295,15 @@ def read_jobs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
 
 
 ### Task Endpoints ###
+
+@app.post("/lulc_codes/", response_model=schemas.JobResponse)
+def get_lulc_info(db: Session = Depends(get_db)):
+    """Get the lulc class codes, names, and color representation."""
+    #TODO: determine if this should act like the rest of our job endpoints
+    # or if this operation should happen locally or if it should happen at
+    # server start.
+
+    pass
 
 @app.post("/pattern/{session_id}", response_model=schemas.PatternResponse)
 def create_pattern(session_id: str, pattern: schemas.PatternBase, db: Session = Depends(get_db)):

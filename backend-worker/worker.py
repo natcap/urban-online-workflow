@@ -512,10 +512,11 @@ def pixelcounts_under_parcel(parcel_wkt_epsg3857, source_raster_path):
         array[parcel_mask == 1], return_counts=True)
 
     return_values = {}
-    for lulc_code, pixel_count in zip(values_under_parcel, counts):
-        # cast lulc_codes to int from numpy_int16 for future json dump call
-        # which does not allow numpy types for keys
-        return_values[int(lulc_code)] = pixel_count
+    # cast lulc_codes and counts to list for future json dump call
+    # which does not allow numpy types for keys
+    for lulc_code, pixel_count in zip(
+            values_under_parcel.tolist(), counts.tolist()):
+        return_values[lulc_code] = pixel_count
 
     return return_values
 
