@@ -223,21 +223,14 @@ export async function postLulcTableForParcel(sessionID, parcelCoords) {
  * @return {[object]} ? - fill in when this endpoint is working
  */
 export async function getLulcTableForParcel(jobID) {
-  const lulcTable = {
-    21: 24,
-    22: 8,
-    52: 4,
-  };
-  return Promise.resolve(lulcTable);
-  // TODO: make the real request again once we can get a result other than "pending"
-  // return (
-  //   window.fetch(`${apiBaseURL}/stats_under_parcel/result/${jobID}`, {
-  //     method: 'get',
-  //     headers: { 'Content-Type': 'application/json' },
-  //   })
-  //     .then((response) => response.json())
-  //     .catch((error) => console.log(error))
-  // );
+  return (
+    window.fetch(`${apiBaseURL}/stats_under_parcel/result/${jobID}`, {
+      method: 'get',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
 }
 
 /**

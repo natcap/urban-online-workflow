@@ -27,7 +27,7 @@ export default function ParcelTable(props) {
       const addition = {
         [parcel.parcelID]: {
           coords: parcel.coords,
-          table: results,
+          table: JSON.parse(results).base, // TODO: do we need the scenario identifier in these results?
         },
       };
       setJobID(null);
