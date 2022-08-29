@@ -192,5 +192,25 @@ def get_pattern(db: Session, pattern_id: int):
             models.Pattern.pattern_id == pattern_id).first()
 
 def get_patterns(db: Session):
-    """Read all patterns."""
-    return db.query(models.Pattern).all()
+    """Read all patterns that have a thumbnail."""
+    # This currently is NOT filtering out entries where thumbnail path is NULL
+    # and I'm not quite sure why.
+    return db.query(models.Pattern).filter(
+            models.Pattern.pattern_thumbnail_path.is_not(None)).all()
+
+def update_pattern(
+        db: Session, pattern: schemas.PatternUpdate, pattern_id: int):
+    """Update a patterns entry."""
+    db_pattern = get_pattern(db, pattern_id)
+
+    if not db_pattern:
+        raise HTTPException(status_code=404, detail="Pattern not found")
+    pattern_data = pattern.dict(exclude_unset=True)
+    for key, value in pattern_data.items():
+        setattr(db_pattern, key, value)
+
+    db.add(db_pattern)
+    db.commit()
+    db.refresh(db_pattern)
+    return STATUS_SUCCESS
+
