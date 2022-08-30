@@ -23,7 +23,6 @@ export default function ParcelControl(props) {
 
   useInterval(async () => {
     const results = await getLulcTableForParcel(jobID);
-    console.log(results)
     if (!['pending', 'running'].includes(results)) {
       const addition = {
         [parcel.parcelID]: {

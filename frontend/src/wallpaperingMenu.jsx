@@ -14,7 +14,9 @@ import {
 import {
   getPatterns,
   createPattern,
+  getJobStatus,
 } from './requests';
+import useInterval from './hooks/useInterval';
 
 export default function WallpaperingMenu(props) {
   const {
@@ -29,18 +31,46 @@ export default function WallpaperingMenu(props) {
   const [drawerIsOpen, setDrawerIsOpen] = useState(false);
   const [patterns, setPatterns] = useState([]);
   const [newPatternName, setNewPatternName] = useState('New Pattern 1');
+  const [jobID, setJobID] = useState(null);
+  const [patternID, setPatternID] = useState(null);
+
+  const updatePatterns = async () => {
+    const data = await getPatterns() || [];
+    // vite dev server serves /opt/appdata at root
+    const newPatterns = data.map((item) => {
+      const pattern = item;
+      pattern.url = (
+        pattern.pattern_thumbnail_path.startsWith('/opt/appdata/')
+      )
+        ? pattern.pattern_thumbnail_path.replace('/opt/appdata/', '/')
+        : pattern.pattern_thumbnail_path;
+      return pattern;
+    });
+    setPatterns(newPatterns);
+    return newPatterns;
+  };
 
   useEffect(async () => {
-    setPatterns(await getPatterns() || []);
+    await updatePatterns();
   }, []);
+
+  useInterval(async () => {
+    console.log('checking status for job', jobID);
+    const status = await getJobStatus(jobID);
+    if (status === 'success') {
+      const ptrns = await updatePatterns();
+      setSelectedPattern(
+        ptrns.filter((pattern) => pattern.pattern_id === patternID)[0],
+      );
+      setJobID(null);
+    }
+  }, (jobID && patternID) ? 500 : null);
 
   const handleSamplePattern = async (event) => {
     event.preventDefault();
-    const patternID = await createPattern(patternSampleWKT, newPatternName, sessionID);
-    setPatterns(await getPatterns());
-    setSelectedPattern(
-      patterns.filter((pattern) => pattern.pattern_id === patternID),
-    );
+    const data = await createPattern(patternSampleWKT, newPatternName, sessionID);
+    setJobID(data.job_id);
+    setPatternID(data.pattern_id);
     togglePatternSamplingMode();
   };
 

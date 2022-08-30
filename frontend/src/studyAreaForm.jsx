@@ -65,7 +65,8 @@ export default function StudyAreaForm(props) {
   return (
     <div>
       <p className="sidebar-subheading">
-        {`Parcels in study area ${studyArea}:`}
+        <span>Parcels in study area </span>
+        <em>{studyArea}</em>
       </p>
       {
         (!studyArea)

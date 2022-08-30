@@ -60,10 +60,7 @@ export default function ScenarioBuilder(props) {
     }
     let currentScenarioID = scenarioID;
     // TODO: add validation to check that scenarioName is not already taken
-    // if it is, maybe give option to overwrite the scenario? though that
-    // is only okay if the new scenario fits in the same portfolio as the one
-    // being overwritten. Also, maybe okay to have scenarios with the same name,
-    // if they are in different portfolios. Need user to create a portfolio?
+    // for this study area. If it is, maybe give option to overwrite?
     currentScenarioID = await makeScenario(sessionID, scenarioName, 'description');
     setScenarioID(currentScenarioID);
     let jid;
@@ -144,7 +141,8 @@ export default function ScenarioBuilder(props) {
                 }
               </div>
               <p className="sidebar-subheading">
-                {`Save as a new scenario for study area ${studyArea}`}
+                <span>Save as a new scenario for study area </span>
+                <em>{studyArea}</em>
               </p>
               <InputGroup
                 placeholder="name this scenario"

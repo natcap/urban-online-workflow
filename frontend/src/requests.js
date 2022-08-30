@@ -270,7 +270,6 @@ export async function createPattern(wkt, label, sessionID) {
       }),
     })
       .then((response) => response.json())
-      .then((json) => json.pattern_id)
       .catch((error) => console.log(error))
   );
 }
