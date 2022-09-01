@@ -10,10 +10,41 @@ from pydantic import BaseModel
 # Pydantic models declare the types using ":", the new type annotation
 # syntax/type hints
 
+class PatternBase(BaseModel):
+    """Pydantic model base for Patterns."""
+    label: str
+    wkt: str
+
+
+class Pattern(PatternBase):
+    """Pydantic model used when reading data, when returning it from API."""
+    pattern_id: int
+    pattern_thumbnail_path: Union[str, None] = None
+
+    class Config:
+        orm_mode = True
+
+
+class PatternResponse(BaseModel):
+    """Pydantic model for the response after the pattern creation."""
+    pattern_id: int
+    label: str
+    job_id: int
+
+    class Config:
+        orm_mode = True
+
+
+class PatternUpdate(BaseModel):
+    """Pydantic model for updating Pattern in the DB."""
+    pattern_thumbnail_path: Union[str, None] = None
+
+
 class ScenarioBase(BaseModel):
     """Pydantic model base for Scenarios."""
     name: str
     description: Optional[str] = None
+    operation: Literal["wallpaper", "paint"]
 
 
 class ScenarioUpdate(BaseModel):
@@ -25,12 +56,49 @@ class ScenarioUpdate(BaseModel):
 class Scenario(ScenarioBase):
     """Pydantic model used when reading data, when returning it from API."""
     scenario_id: int
-    owner_id: str
-    wkt: Union[str, None] = None
+    study_area_id: int
     lulc_url_result: Union[str, None] = None
     lulc_url_base: str
     lulc_stats: Union[str, None] = None
 
+    class Config:
+        orm_mode = True
+
+
+class ParcelBase(BaseModel):
+    """Pydantic model base for Parcels."""
+    wkt: str
+
+
+class Parcel(ParcelBase):
+    """Pydantic model used when reading data, when returning it from API."""
+    id: int
+    study_area_id: int
+
+    class Config:
+        orm_mode = True
+
+
+class StudyAreaBase(BaseModel):
+    """Pydantic model base for Study Areas."""
+    name: str
+    parcel_wkts: list[Parcel] = []
+
+
+class StudyArea(StudyAreaBase):
+    """Pydantic model used when reading data, when returning it from API."""
+    id: int
+    scenarios: list[Scenario] = []
+    parcels: list[Parcel] = []
+    owner_id: str
+
+    class Config:
+        orm_mode = True
+
+
+class StudyAreaResponse(BaseModel):
+    """Pydantic model for the response after study area creation."""
+    id: int
 
     class Config:
         orm_mode = True
@@ -49,7 +117,8 @@ class Session(BaseModel):
     id: int
     session_id: str
     last_active: datetime
-    scenarios: list[Scenario] = []
+    study_areas: list[StudyArea] = []
+    patterns: list[Pattern] = []
 
     class Config:
         # Pydantic's 'orm_mode' will tell the Pydantic model to read the data
@@ -102,35 +171,6 @@ class JobResponse(BaseModel):
     class Config:
         orm_mode = True
 
-
-class PatternBase(BaseModel):
-    """Pydantic model base for Patterns."""
-    label: str
-    wkt: str
-
-
-class Pattern(PatternBase):
-    """Pydantic model used when reading data, when returning it from API."""
-    pattern_id: int
-    pattern_thumbnail_path: Union[str, None] = None
-
-    class Config:
-        orm_mode = True
-
-
-class PatternResponse(BaseModel):
-    """Pydantic model for the response after the pattern creation."""
-    pattern_id: int
-    label: str
-    job_id: int
-
-    class Config:
-        orm_mode = True
-
-
-class PatternUpdate(BaseModel):
-    """Pydantic model for updating Pattern in the DB."""
-    pattern_thumbnail_path: Union[str, None] = None
 
 
 class ParcelStatsBase(BaseModel):

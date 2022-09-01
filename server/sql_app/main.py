@@ -108,6 +108,7 @@ def create_session(db: Session = Depends(get_db)):
 # All the data validation is performed under the hood by Pydantic, so you get
 # all the benefits from it.
 
+# TODO: remove for production, this is a convenience endpoint
 @app.get("/sessions/", response_model=list[schemas.Session])
 def read_sessions(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     sessions = crud.get_sessions(db, skip=skip, limit=limit)
@@ -121,15 +122,32 @@ def read_session(session_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Session not found")
     return db_session
 
-### Scenario Endpoints ###
 
-@app.post("/scenario/{session_id}", response_model=schemas.ScenarioResponse)
+
+### Study Area and Scenario Endpoints ###
+
+@app.post("/study_area/{session_id}", response_model=schemas.StudyAreaResponse)
+def create_study_area(
+    session_id: str, study_area: schemas.StudyAreaBase,
+    db: Session = Depends(get_db)
+):
+    return crud.create_study_area(
+        db=db, study_area=study_area, session_id=session_id)
+
+
+@app.get("/study_areas/{session_id}", response_model=schemas.StudyAreaResponse)
+def get_study_areas(session_id: str, db: Session = Depends(get_db)):
+    study_areas = crud.get_study_areas(db=db, session_id=session_id)
+    return study_areas
+
+
+@app.post("/scenario/{study_area_id}", response_model=schemas.ScenarioResponse)
 def create_scenario(
-    session_id: str, scenario: schemas.ScenarioBase,
+    study_area_id: int, scenario: schemas.ScenarioBase,
     db: Session = Depends(get_db)
 ):
     return crud.create_scenario(
-        db=db, scenario=scenario, session_id=session_id)
+        db=db, scenario=scenario, study_area_id=study_area_id)
 
 
 @app.patch("/scenario/{scenario_id}", status_code=200)
@@ -146,18 +164,9 @@ def delete_scenario(scenario_id: int, db: Session = Depends(get_db)):
     return crud.delete_scenario(db=db, scenario_id=scenario_id)
 
 
-#TODO: No need right now for individual scenarios per session
-@app.get("/scenario/{scenario_id}", response_model=schemas.Scenario)
-def read_scenario(scenario_id: int, db: Session = Depends(get_db)):
-    db_scenario = crud.get_scenario(db, scenario_id=scenario_id)
-    if db_scenario is None:
-        raise HTTPException(status_code=404, detail="Scenario not found")
-    return db_scenario
-
-
-@app.get("/scenarios/{session_id}", response_model=list[schemas.Scenario])
-def read_scenarios(session_id: str, db: Session = Depends(get_db)):
-    scenarios = crud.get_scenarios(db, session_id=session_id)
+@app.get("/scenarios/{study_area_id}", response_model=list[schemas.Scenario])
+def read_scenarios(study_area_id: int, db: Session = Depends(get_db)):
+    scenarios = crud.get_scenarios(db, study_area_id=study_area_id)
     return scenarios
 
 
@@ -239,8 +248,7 @@ def worker_scenario_response(
 @app.post("/jobsqueue/parcel_stats")
 def worker_parcel_stats_response(
     parcel_stats_job: schemas.WorkerResponse, db: Session = Depends(get_db)):
-    """Update the db given the job details from the worker.
-    """
+    """Update the db given the job details from the worker."""
     LOGGER.debug("Entering jobsqueue/parcel_stats")
     LOGGER.debug(parcel_stats_job)
     # Update job in db based on status

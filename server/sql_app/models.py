@@ -47,7 +47,7 @@ class Session(Base):
     # When you access 'User.[jobs|scenarios|patterns]', SQLA will actually
     # go and fetch the jobs from the db in the corresponding table and
     # populate them here.
-    scenarios = relationship("Scenario", back_populates="owner")
+    study_areas = relationship("StudyArea", back_populates="owner")
     patterns = relationship("Pattern", back_populates="owner")
     jobs = relationship("Job", back_populates="owner")
 
@@ -58,10 +58,10 @@ class StudyArea(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
-    # each scenario has an associated session owner
+    # each study area has an associated session owner
     owner_id = Column(String, ForeignKey("sessions.session_id"))
 
-    owner = relationship("Session", back_populates="study_area")
+    owner = relationship("Session", back_populates="study_areas")
     scenarios = relationship("Scenario", back_populates="study_area")
     parcels = relationship("Parcel", back_populates="study_area")
 
@@ -76,13 +76,11 @@ class Scenario(Base):
     lulc_url_result = Column(String)
     lulc_stats = Column(String)
     lulc_url_base = Column(String, default="NLCD_2016.tif")
-    operation = Column(String, default="NLCD_2016.tif")
-    # each scenario has an associated session owner
-    owner_id = Column(String, ForeignKey("sessions.session_id"))
+    operation = Column(String)
+    # each scenario has an associated study area owner
     study_area_id = Column(String, ForeignKey("study_area.id"))
 
     #parcel_stats = relationship("ParcelStats", back_populates="owner")
-    owner = relationship("Session", back_populates="scenarios")
     study_area = relationship("StudyArea", back_populates="scenarios")
 
 
@@ -119,4 +117,9 @@ class Parcel(Base):
     __tablename__ = "parcel"
 
     id = Column(Integer, primary_key=True, index=True)
-    parcel_wkt = Column(String)
+    wkt = Column(String, unique=True)
+
+    # each scenario has an associated study area owner
+    study_area_id = Column(String, ForeignKey("study_area.id"))
+
+    study_area = relationship("StudyArea", back_populates="parcels")

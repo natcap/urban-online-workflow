@@ -69,20 +69,37 @@ def create_session(db: Session):
     db.refresh(db_session)
     return db_session
 
-def create_scenario(db: Session, scenario: schemas.Scenario, session_id: str):
-    """Create scenario linking with ``session_id``."""
-    db_scenario = models.Scenario(**scenario.dict(), owner_id=session_id)
+
+def create_study_area(db: Session, session_id: str):
+    """Create a study area entry."""
+    db_study_area = models.StudyArea(**study_area.dict(), owner_id=session_id)
+    db.add(db_study_area)
+    db.commit()
+    db.refresh(db_study_area)
+    return db_study_area
+
+
+def get_study_areas(db: Session, session_id: str):
+    """Read all study areas for session id."""
+    return db.query(models.StudyArea).filter(
+            models.StudyArea.owner_id == session_id).all()
+
+
+def create_scenario(db: Session, scenario: schemas.Scenario, study_area_id: int):
+    """Create scenario linking with ``study_area_id``."""
+    db_scenario = models.Scenario(**scenario.dict(), study_area_id=study_area_id)
     db.add(db_scenario)
     db.commit()
     db.refresh(db_scenario)
     return db_scenario
 
+# helper function
 def get_scenario(db: Session, scenario_id: int):
     """Read a single scenario by ID."""
     return db.query(models.Scenario).filter(
             models.Scenario.scenario_id == scenario_id).first()
 
-def get_scenarios(db: Session, session_id: str):
+def get_scenarios(db: Session, study_area_id: int):
     """Read all scenarios."""
     return db.query(models.Scenario).filter(
             models.Scenario.owner_id == session_id).all()
