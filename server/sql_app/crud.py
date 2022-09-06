@@ -70,20 +70,24 @@ def create_session(db: Session):
     return db_session
 
 
-def create_study_area(db: Session, session_id: str):
+def create_study_area(db: Session, session_id: str, study_area: schemas.StudyAreaBase):
     """Create a study area entry."""
+    LOGGER.info("Create study area")
     db_study_area = models.StudyArea(**study_area.dict(), owner_id=session_id)
     db.add(db_study_area)
     db.commit()
     db.refresh(db_study_area)
     return db_study_area
 
+def get_study_area(db: Session, study_area_id: int):
+    """Read study area from id."""
+    return db.query(models.StudyArea).filter(
+            models.StudyArea.study_area_id == study_area_id).first()
 
 def get_study_areas(db: Session, session_id: str):
     """Read all study areas for session id."""
     return db.query(models.StudyArea).filter(
             models.StudyArea.owner_id == session_id).all()
-
 
 def create_scenario(db: Session, scenario: schemas.Scenario, study_area_id: int):
     """Create scenario linking with ``study_area_id``."""
@@ -102,7 +106,7 @@ def get_scenario(db: Session, scenario_id: int):
 def get_scenarios(db: Session, study_area_id: int):
     """Read all scenarios."""
     return db.query(models.Scenario).filter(
-            models.Scenario.owner_id == session_id).all()
+            models.Scenario.study_area_id == study_area_id).all()
 
 def update_scenario(db: Session, scenario: schemas.Scenario, scenario_id: int):
     """Update a scenario."""

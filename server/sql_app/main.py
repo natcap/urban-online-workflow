@@ -123,22 +123,29 @@ def read_session(session_id: str, db: Session = Depends(get_db)):
     return db_session
 
 
-
 ### Study Area and Scenario Endpoints ###
 
 @app.post("/study_area/{session_id}", response_model=schemas.StudyAreaResponse)
 def create_study_area(
-    session_id: str, study_area: schemas.StudyAreaBase,
-    db: Session = Depends(get_db)
+        session_id: str, study_area: schemas.StudyAreaBase,
+        db: Session = Depends(get_db)
 ):
+    # check that the session exists
+    db_session = crud.get_session(db, session_id=session_id)
+    if db_session is None:
+        raise HTTPException(status_code=404, detail="Session not found")
     return crud.create_study_area(
         db=db, study_area=study_area, session_id=session_id)
 
 
-@app.get("/study_areas/{session_id}", response_model=schemas.StudyAreaResponse)
+@app.get("/study_areas/{session_id}", response_model=list[schemas.StudyAreaRequest])
 def get_study_areas(session_id: str, db: Session = Depends(get_db)):
-    study_areas = crud.get_study_areas(db=db, session_id=session_id)
-    return study_areas
+    # check that the session exists
+    db_session = crud.get_session(db, session_id=session_id)
+    if db_session is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    db_study_areas = crud.get_study_areas(db=db, session_id=session_id)
+    return db_study_areas
 
 
 @app.post("/scenario/{study_area_id}", response_model=schemas.ScenarioResponse)
@@ -146,6 +153,9 @@ def create_scenario(
     study_area_id: int, scenario: schemas.ScenarioBase,
     db: Session = Depends(get_db)
 ):
+    db_study_area = crud.get_study_area(db, study_area_id=study_area_id)
+    if db_study_area is None:
+        raise HTTPException(status_code=404, detail="Study area not found")
     return crud.create_scenario(
         db=db, scenario=scenario, study_area_id=study_area_id)
 
@@ -166,8 +176,11 @@ def delete_scenario(scenario_id: int, db: Session = Depends(get_db)):
 
 @app.get("/scenarios/{study_area_id}", response_model=list[schemas.Scenario])
 def read_scenarios(study_area_id: int, db: Session = Depends(get_db)):
-    scenarios = crud.get_scenarios(db, study_area_id=study_area_id)
-    return scenarios
+    db_study_area = crud.get_study_area(db, study_area_id=study_area_id)
+    if db_study_area is None:
+        raise HTTPException(status_code=404, detail="Study area not found")
+    db_scenarios = crud.get_scenarios(db, study_area_id=study_area_id)
+    return db_scenarios
 
 
 ### Worker Endpoints ###
