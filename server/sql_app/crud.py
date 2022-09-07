@@ -1,5 +1,6 @@
 """CRUD: Create, Read, Update, and Delete"""
 import asyncio
+import json
 import logging
 import sys
 import time
@@ -82,7 +83,7 @@ def create_study_area(db: Session, session_id: str, study_area: schemas.StudyAre
 def get_study_area(db: Session, study_area_id: int):
     """Read study area from id."""
     return db.query(models.StudyArea).filter(
-            models.StudyArea.study_area_id == study_area_id).first()
+            models.StudyArea.id == study_area_id).first()
 
 def get_study_areas(db: Session, session_id: str):
     """Read all study areas for session id."""

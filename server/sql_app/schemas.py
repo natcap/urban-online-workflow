@@ -81,7 +81,8 @@ class Parcel(ParcelBase):
 class StudyAreaBase(BaseModel):
     """Pydantic model base for Study Areas."""
     name: str
-    parcel_wkts: str
+    #parcel_wkts: str
+    parcel_wkts: list[str]
 
 
 class StudyArea(StudyAreaBase):
@@ -239,7 +240,6 @@ class Wallpaper(BaseModel):
 class ParcelFill(BaseModel):
     """Pydantic model for the parcel fill request."""
     scenario_id: int
-    target_parcel_wkt: str
     lulc_class: int
 
     class Config:

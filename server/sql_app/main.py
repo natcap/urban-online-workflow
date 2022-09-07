@@ -4,6 +4,9 @@ import os
 import queue
 import sys
 
+import shapely.geometry
+import shapely.wkt
+
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.testclient import TestClient
@@ -462,7 +465,15 @@ def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
 def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
     # Get Scenario details from scenario_id
     scenario_db = crud.get_scenario(db, parcel_fill.scenario_id)
-    session_id = scenario_db.owner_id
+    study_area_id = scenario_db.study_area_id
+
+    study_area_db = crud.get_study_area(db, study_area_id)
+    parcel_string = study_area_db.parcel_wkts
+    LOGGER.debug(parcel_string)
+    parcel_wkt = shapely.wkt.loads(parcel_string[1:-1])
+    LOGGER.debug(parcel_wkt)
+
+    session_id = study_area_db.owner_id
 
     # Create job entry for wallpapering task
     job_schema = schemas.JobBase(
@@ -478,7 +489,7 @@ def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
             "job_id": job_db.job_id, "scenario_id": scenario_db.scenario_id
         },
         "job_args": {
-            "target_parcel_wkt": parcel_fill.target_parcel_wkt,
+            "target_parcel_wkt": parcel_wkt,
             "lulc_class": parcel_fill.lulc_class, #TODO: make sure this is a WKT string and no just a bounding box
             "lulc_source_url": f'{WORKING_ENV}/{scenario_db.lulc_url_base}',
             }
@@ -489,7 +500,6 @@ def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
     # Return job_id for response
     return job_db
 
-#TODO: frontend will want preliminary stats under parcel wkt
 @app.post("/stats_under_parcel/", response_model=schemas.JobResponse)
 def get_lulc_stats_under_parcel(parcel_stats_req: schemas.ParcelStatsRequest,
                                 db: Session = Depends(get_db)):
