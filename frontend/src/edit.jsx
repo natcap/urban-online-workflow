@@ -16,13 +16,14 @@ export default function EditMenu(props) {
     parcelSet,
     selectedParcel,
     removeParcel,
-    savedScenarios,
-    refreshSavedScenarios,
+    savedStudyAreas,
+    refreshSavedStudyAreas,
     patternSamplingMode,
     togglePatternSamplingMode,
     patternSampleWKT,
     sessionID,
   } = props;
+  console.log(savedStudyAreas)
 
   const [activeTab, setActiveTab] = useState('create');
 
@@ -45,16 +46,16 @@ export default function EditMenu(props) {
                 patternSamplingMode={patternSamplingMode}
                 patternSampleWKT={patternSampleWKT}
                 togglePatternSamplingMode={togglePatternSamplingMode}
-                refreshSavedScenarios={refreshSavedScenarios}
+                refreshSavedStudyAreas={refreshSavedStudyAreas}
               />
             </div>
           )}
         />
-        <Tab
+        {/*<Tab
           id="explore"
           title="Analyze"
           panel={<StudyAreaTable savedScenarios={savedScenarios} />}
-        />
+        />*/}
       </Tabs>
     </div>
   );
