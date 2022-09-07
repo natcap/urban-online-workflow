@@ -70,14 +70,24 @@ def create_session(db: Session):
     db.refresh(db_session)
     return db_session
 
-
-def create_study_area(db: Session, session_id: str, study_area: schemas.StudyAreaBase):
+def create_study_area(db: Session, session_id: str, study_area: schemas.StudyAreaParcel):
     """Create a study area entry."""
     LOGGER.info("Create study area")
-    db_study_area = models.StudyArea(**study_area.dict(), owner_id=session_id)
+    study_area_dict = study_area.dict()
+    parcel_list = study_area_dict.pop("parcels", None)
+
+    db_study_area = models.StudyArea(**study_area_dict, owner_id=session_id)
     db.add(db_study_area)
     db.commit()
     db.refresh(db_study_area)
+
+    LOGGER.info("Create parcels")
+    for parcel in parcel_list:
+        db_parcel = models.Parcel(**parcel, study_area_id=db_study_area.id)
+        db.add(db_parcel)
+        db.commit()
+        db.refresh(db_parcel)
+
     return db_study_area
 
 def get_study_area(db: Session, study_area_id: int):

@@ -130,7 +130,7 @@ def read_session(session_id: str, db: Session = Depends(get_db)):
 
 @app.post("/study_area/{session_id}", response_model=schemas.StudyAreaResponse)
 def create_study_area(
-        session_id: str, study_area: schemas.StudyAreaBase,
+        session_id: str, study_area: schemas.StudyAreaParcel,
         db: Session = Depends(get_db)
 ):
     # check that the session exists
@@ -141,7 +141,7 @@ def create_study_area(
         db=db, study_area=study_area, session_id=session_id)
 
 
-@app.get("/study_areas/{session_id}", response_model=list[schemas.StudyAreaRequest])
+@app.get("/study_areas/{session_id}", response_model=list[schemas.StudyArea])
 def get_study_areas(session_id: str, db: Session = Depends(get_db)):
     # check that the session exists
     db_session = crud.get_session(db, session_id=session_id)

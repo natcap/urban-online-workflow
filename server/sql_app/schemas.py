@@ -77,19 +77,23 @@ class Parcel(ParcelBase):
     class Config:
         orm_mode = True
 
+class StudyAreaParcel(BaseModel):
+    """Pydantic model base for Study Areas."""
+    name: str
+    parcels: list[ParcelBase] = []
 
 class StudyAreaBase(BaseModel):
     """Pydantic model base for Study Areas."""
     name: str
+    parcels: list[Parcel] = []
     #parcel_wkts: str
-    parcel_wkts: list[str]
+    #parcel_wkts: list[str]
 
 
 class StudyArea(StudyAreaBase):
     """Pydantic model used when reading data, when returning it from API."""
     id: int
     scenarios: list[Scenario] = []
-    #parcels: list[Parcel] = []
     owner_id: str
 
     class Config:
@@ -108,7 +112,6 @@ class StudyAreaRequest(BaseModel):
     """Pydantic model for the response after study area creation."""
     id: int
     name: str
-    parcel_wkts: str
 
     class Config:
         orm_mode = True
