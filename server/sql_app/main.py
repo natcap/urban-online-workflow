@@ -468,10 +468,16 @@ def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
     study_area_id = scenario_db.study_area_id
 
     study_area_db = crud.get_study_area(db, study_area_id)
-    parcel_string = study_area_db.parcel_wkts
-    LOGGER.debug(parcel_string)
-    parcel_wkt = shapely.wkt.loads(parcel_string[1:-1])
-    LOGGER.debug(parcel_wkt)
+    parcel_wkt_list = []
+    for parcel in study_area_db.parcels:
+        parcel_wkt_list.append(parcel.wkt)
+
+    parcel_geoms = [shapely.wkt.loads(wkt) for wkt in parcel_wkt_list]
+
+    parcels_combined = shapely.geometry.MultiPolygon(parcel_geoms)
+    parcels_combined_wkt = parcels_combined.wkt
+
+    LOGGER.debug(parcels_combined_wkt)
 
     session_id = study_area_db.owner_id
 
@@ -489,7 +495,7 @@ def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
             "job_id": job_db.job_id, "scenario_id": scenario_db.scenario_id
         },
         "job_args": {
-            "target_parcel_wkt": parcel_wkt,
+            "target_parcel_wkt": parcels_combined_wkt,
             "lulc_class": parcel_fill.lulc_class, #TODO: make sure this is a WKT string and no just a bounding box
             "lulc_source_url": f'{WORKING_ENV}/{scenario_db.lulc_url_base}',
             }
