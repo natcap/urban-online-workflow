@@ -233,7 +233,6 @@ class WorkerResponse(BaseModel):
 class Wallpaper(BaseModel):
     """Pydantic model for the wallpaper request."""
     scenario_id: int
-    target_parcel_wkt: str
     pattern_id: int
 
     class Config:

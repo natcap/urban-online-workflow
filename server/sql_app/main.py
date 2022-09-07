@@ -431,7 +431,21 @@ def get_patterns(db: Session = Depends(get_db)):
 def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
     # Get Scenario details from scenario_id
     scenario_db = crud.get_scenario(db, wallpaper.scenario_id)
-    session_id = scenario_db.owner_id
+    study_area_id = scenario_db.study_area_id
+
+    study_area_db = crud.get_study_area(db, study_area_id)
+    parcel_wkt_list = []
+    for parcel in study_area_db.parcels:
+        parcel_wkt_list.append(parcel.wkt)
+
+    parcel_geoms = [shapely.wkt.loads(wkt) for wkt in parcel_wkt_list]
+
+    parcels_combined = shapely.geometry.MultiPolygon(parcel_geoms)
+    parcels_combined_wkt = parcels_combined.wkt
+
+    LOGGER.debug(parcels_combined_wkt)
+
+    session_id = study_area_db.owner_id
 
     # Create job entry for wallpapering task
     job_schema = schemas.JobBase(
@@ -449,7 +463,7 @@ def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
             "job_id": job_db.job_id, "scenario_id": scenario_db.scenario_id
         },
         "job_args": {
-            "target_parcel_wkt": wallpaper.target_parcel_wkt,
+            "target_parcel_wkt": parcels_combined_wkt,
             "pattern_bbox_wkt": pattern_db.wkt, #TODO: make sure this is a WKT string and no just a bounding box
             "lulc_source_url": f'{WORKING_ENV}/{scenario_db.lulc_url_base}',
             }
