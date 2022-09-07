@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 FROM python:3.9-bullseye
-RUN pip install uvicorn[standard] fastapi sqlalchemy requests
+RUN pip install uvicorn[standard] fastapi sqlalchemy requests shapely
 
 EXPOSE 8000
 
