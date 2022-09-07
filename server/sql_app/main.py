@@ -4,6 +4,9 @@ import os
 import queue
 import sys
 
+import shapely.geometry
+import shapely.wkt
+
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.testclient import TestClient
@@ -108,6 +111,7 @@ def create_session(db: Session = Depends(get_db)):
 # All the data validation is performed under the hood by Pydantic, so you get
 # all the benefits from it.
 
+# TODO: remove for production, this is a convenience endpoint
 @app.get("/sessions/", response_model=list[schemas.Session])
 def read_sessions(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     sessions = crud.get_sessions(db, skip=skip, limit=limit)
@@ -121,15 +125,42 @@ def read_session(session_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Session not found")
     return db_session
 
-### Scenario Endpoints ###
 
-@app.post("/scenario/{session_id}", response_model=schemas.ScenarioResponse)
+### Study Area and Scenario Endpoints ###
+
+@app.post("/study_area/{session_id}", response_model=schemas.StudyAreaResponse)
+def create_study_area(
+        session_id: str, study_area: schemas.StudyAreaParcel,
+        db: Session = Depends(get_db)
+):
+    # check that the session exists
+    db_session = crud.get_session(db, session_id=session_id)
+    if db_session is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return crud.create_study_area(
+        db=db, study_area=study_area, session_id=session_id)
+
+
+@app.get("/study_areas/{session_id}", response_model=list[schemas.StudyArea])
+def get_study_areas(session_id: str, db: Session = Depends(get_db)):
+    # check that the session exists
+    db_session = crud.get_session(db, session_id=session_id)
+    if db_session is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    db_study_areas = crud.get_study_areas(db=db, session_id=session_id)
+    return db_study_areas
+
+
+@app.post("/scenario/{study_area_id}", response_model=schemas.ScenarioResponse)
 def create_scenario(
-    session_id: str, scenario: schemas.ScenarioBase,
+    study_area_id: int, scenario: schemas.ScenarioBase,
     db: Session = Depends(get_db)
 ):
+    db_study_area = crud.get_study_area(db, study_area_id=study_area_id)
+    if db_study_area is None:
+        raise HTTPException(status_code=404, detail="Study area not found")
     return crud.create_scenario(
-        db=db, scenario=scenario, session_id=session_id)
+        db=db, scenario=scenario, study_area_id=study_area_id)
 
 
 @app.patch("/scenario/{scenario_id}", status_code=200)
@@ -146,19 +177,13 @@ def delete_scenario(scenario_id: int, db: Session = Depends(get_db)):
     return crud.delete_scenario(db=db, scenario_id=scenario_id)
 
 
-#TODO: No need right now for individual scenarios per session
-@app.get("/scenario/{scenario_id}", response_model=schemas.Scenario)
-def read_scenario(scenario_id: int, db: Session = Depends(get_db)):
-    db_scenario = crud.get_scenario(db, scenario_id=scenario_id)
-    if db_scenario is None:
-        raise HTTPException(status_code=404, detail="Scenario not found")
-    return db_scenario
-
-
-@app.get("/scenarios/{session_id}", response_model=list[schemas.Scenario])
-def read_scenarios(session_id: str, db: Session = Depends(get_db)):
-    scenarios = crud.get_scenarios(db, session_id=session_id)
-    return scenarios
+@app.get("/scenarios/{study_area_id}", response_model=list[schemas.Scenario])
+def read_scenarios(study_area_id: int, db: Session = Depends(get_db)):
+    db_study_area = crud.get_study_area(db, study_area_id=study_area_id)
+    if db_study_area is None:
+        raise HTTPException(status_code=404, detail="Study area not found")
+    db_scenarios = crud.get_scenarios(db, study_area_id=study_area_id)
+    return db_scenarios
 
 
 ### Worker Endpoints ###
@@ -239,8 +264,7 @@ def worker_scenario_response(
 @app.post("/jobsqueue/parcel_stats")
 def worker_parcel_stats_response(
     parcel_stats_job: schemas.WorkerResponse, db: Session = Depends(get_db)):
-    """Update the db given the job details from the worker.
-    """
+    """Update the db given the job details from the worker."""
     LOGGER.debug("Entering jobsqueue/parcel_stats")
     LOGGER.debug(parcel_stats_job)
     # Update job in db based on status
@@ -407,7 +431,21 @@ def get_patterns(db: Session = Depends(get_db)):
 def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
     # Get Scenario details from scenario_id
     scenario_db = crud.get_scenario(db, wallpaper.scenario_id)
-    session_id = scenario_db.owner_id
+    study_area_id = scenario_db.study_area_id
+
+    study_area_db = crud.get_study_area(db, study_area_id)
+    parcel_wkt_list = []
+    for parcel in study_area_db.parcels:
+        parcel_wkt_list.append(parcel.wkt)
+
+    parcel_geoms = [shapely.wkt.loads(wkt) for wkt in parcel_wkt_list]
+
+    parcels_combined = shapely.geometry.MultiPolygon(parcel_geoms)
+    parcels_combined_wkt = parcels_combined.wkt
+
+    LOGGER.debug(parcels_combined_wkt)
+
+    session_id = study_area_db.owner_id
 
     # Create job entry for wallpapering task
     job_schema = schemas.JobBase(
@@ -425,7 +463,7 @@ def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
             "job_id": job_db.job_id, "scenario_id": scenario_db.scenario_id
         },
         "job_args": {
-            "target_parcel_wkt": wallpaper.target_parcel_wkt,
+            "target_parcel_wkt": parcels_combined_wkt,
             "pattern_bbox_wkt": pattern_db.wkt, #TODO: make sure this is a WKT string and no just a bounding box
             "lulc_source_url": f'{WORKING_ENV}/{scenario_db.lulc_url_base}',
             }
@@ -441,7 +479,21 @@ def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
 def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
     # Get Scenario details from scenario_id
     scenario_db = crud.get_scenario(db, parcel_fill.scenario_id)
-    session_id = scenario_db.owner_id
+    study_area_id = scenario_db.study_area_id
+
+    study_area_db = crud.get_study_area(db, study_area_id)
+    parcel_wkt_list = []
+    for parcel in study_area_db.parcels:
+        parcel_wkt_list.append(parcel.wkt)
+
+    parcel_geoms = [shapely.wkt.loads(wkt) for wkt in parcel_wkt_list]
+
+    parcels_combined = shapely.geometry.MultiPolygon(parcel_geoms)
+    parcels_combined_wkt = parcels_combined.wkt
+
+    LOGGER.debug(parcels_combined_wkt)
+
+    session_id = study_area_db.owner_id
 
     # Create job entry for wallpapering task
     job_schema = schemas.JobBase(
@@ -457,7 +509,7 @@ def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
             "job_id": job_db.job_id, "scenario_id": scenario_db.scenario_id
         },
         "job_args": {
-            "target_parcel_wkt": parcel_fill.target_parcel_wkt,
+            "target_parcel_wkt": parcels_combined_wkt,
             "lulc_class": parcel_fill.lulc_class, #TODO: make sure this is a WKT string and no just a bounding box
             "lulc_source_url": f'{WORKING_ENV}/{scenario_db.lulc_url_base}',
             }
@@ -468,7 +520,6 @@ def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
     # Return job_id for response
     return job_db
 
-#TODO: frontend will want preliminary stats under parcel wkt
 @app.post("/stats_under_parcel/", response_model=schemas.JobResponse)
 def get_lulc_stats_under_parcel(parcel_stats_req: schemas.ParcelStatsRequest,
                                 db: Session = Depends(get_db)):
