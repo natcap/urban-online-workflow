@@ -53,17 +53,42 @@ export async function createSession() {
 }
 
 /**
- * Get all scenarios associated with a given session.
+ * Get all study areas associated with a given session.
  *
- * @param  {integer} sessionID - id of the session to get scenarios for
- * @return {array[object]} array of scenario objects
+ * @param  {integer} sessionID - id of the session to get study areas for
+ * @return {array[object]} array of study area objects
  */
-export async function getScenarios(sessionID) {
+export async function getStudyAreas(sessionID) {
   return (
-    window.fetch(`${apiBaseURL}/scenarios/${sessionID}`, {
+    window.fetch(`${apiBaseURL}/study_areas/${sessionID}`, {
       method: 'get',
     })
       .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
+}
+
+/**
+ * Create a new study area
+ *
+ * @return {integer} id for the new study area
+ */
+export async function createStudyArea(sessionID, name, parcelSet) {
+  const payload = {
+    name: name,
+    parcels: Object.values(parcelSet).map((parcel) => (
+      { wkt: polygonCoordsToWKT(parcel.coords) }
+    )),
+  };
+
+  return (
+    window.fetch(`${apiBaseURL}/study_area/${sessionID}`, {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+      .then((response) => response.json())
+      .then((json) => json.id)
       .catch((error) => console.log(error))
   );
 }
@@ -92,12 +117,17 @@ export async function getScenario(id) {
  * @param  {string} description - description of the new scenario
  * @return {integer} scenario id
  */
-export async function makeScenario(sessionID, name, description) {
+export async function createScenario(studyAreaID, name, description, operation) {
+  const payload = JSON.stringify({
+    name: name,
+    description: description,
+    operation: operation,
+  });
   return (
-    window.fetch(`${apiBaseURL}/scenario/${sessionID}`, {
+    window.fetch(`${apiBaseURL}/scenario/${studyAreaID}`, {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name, description: description }),
+      body: payload,
     })
       .then((response) => response.json())
       .then((json) => json.scenario_id)
@@ -143,21 +173,18 @@ export async function getJobResults(jobID, scenarioID) {
 /**
  * Apply a wallpaper pattern to a given polygon.
  *
- * @param  {array[array[number]]} targetCoords - an array of two-element arrays
- *  representing [lon, lat] coordinate pairs outlining the polygon to wallpaper
  * @param  {integer} patternID - id of the pattern to apply to the area
  * @param  {integer} scenarioID - id of the scenario to associate with this
  *  lulc modification
  * @return {integer} id of the job that will create the modified LULC raster
  */
-export async function doWallpaper(targetParcelWkt, patternID, scenarioID) {
+export async function doWallpaper(patternID, scenarioID) {
   return (
     window.fetch(`${apiBaseURL}/wallpaper`, {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         scenario_id: scenarioID,
-        target_parcel_wkt: targetParcelWkt,
         pattern_id: patternID,
       }),
     })
@@ -170,21 +197,18 @@ export async function doWallpaper(targetParcelWkt, patternID, scenarioID) {
 /**
  * Fill a given polygon with one LULC class.
  *
- * @param  {array[array[number]]} targetCoords - an array of two-element arrays
- *  representing [lon, lat] coordinate pairs outlining the polygon to fill
  * @param  {integer} lulcCode - code of the LULC class to fill the polygon with
  * @param  {integer} scenarioID - id of the scenario to associate with this
  *  lulc modification
  * @return {integer} id of the job that will create the modified LULC raster
  */
-export async function convertToSingleLULC(targetParcelWkt, lulcCode, scenarioID) {
+export async function convertToSingleLULC(lulcCode, scenarioID) {
   return (
     window.fetch(`${apiBaseURL}/parcel_fill`, {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         scenario_id: scenarioID,
-        target_parcel_wkt: targetParcelWkt,
         lulc_class: lulcCode,
       }),
     })

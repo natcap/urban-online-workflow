@@ -2,22 +2,22 @@ import React, { useState, useEffect } from 'react';
 import MapComponent from './map';
 import EditMenu from './edit';
 
-import { getScenarios, createSession } from './requests';
+import { getStudyAreas, createSession } from './requests';
 
 export default function App() {
-  const [savedScenarios, setSavedScenarios] = useState([]);
+  const [savedStudyAreas, setSavedStudyAreas] = useState([]);
   const [patternSamplingMode, setPatternSamplingMode] = useState(false);
   const [patternSampleWKT, setPatternSampleWKT] = useState(null);
   const [sessionID, setSessionID] = useState(null);
   const [parcelSet, setParcelSet] = useState({});
 
-  const refreshSavedScenarios = async () => {
-    setSavedScenarios(await getScenarios(sessionID));
+  const refreshSavedStudyAreas = async () => {
+    setSavedStudyAreas(await getStudyAreas(sessionID));
   };
 
   useEffect(async () => {
     setSessionID(await createSession());
-    refreshSavedScenarios();
+    refreshSavedStudyAreas();
   }, []);
 
   const addParcel = async (parcel) => {
@@ -51,8 +51,8 @@ export default function App() {
         <EditMenu
           parcelSet={parcelSet}
           removeParcel={removeParcel}
-          refreshSavedScenarios={refreshSavedScenarios}
-          savedScenarios={savedScenarios}
+          refreshSavedStudyAreas={refreshSavedStudyAreas}
+          savedStudyAreas={savedStudyAreas}
           patternSamplingMode={patternSamplingMode}
           togglePatternSamplingMode={togglePatternSamplingMode}
           patternSampleWKT={patternSampleWKT}

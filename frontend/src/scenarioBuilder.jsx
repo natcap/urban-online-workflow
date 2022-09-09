@@ -13,8 +13,9 @@ import landuseCodes from './landuseCodes';
 import StudyAreaForm from './studyAreaForm';
 import WallpaperingMenu from './wallpaperingMenu';
 import {
+  createStudyArea,
   doWallpaper,
-  makeScenario,
+  createScenario,
   getJobResults,
   getJobStatus,
   convertToSingleLULC,
@@ -30,7 +31,7 @@ export default function ScenarioBuilder(props) {
     patternSamplingMode,
     togglePatternSamplingMode,
     patternSampleWKT,
-    refreshSavedScenarios,
+    refreshSavedStudyAreas,
   } = props;
 
   const [singleLULC, setSingleLULC] = useState(Object.keys(landuseCodes)[0]);
@@ -40,6 +41,7 @@ export default function ScenarioBuilder(props) {
   const [selectedPattern, setSelectedPattern] = useState(null);
   const [jobID, setJobID] = useState(null);
   const [studyArea, setStudyArea] = useState('');
+  const [studyAreaID, setStudyAreaID] = useState(null)
 
   useInterval(async () => {
     console.log('checking status for job', jobID);
@@ -61,34 +63,34 @@ export default function ScenarioBuilder(props) {
     let currentScenarioID = scenarioID;
     // TODO: add validation to check that scenarioName is not already taken
     // for this study area. If it is, maybe give option to overwrite?
-    currentScenarioID = await makeScenario(sessionID, scenarioName, 'description');
+    // TODO: It might be more orthogonal to have the wallpapering/parcel_fill
+    // endpoint create the scenario on the backend, rather than creating it up-front.
+    currentScenarioID = await createScenario(
+      studyAreaID, scenarioName, 'description', conversionOption
+    );
     setScenarioID(currentScenarioID);
     let jid;
-    const parcelWkt = (Object.keys(parcelSet).length > 1)
-      ? mulitPolygonCoordsToWKT(
-        Object.values(parcelSet).map((parcel) => parcel.coords),
-      )
-      : polygonCoordsToWKT(Object.values(parcelSet)[0].coords);
     if (conversionOption === 'wallpaper' && selectedPattern) {
       jid = await doWallpaper(
-        parcelWkt,
         selectedPattern.pattern_id,
         currentScenarioID
       );
     }
     if (conversionOption === 'paint' && singleLULC) {
       jid = await convertToSingleLULC(
-        parcelWkt,
         singleLULC,
         currentScenarioID
       );
     }
     setJobID(jid);
-    refreshSavedScenarios();
+    refreshSavedStudyAreas();
   };
 
-  const submitStudyArea = (name) => {
+  const submitStudyArea = async (name) => {
     setStudyArea(name);
+    const id = await createStudyArea(sessionID, name, parcelSet);
+    setStudyAreaID(id);
+    refreshSavedStudyAreas();
   };
 
   if (!Object.keys(parcelSet).length) {
