@@ -17,8 +17,13 @@ export default function App() {
 
   useEffect(async () => {
     setSessionID(await createSession());
-    refreshSavedStudyAreas();
   }, []);
+
+  useEffect(() => {
+    if (sessionID) {
+      refreshSavedStudyAreas();
+    }
+  }, [sessionID]);
 
   const addParcel = async (parcel) => {
     setParcelSet((prev) => {
@@ -40,25 +45,29 @@ export default function App() {
   };
 
   return (
-    <div className="App">
-      <div className="map-and-menu-container">
-        <MapComponent
-          addParcel={addParcel}
-          patternSamplingMode={patternSamplingMode}
-          setPatternSampleWKT={setPatternSampleWKT}
-          sessionID={sessionID}
-        />
-        <EditMenu
-          parcelSet={parcelSet}
-          removeParcel={removeParcel}
-          refreshSavedStudyAreas={refreshSavedStudyAreas}
-          savedStudyAreas={savedStudyAreas}
-          patternSamplingMode={patternSamplingMode}
-          togglePatternSamplingMode={togglePatternSamplingMode}
-          patternSampleWKT={patternSampleWKT}
-          sessionID={sessionID}
-        />
-      </div>
-    </div>
+    (sessionID)
+      ? (
+        <div className="App">
+          <div className="map-and-menu-container">
+            <MapComponent
+              addParcel={addParcel}
+              patternSamplingMode={patternSamplingMode}
+              setPatternSampleWKT={setPatternSampleWKT}
+              sessionID={sessionID}
+            />
+            <EditMenu
+              parcelSet={parcelSet}
+              removeParcel={removeParcel}
+              refreshSavedStudyAreas={refreshSavedStudyAreas}
+              savedStudyAreas={savedStudyAreas}
+              patternSamplingMode={patternSamplingMode}
+              togglePatternSamplingMode={togglePatternSamplingMode}
+              patternSampleWKT={patternSampleWKT}
+              sessionID={sessionID}
+            />
+          </div>
+        </div>
+      )
+      : <div />
   );
 }
