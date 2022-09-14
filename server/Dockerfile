@@ -11,4 +11,7 @@ ENV UVICORN_APP_DIR /opt/server
 # equivalent to --host 0.0.0.0
 ENV UVICORN_HOST 0.0.0.0
 
+# Setting directory which will then be where DB lives.
+WORKDIR /opt/server
+
 CMD /usr/local/bin/uvicorn "sql_app.main:app"
