@@ -26,8 +26,6 @@ POLLING_INTERVAL_S = 1
 DEFAULT_GTIFF_CREATION_TUPLE_OPTIONS = ('GTIFF', (
     'TILED=YES', 'BIGTIFF=YES', 'COMPRESS=LZW',
     'BLOCKXSIZE=256', 'BLOCKYSIZE=256'))
-NLCD_NODATA = -1
-NLCD_DTYPE = gdal.GDT_UInt16
 _WEB_MERCATOR_SRS = osr.SpatialReference()
 _WEB_MERCATOR_SRS.ImportFromEPSG(3857)
 _WEB_MERCATOR_SRS.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
@@ -49,6 +47,8 @@ if _NLCD_RASTER_INFO is None:
     raise AssertionError("Could not open NLCD_2016.tif at any known locations")
 LOGGER.info(f"Using NLCD at {NLCD_RASTER_PATH}")
 
+NLCD_NODATA = _NLCD_RASTER_INFO['nodata'][0]
+NLCD_DTYPE = _NLCD_RASTER_INFO['datatype']
 NLCD_SRS_WKT = _NLCD_RASTER_INFO['projection_wkt']
 _ALBERS_EQUAL_AREA_SRS.ImportFromWkt(NLCD_SRS_WKT)
 _ALBERS_EQUAL_AREA_SRS.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
@@ -264,12 +264,15 @@ def _reproject_to_nlud(parcel_wkt_epsg3857):
     return parcel_geom
 
 
-def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path):
+def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path,
+                     include_pixel_values=False):
     """Create an LULC raster in the NLCD projection covering the parcel.
 
     Args:
         parcel_wkt_epsg3857 (str): The parcel WKT in EPSG:3857 (Web Mercator)
         target_local_gtiff_path (str): Where the target raster should be saved
+        include_pixel_values=False (bool): Whether to include the underlying
+            raster's pixel values in the new, cropped LULC.
 
     Returns:
         ``None``
@@ -288,26 +291,30 @@ def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path):
     buf_maxx += PIXELSIZE_X - abs((buf_maxx - NLCD_ORIGIN_X) % PIXELSIZE_X)
     buf_maxy += PIXELSIZE_Y - abs((buf_maxy - NLCD_ORIGIN_Y) % PIXELSIZE_Y)
 
-    n_cols = abs(int(math.ceil((buf_maxx - buf_minx) / PIXELSIZE_X)))
-    n_rows = abs(int(math.ceil((buf_maxy - buf_miny) / PIXELSIZE_Y)))
+    pygeoprocessing.warp_raster(
+        NLCD_RASTER_PATH, (PIXELSIZE_X, PIXELSIZE_Y),
+        target_local_gtiff_path, 'nearest',
+        target_bb=[buf_minx, buf_miny, buf_maxx, buf_maxy])
 
-    raster_driver = gdal.GetDriverByName('GTIFF')
-    target_raster = raster_driver.Create(
-        target_local_gtiff_path, n_cols, n_rows, 1, gdal.GDT_Byte,
-        options=DEFAULT_GTIFF_CREATION_TUPLE_OPTIONS[1])
-    target_raster.SetProjection(NLCD_SRS_WKT)
-    target_raster.SetGeoTransform(
-        [buf_minx, PIXELSIZE_X, 0, buf_maxy, 0, PIXELSIZE_Y])
-    band = target_raster.GetRasterBand(1)
-    band.SetNoDataValue(NLCD_NODATA)
-    band.Fill(NLCD_NODATA)
-    target_raster = None
-    band = None
+    if not include_pixel_values:
+        raster = gdal.OpenEx(target_local_gtiff_path, gdal.GA_Update)
+        band = raster.GetRasterBand(1)
+        nodata = band.GetNoDataValue()
+        if nodata is not None:
+            band.Fill(nodata)
+        band = None
+        raster = None
 
 
 def fill_parcel(parcel_wkt_epsg3857, fill_lulc_class,
                 target_lulc_path, working_dir=None):
     """Fill (rasterize) a parcel with a landcover code.
+
+    This function writes a new raster that:
+
+        * Is aligned to the grid of the source lulc
+        * Is filled with nodata except for the parcel
+        * Is filled with ``fill_lulc_class`` where the parcel is present
 
     Args:
         parcel_wkt_epsg3857 (str): The WKT of the parcel to fill,
@@ -325,7 +332,9 @@ def fill_parcel(parcel_wkt_epsg3857, fill_lulc_class,
 
     parcel_vector_path = os.path.join(working_dir, 'parcel.fgb')
     pygeoprocessing.geoprocessing.shapely_geometry_to_vector(
-        [parcel_geom], parcel_vector_path, NLCD_SRS_WKT, 'FlatGeoBuf')
+        [parcel_geom], parcel_vector_path, NLCD_SRS_WKT, 'FlatGeoBuf',
+        ogr_geom_type=ogr.wkbMultiPolygon
+    )
 
     _create_new_lulc(parcel_wkt_epsg3857, target_lulc_path)
     pygeoprocessing.geoprocessing.rasterize(
@@ -470,7 +479,9 @@ def pixelcounts_under_parcel(parcel_wkt_epsg3857, source_raster_path):
     pygeoprocessing.geoprocessing.shapely_geometry_to_vector(
         [parcel],
         os.path.join('parcel_loaded.fgb'),
-        _WEB_MERCATOR_SRS.ExportToWkt(), 'FlatGeoBuf')
+        _WEB_MERCATOR_SRS.ExportToWkt(), 'FlatGeoBuf',
+        ogr_geom_type=ogr.wkbMultiPolygon
+    )
 
     # "Round up" to the next pixel
     x0 = math.floor(x0)
@@ -628,6 +639,7 @@ def do_work(host, port, outputs_location):
         if not response.json():
             time.sleep(POLLING_INTERVAL_S)
             continue
+        LOGGER.info("Response received; loading job details")
 
         # response.json() returns a stringified json object, so need to load
         # it into a python dict
@@ -644,6 +656,7 @@ def do_work(host, port, outputs_location):
             if not os.path.exists(path):
                 os.makedirs(path)
 
+        LOGGER.info(f"Starting job {job_id}:{job_type}")
         try:
             if job_type in {JOBTYPE_FILL, JOBTYPE_WALLPAPER}:
                 scenario_id = server_args['scenario_id']
@@ -658,6 +671,7 @@ def do_work(host, port, outputs_location):
                         fill_lulc_class=job_args['lulc_class'],
                         target_lulc_path=result_path
                     )
+                    LOGGER.info(f"Filled parcel written to {result_path}")
                 elif job_type == JOBTYPE_WALLPAPER:
                     wallpaper_temp_dir = tempfile.mkdtemp(
                         dir=workspace, prefix='wallpaper-')
@@ -668,6 +682,7 @@ def do_work(host, port, outputs_location):
                         target_raster_path=result_path,
                         working_dir=wallpaper_temp_dir
                     )
+                    LOGGER.info(f"Wallpapered parcel written to {result_path}")
                     try:
                         shutil.rmtree(wallpaper_temp_dir)
                     except OSError as e:
@@ -720,6 +735,7 @@ def do_work(host, port, outputs_location):
                     target_thumbnail_path=thumbnail_path,
                     working_dir=thumbnails_dir
                 )
+                LOGGER.info(f"Thumbnail written to {thumbnail_path}")
 
                 data = {
                     'result': {
@@ -735,6 +751,7 @@ def do_work(host, port, outputs_location):
             result_path = None
             data = {}  # data doesn't matter in a failure
         finally:
+            LOGGER.info(f"Job {job_id}:{job_type} finished with {status}")
             data['server_attrs'] = server_args
             data['status'] = status
             requests.post(

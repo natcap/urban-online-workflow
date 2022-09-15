@@ -176,7 +176,7 @@ def update_scenario(
 def delete_scenario(scenario_id: int, db: Session = Depends(get_db)):
     return crud.delete_scenario(db=db, scenario_id=scenario_id)
 
-
+# TODO: Deprecate
 @app.get("/scenarios/{study_area_id}", response_model=list[schemas.Scenario])
 def read_scenarios(study_area_id: int, db: Session = Depends(get_db)):
     db_study_area = crud.get_study_area(db, study_area_id=study_area_id)
