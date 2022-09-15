@@ -332,7 +332,9 @@ def fill_parcel(parcel_wkt_epsg3857, fill_lulc_class,
 
     parcel_vector_path = os.path.join(working_dir, 'parcel.fgb')
     pygeoprocessing.geoprocessing.shapely_geometry_to_vector(
-        [parcel_geom], parcel_vector_path, NLCD_SRS_WKT, 'FlatGeoBuf')
+        [parcel_geom], parcel_vector_path, NLCD_SRS_WKT, 'FlatGeoBuf',
+        ogr_geom_type=ogr.wkbMultiPolygon
+    )
 
     _create_new_lulc(parcel_wkt_epsg3857, target_lulc_path)
     pygeoprocessing.geoprocessing.rasterize(
@@ -477,7 +479,9 @@ def pixelcounts_under_parcel(parcel_wkt_epsg3857, source_raster_path):
     pygeoprocessing.geoprocessing.shapely_geometry_to_vector(
         [parcel],
         os.path.join('parcel_loaded.fgb'),
-        _WEB_MERCATOR_SRS.ExportToWkt(), 'FlatGeoBuf')
+        _WEB_MERCATOR_SRS.ExportToWkt(), 'FlatGeoBuf',
+        ogr_geom_type=ogr.wkbMultiPolygon
+    )
 
     # "Round up" to the next pixel
     x0 = math.floor(x0)
