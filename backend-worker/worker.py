@@ -27,7 +27,7 @@ DEFAULT_GTIFF_CREATION_TUPLE_OPTIONS = ('GTIFF', (
     'TILED=YES', 'BIGTIFF=YES', 'COMPRESS=LZW',
     'BLOCKXSIZE=256', 'BLOCKYSIZE=256'))
 NLCD_NODATA = -1
-NLCD_DTYPE = gdal.GDT_UInt16
+NLCD_DTYPE = gdal.GDT_Int16
 _WEB_MERCATOR_SRS = osr.SpatialReference()
 _WEB_MERCATOR_SRS.ImportFromEPSG(3857)
 _WEB_MERCATOR_SRS.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
@@ -293,7 +293,7 @@ def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path):
 
     raster_driver = gdal.GetDriverByName('GTIFF')
     target_raster = raster_driver.Create(
-        target_local_gtiff_path, n_cols, n_rows, 1, gdal.GDT_Byte,
+        target_local_gtiff_path, n_cols, n_rows, 1, NLCD_DTYPE,
         options=DEFAULT_GTIFF_CREATION_TUPLE_OPTIONS[1])
     target_raster.SetProjection(NLCD_SRS_WKT)
     target_raster.SetGeoTransform(
