@@ -593,6 +593,11 @@ def get_parcel_stats_results(job_id: int, db: Session = Depends(get_db)):
         return job_db.status
 
 
+@app.post("/invest/{scenario_id}")
+def run_invest(scenario_id: int, db: Session = Depends(get_db)):
+    """Add invest job to the queue."""
+    LOGGER.info("Add InVEST runs to queue")
+
 ### Testing ideas from tutorial ###
 
 client = TestClient(app)
