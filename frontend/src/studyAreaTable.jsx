@@ -7,6 +7,14 @@ import {
   Button
 } from '@blueprintjs/core';
 
+function sqkm(count) {
+  if (!parseInt(count)) {
+    return ''
+  }
+  const num = count * 0.030 * 0.030;
+  return num.toFixed(2)
+}
+
 export default function StudyAreaTable(props) {
   const { scenarioTable } = props;
   console.log(scenarioTable)
@@ -15,21 +23,32 @@ export default function StudyAreaTable(props) {
 
   const scenarioHeader = (
     <tr key="header">
-      <td key="header"> </td>
-      {Object.keys(scenarioTable).map((name) => <td key={name}>{name}</td>)}
+      <td key="header"><em>area in square km</em></td>
+      {Object.keys(scenarioTable).map(
+        (name) => <td key={name}><div className="header"><span>{name}</span></div></td>
+      )}
     </tr>
   );
 
   const rows = [];
   rows.push(scenarioHeader);
   Object.keys(landuseCodes).forEach((code) => {
-    const cells = [];
-    cells.push(<td>{landuseCodes[code].name}</td>)
+    const counts = [];
     Object.entries(scenarioTable).forEach(([name, table]) => {
-      const count = scenarioTable[name][code] || 0;
-      cells.push(<td key={name}>{count}</td>);
+      const count = scenarioTable[name][code] || '';
+      counts.push(count);
     })
-    rows.push(<tr key={code}>{cells}</tr>);
+    if (counts.reduce((x, y) => (x || 0) + (y || 0), 0)) { // skip rows of all 0s
+      const cells = [];
+      cells.push(
+        <td className="row-name" style={{
+          borderLeftColor: landuseCodes[code].color
+        }}>
+          {landuseCodes[code].name}
+        </td>)
+      cells.push(...counts.map((c, idx) => <td key={idx}>{sqkm(c)}</td>))
+      rows.push(<tr key={code}>{cells}</tr>);
+    }
   });
 
   return (

@@ -166,3 +166,14 @@ html, body, #root, .App {
   display: flex;
   height: 1rem;
 }
+
+.scenario-table .col-name {
+  transform: rotate(310deg);
+}
+
+.scenario-table .row-name {
+  font-size: 0.7rem;
+  padding: 0.5rem;
+  border-left-style: solid;
+  border-left-width: 8px;
+}
