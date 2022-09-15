@@ -264,12 +264,15 @@ def _reproject_to_nlud(parcel_wkt_epsg3857):
     return parcel_geom
 
 
-def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path):
+def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path,
+                     include_pixel_values=False):
     """Create an LULC raster in the NLCD projection covering the parcel.
 
     Args:
         parcel_wkt_epsg3857 (str): The parcel WKT in EPSG:3857 (Web Mercator)
         target_local_gtiff_path (str): Where the target raster should be saved
+        include_pixel_values=False (bool): Whether to include the underlying
+            raster's pixel values in the new, cropped LULC.
 
     Returns:
         ``None``
@@ -288,21 +291,19 @@ def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path):
     buf_maxx += PIXELSIZE_X - abs((buf_maxx - NLCD_ORIGIN_X) % PIXELSIZE_X)
     buf_maxy += PIXELSIZE_Y - abs((buf_maxy - NLCD_ORIGIN_Y) % PIXELSIZE_Y)
 
-    n_cols = abs(int(math.ceil((buf_maxx - buf_minx) / PIXELSIZE_X)))
-    n_rows = abs(int(math.ceil((buf_maxy - buf_miny) / PIXELSIZE_Y)))
+    pygeoprocessing.warp_raster(
+        NLCD_RASTER_PATH, (PIXELSIZE_X, PIXELSIZE_Y),
+        target_local_gtiff_path, 'nearest',
+        target_bb=[buf_minx, buf_miny, buf_maxx, buf_maxy])
 
-    raster_driver = gdal.GetDriverByName('GTIFF')
-    target_raster = raster_driver.Create(
-        target_local_gtiff_path, n_cols, n_rows, 1, NLCD_DTYPE,
-        options=DEFAULT_GTIFF_CREATION_TUPLE_OPTIONS[1])
-    target_raster.SetProjection(NLCD_SRS_WKT)
-    target_raster.SetGeoTransform(
-        [buf_minx, PIXELSIZE_X, 0, buf_maxy, 0, PIXELSIZE_Y])
-    band = target_raster.GetRasterBand(1)
-    band.SetNoDataValue(NLCD_NODATA)
-    band.Fill(NLCD_NODATA)
-    target_raster = None
-    band = None
+    if not include_pixel_values:
+        raster = gdal.OpenEx(target_local_gtiff_path, gdal.GA_Update)
+        band = raster.GetRasterBand(1)
+        nodata = band.GetNoDataValue()
+        if nodata is not None:
+            band.Fill(nodata)
+        band = None
+        raster = None
 
 
 def fill_parcel(parcel_wkt_epsg3857, fill_lulc_class,
