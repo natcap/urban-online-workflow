@@ -309,6 +309,12 @@ def fill_parcel(parcel_wkt_epsg3857, fill_lulc_class,
                 target_lulc_path, working_dir=None):
     """Fill (rasterize) a parcel with a landcover code.
 
+    This function writes a new raster that:
+
+        * Is aligned to the grid of the source lulc
+        * Is filled with nodata except for the parcel
+        * Is filled with ``fill_lulc_class`` where the parcel is present
+
     Args:
         parcel_wkt_epsg3857 (str): The WKT of the parcel to fill,
             projected in EPSG:3857 (Web Mercator)
