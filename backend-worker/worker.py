@@ -635,6 +635,7 @@ def do_work(host, port, outputs_location):
         if not response.json():
             time.sleep(POLLING_INTERVAL_S)
             continue
+        LOGGER.info("Response received; loading job details")
 
         # response.json() returns a stringified json object, so need to load
         # it into a python dict
@@ -651,6 +652,7 @@ def do_work(host, port, outputs_location):
             if not os.path.exists(path):
                 os.makedirs(path)
 
+        LOGGER.info(f"Starting job {job_id}:{job_type}")
         try:
             if job_type in {JOBTYPE_FILL, JOBTYPE_WALLPAPER}:
                 scenario_id = server_args['scenario_id']
@@ -665,6 +667,7 @@ def do_work(host, port, outputs_location):
                         fill_lulc_class=job_args['lulc_class'],
                         target_lulc_path=result_path
                     )
+                    LOGGER.info(f"Filled parcel written to {result_path}")
                 elif job_type == JOBTYPE_WALLPAPER:
                     wallpaper_temp_dir = tempfile.mkdtemp(
                         dir=workspace, prefix='wallpaper-')
@@ -675,6 +678,7 @@ def do_work(host, port, outputs_location):
                         target_raster_path=result_path,
                         working_dir=wallpaper_temp_dir
                     )
+                    LOGGER.info(f"Wallpapered parcel written to {result_path}")
                     try:
                         shutil.rmtree(wallpaper_temp_dir)
                     except OSError as e:
@@ -727,6 +731,7 @@ def do_work(host, port, outputs_location):
                     target_thumbnail_path=thumbnail_path,
                     working_dir=thumbnails_dir
                 )
+                LOGGER.info(f"Thumbnail written to {thumbnail_path}")
 
                 data = {
                     'result': {
@@ -742,6 +747,7 @@ def do_work(host, port, outputs_location):
             result_path = None
             data = {}  # data doesn't matter in a failure
         finally:
+            LOGGER.info(f"Job {job_id}:{job_type} finished with {status}")
             data['server_attrs'] = server_args
             data['status'] = status
             requests.post(
