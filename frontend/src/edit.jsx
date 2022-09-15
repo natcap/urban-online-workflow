@@ -23,7 +23,6 @@ export default function EditMenu(props) {
     patternSampleWKT,
     sessionID,
   } = props;
-  console.log(savedStudyAreas)
 
   const [activeTab, setActiveTab] = useState('create');
   const [activeStudyAreaID, setActiveStudyAreaID] = useState(null);
@@ -35,11 +34,6 @@ export default function EditMenu(props) {
       return newTable;
     });
   };
-
-  const activeStudyArea = savedStudyAreas.filter(
-    (area) => area.id === activeStudyAreaID
-  )[0];
-  console.log(activeStudyArea)
 
   return (
     <div className="menu-container">
@@ -69,7 +63,7 @@ export default function EditMenu(props) {
           )}
         />
         {
-          (activeStudyArea && activeStudyArea.scenarios.length)
+          (scenarioTable)
             ? (
               <Tab
                 id="explore"

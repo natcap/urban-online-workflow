@@ -92,6 +92,16 @@ export default function ScenarioBuilder(props) {
   };
 
   const submitStudyArea = async (name) => {
+    // Instantiate the 'baseline' scenario now.
+    const baseLulcTable = {};
+    Object.keys(landuseCodes).forEach((code) => {
+      baseLulcTable[code] = 0;
+      Object.values(parcelSet).forEach((parcel) => {
+        baseLulcTable[code] += parcel.table[code] || 0;
+      });
+    });
+    addScenarioLULCTable({ 'baseline': baseLulcTable });
+
     setStudyArea(name);
     const id = await createStudyArea(sessionID, name, parcelSet);
     setActiveStudyAreaID(id);
