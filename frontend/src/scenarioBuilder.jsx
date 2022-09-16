@@ -44,7 +44,6 @@ export default function ScenarioBuilder(props) {
   const [selectedPattern, setSelectedPattern] = useState(null);
   const [jobID, setJobID] = useState(null);
   const [studyArea, setStudyArea] = useState('');
-  // const [studyAreaID, setStudyAreaID] = useState(null)
 
   useInterval(async () => {
     console.log('checking status for job', jobID);
@@ -180,14 +179,3 @@ export default function ScenarioBuilder(props) {
     </>
   );
 }
-
-{/*<datalist id="scenariolist">
-  {Object.values(savedScenarios).map(
-    (scenario) => (
-      <option
-        key={scenario.scenario_id}
-        value={scenario.name} />
-      ),
-    )
-  }
-</datalist>*/}

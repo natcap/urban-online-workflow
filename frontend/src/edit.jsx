@@ -7,7 +7,7 @@ import {
 } from '@blueprintjs/core';
 
 import ScenarioBuilder from './scenarioBuilder';
-import StudyAreaTable from './studyAreaTable';
+import ScenarioTable from './scenarioTable';
 
 FocusStyleManager.onlyShowFocusOnTabs();
 
@@ -68,7 +68,7 @@ export default function EditMenu(props) {
               <Tab
                 id="explore"
                 title="Analyze"
-                panel={<StudyAreaTable scenarioTable={scenarioTable} />}
+                panel={<ScenarioTable scenarioTable={scenarioTable} />}
               />
             )
             : <div />

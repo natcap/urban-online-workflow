@@ -15,7 +15,7 @@ function sqkm(count) {
   return num.toFixed(2)
 }
 
-export default function StudyAreaTable(props) {
+export default function ScenarioTable(props) {
   const { scenarioTable } = props;
   console.log(scenarioTable)
 
