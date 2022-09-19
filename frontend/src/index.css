@@ -177,3 +177,9 @@ html, body, #root, .App {
   border-left-style: solid;
   border-left-width: 8px;
 }
+
+.scenario-table .table-note {
+  font-style: italic;
+  font-size: 0.7rem;
+  text-align: center;
+}

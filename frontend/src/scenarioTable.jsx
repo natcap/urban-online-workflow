@@ -23,7 +23,7 @@ export default function ScenarioTable(props) {
 
   const scenarioHeader = (
     <tr key="header">
-      <td key="header"><em>area in square km</em></td>
+      <td key="0_0" className="table-note">(area in square km)</td>
       {Object.keys(scenarioTable).map(
         (name) => <td key={name}><div className="header"><span>{name}</span></div></td>
       )}
@@ -41,7 +41,7 @@ export default function ScenarioTable(props) {
     if (counts.reduce((x, y) => (x || 0) + (y || 0), 0)) { // skip rows of all 0s
       const cells = [];
       cells.push(
-        <td className="row-name" style={{
+        <td key={code} className="row-name" style={{
           borderLeftColor: landuseCodes[code].color
         }}>
           {landuseCodes[code].name}

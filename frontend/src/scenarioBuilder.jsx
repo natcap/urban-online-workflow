@@ -52,6 +52,7 @@ export default function ScenarioBuilder(props) {
       const results = await getJobResults(jobID, scenarioID);
       console.log(results)
       addScenarioLULCTable({ [scenarioName]: results.lulc_stats.result });
+      refreshSavedStudyAreas();
       setJobID(null);
     }
   }, (jobID && scenarioID) ? 1000 : null);
@@ -87,7 +88,6 @@ export default function ScenarioBuilder(props) {
       );
     }
     setJobID(jid);
-    refreshSavedStudyAreas();
   };
 
   const submitStudyArea = async (name) => {
