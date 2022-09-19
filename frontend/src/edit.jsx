@@ -23,6 +23,7 @@ export default function EditMenu(props) {
     patternSampleWKT,
     sessionID,
   } = props;
+  console.log(savedStudyAreas)
 
   const [activeTab, setActiveTab] = useState('create');
   const [activeStudyAreaID, setActiveStudyAreaID] = useState(null);

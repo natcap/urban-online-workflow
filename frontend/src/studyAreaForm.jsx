@@ -25,6 +25,7 @@ export default function StudyAreaForm(props) {
       while (n < count) {
         blocks.push(
           <div
+            key={`${n}${code}`}
             style={{
               backgroundColor: landuseCodes[code].color,
               width: '10px',
