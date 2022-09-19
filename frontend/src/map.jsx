@@ -31,6 +31,8 @@ import {
   styleParcel,
 } from './map/styles';
 
+const BASE_LULC_URL = 'https://storage.googleapis.com/natcap-urban-online-datasets-public/NLCD_2016_epsg3857.tif'
+
 function getCoords(geometry) {
   const flatCoords = geometry.getFlatCoordinates();
   const pairedCoords = flatCoords.reduce(
@@ -103,7 +105,7 @@ const map = new Map({
   layers: [
     satelliteLayer,
     streetMapLayer,
-    lulcLayer,
+    lulcLayer(BASE_LULC_URL, 'Landcover'),
     parcelLayer,
     selectionLayer,
     patternSamplerLayer,
@@ -126,7 +128,9 @@ export default function MapComponent(props) {
     addParcel,
     patternSamplingMode,
     setPatternSampleWKT,
+    scenarioLulcRasters,
   } = props;
+  console.log(scenarioLulcRasters)
   const [layers, setLayers] = useState([]);
   const [showLayerControl, setShowLayerControl] = useState(false);
   const [basemap, setBasemap] = useState('Satellite');
@@ -210,6 +214,15 @@ export default function MapComponent(props) {
       }
     });
   }, []);
+
+  useEffect(() => {
+    if (scenarioLulcRasters) {
+      console.log(scenarioLulcRasters)
+      Object.entries(scenarioLulcRasters).forEach(([name, url]) => {
+        map.addLayer(lulcLayer(url, name));
+      });
+    }
+  }, [scenarioLulcRasters])
 
   // toggle pattern sampler visibility according to the pattern sampling mode
   useEffect(() => {

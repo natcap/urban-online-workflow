@@ -43,7 +43,7 @@ export default function ScenarioBuilder(props) {
   const [scenarioID, setScenarioID] = useState(null);
   const [selectedPattern, setSelectedPattern] = useState(null);
   const [jobID, setJobID] = useState(null);
-  const [studyArea, setStudyArea] = useState('');
+  const [studyAreaName, setStudyAreaName] = useState('');
 
   useInterval(async () => {
     console.log('checking status for job', jobID);
@@ -101,7 +101,7 @@ export default function ScenarioBuilder(props) {
     });
     addScenarioLULCTable({ 'baseline': baseLulcTable });
 
-    setStudyArea(name);
+    setStudyAreaName(name);
     const id = await createStudyArea(sessionID, name, parcelSet);
     setActiveStudyAreaID(id);
     refreshSavedStudyAreas();
@@ -117,10 +117,10 @@ export default function ScenarioBuilder(props) {
         submitStudyArea={submitStudyArea}
         parcelSet={parcelSet}
         removeParcel={removeParcel}
-        studyArea={studyArea}
+        immutableStudyArea={Boolean(activeStudyAreaID)}
       />
       {
-        (studyArea)
+        (studyAreaName)
           ? (
             <form>
               <RadioGroup
@@ -158,7 +158,7 @@ export default function ScenarioBuilder(props) {
               </div>
               <p className="sidebar-subheading">
                 <span>Save as a new scenario for study area </span>
-                <em>{studyArea}</em>
+                <em>{studyAreaName}</em>
               </p>
               <InputGroup
                 placeholder="name this scenario"

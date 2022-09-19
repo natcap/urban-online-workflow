@@ -13,7 +13,7 @@ export default function StudyAreaForm(props) {
     submitStudyArea,
     parcelSet,
     removeParcel,
-    studyArea,
+    immutableStudyArea,
   } = props;
   const [studyAreaName, setStudyAreaName] = useState('');
   const [highlightedCode, setHighlightedCode] = useState(null);
@@ -46,7 +46,7 @@ export default function StudyAreaForm(props) {
     rows.push(
       <tr key={id}>
         {
-          (!studyArea) // study area not yet submitted; allow changes
+          (!immutableStudyArea) // study area not yet submitted; allow changes
             ? (
               <td>
                 <Button
@@ -67,10 +67,10 @@ export default function StudyAreaForm(props) {
     <div>
       <p className="sidebar-subheading">
         <span>Parcels in study area </span>
-        <em>{studyArea}</em>
+        {/*<em>{studyArea}</em>*/}
       </p>
       {
-        (!studyArea)
+        (!immutableStudyArea)
           ? (
             <InputGroup
               placeholder="name this study area"
