@@ -2,6 +2,7 @@ import GeoTIFF from 'ol/source/GeoTIFF';
 import TileLayer from 'ol/layer/WebGLTile';
 
 import landuseCodes from '../landuseCodes';
+import { publicUrl } from '../utils';
 
 const colors = Array(256).fill('#000000');
 Object.entries(landuseCodes).forEach(([code, data]) => {
@@ -11,7 +12,7 @@ Object.entries(landuseCodes).forEach(([code, data]) => {
 export default function lulcTileLayer(url, title) {
   const source = new GeoTIFF({
     sources: [{
-      url: url,
+      url: publicUrl(url),
       projection: 'EPSG:3857',
     }],
     interpolate: false,
