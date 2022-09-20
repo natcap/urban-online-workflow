@@ -23,7 +23,7 @@ export default function ScenarioTable(props) {
 
   const scenarioHeader = (
     <tr key="header">
-      <td key="0_0" className="table-note">(area in square km)</td>
+      <td key="0_0" className="table-note">Landcover composition by scenario</td>
       {Object.keys(scenarioTable).map(
         (name) => <td key={name}><div className="header"><span>{name}</span></div></td>
       )}
@@ -32,6 +32,7 @@ export default function ScenarioTable(props) {
 
   const rows = [];
   rows.push(scenarioHeader);
+  let firstRow = true;
   Object.keys(landuseCodes).forEach((code) => {
     const counts = [];
     Object.entries(scenarioTable).forEach(([name, table]) => {
@@ -46,8 +47,17 @@ export default function ScenarioTable(props) {
         }}>
           {landuseCodes[code].name}
         </td>)
-      cells.push(...counts.map((c, idx) => <td key={idx}>{sqkm(c)}</td>))
+      cells.push(...counts.map((c, idx) => {
+        let content = <span>{sqkm(c)}</span>
+        if (c && firstRow) {
+          content = <span>{sqkm(c)} km<sup>2</sup></span>
+        }
+        return <td key={idx}>{content}</td>
+      }
+      
+      ))
       rows.push(<tr key={code}>{cells}</tr>);
+      firstRow = false;
     }
   });
 

@@ -42,10 +42,24 @@ export default function StudyAreaForm(props) {
   }
 
   const rows = [];
+  rows.push(
+    <tr>
+      <td></td>
+      <td><em>address</em></td>
+      <td><em>landuse composition</em></td>
+    </tr>
+  )
   Object.entries(parcelSet).forEach(([id, data]) => {
     rows.push(
       <tr key={id}>
-        {
+        <td>
+          <Button
+            icon="remove"
+            onClick={() => removeParcel(id)}
+            disabled={immutableStudyArea}
+          />
+        </td>
+        {/*{
           (!immutableStudyArea) // study area not yet submitted; allow changes
             ? (
               <td>
@@ -56,7 +70,7 @@ export default function StudyAreaForm(props) {
               </td>
             )
             : null
-        }
+        }*/}
         <td>{id}</td>
         <td><div className="parcel-block">{plot(data.table)}</div></td>
       </tr>,

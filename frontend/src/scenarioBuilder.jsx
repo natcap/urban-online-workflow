@@ -123,10 +123,14 @@ export default function ScenarioBuilder(props) {
         (studyAreaName)
           ? (
             <form>
+              <label
+               className="sidebar-subheading"
+              >
+                Modify the landuse in this study area:
+              </label>
               <RadioGroup
-                className="sidebar-subheading"
+                className="conversion-radio"
                 inline
-                label="Modify the landuse in this study area:"
                 onChange={(event) => setConversionOption(event.target.value)}
                 selectedValue={conversionOption}
               >
