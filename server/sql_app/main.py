@@ -19,7 +19,7 @@ from .database import SessionLocal, engine
 # This will help with flexibility of where we store our files and DB
 # When gathering URL result for frontend request build the URL with this:
 WORKING_ENV = "/opt/appdata"
-BASE_LULC = "NLCD_2016.tif"
+BASE_LULC = "NLCD_2016_epsg3857.tif"
 
 logging.basicConfig(
     level=logging.DEBUG,
