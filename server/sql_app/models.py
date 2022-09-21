@@ -118,6 +118,7 @@ class Parcel(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     wkt = Column(String)
+    lulc_stats = Column(String)
 
     # each scenario has an associated study area owner
     study_area_id = Column(String, ForeignKey("study_area.id"))

@@ -73,14 +73,17 @@ class ParcelBase(BaseModel):
 class Parcel(ParcelBase):
     """Pydantic model used when reading data, when returning it from API."""
     id: int
+    lulc_stats: Union[str, None] = None
 
     class Config:
         orm_mode = True
+
 
 class StudyAreaParcel(BaseModel):
     """Pydantic model base for Study Areas."""
     name: str
     parcels: list[ParcelBase] = []
+
 
 class StudyAreaBase(BaseModel):
     """Pydantic model base for Study Areas."""
