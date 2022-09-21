@@ -68,6 +68,7 @@ class Scenario(ScenarioBase):
 class ParcelBase(BaseModel):
     """Pydantic model base for Parcels."""
     wkt: str
+    address: str
 
 
 class Parcel(ParcelBase):
