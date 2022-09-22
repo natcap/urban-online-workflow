@@ -66,7 +66,7 @@ export default function App() {
               patternSamplingMode={patternSamplingMode}
               setPatternSampleWKT={setPatternSampleWKT}
               sessionID={sessionID}
-              scenarioLulcRasters={scenarioLulcRasters}
+              scenarioLulcRasters={{water: '/opt/appdata/scenarios/1/1_parcel_fill.tif'}}
             />
             <EditMenu
               parcelSet={parcelSet}
