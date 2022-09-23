@@ -70,9 +70,10 @@ def create_session(db: Session):
     db.refresh(db_session)
     return db_session
 
-def create_study_area(db: Session, session_id: str, study_area: schemas.StudyAreaParcel):
+def create_study_area(
+        db: Session, session_id: str, study_area: schemas.StudyAreaParcel):
     """Create a study area entry."""
-    LOGGER.info("Create study area")
+    LOGGER.debug("Create study area")
     study_area_dict = study_area.dict()
     parcel_list = study_area_dict.pop("parcels", None)
 
@@ -81,9 +82,14 @@ def create_study_area(db: Session, session_id: str, study_area: schemas.StudyAre
     db.commit()
     db.refresh(db_study_area)
 
-    LOGGER.info("Create parcels")
     for parcel in parcel_list:
-        db_parcel = models.Parcel(**parcel, study_area_id=db_study_area.id)
+        # Get the lulc_stats from ParcelStats table
+        db_parcel_stats = get_parcel_stats_by_wkt(db, parcel["wkt"])
+        if not db_parcel_stats:
+            raise HTTPException(status_code=404, detail="Parcel stats not found")
+        db_parcel = models.Parcel(
+            **parcel, lulc_stats=db_parcel_stats.lulc_stats,
+            study_area_id=db_study_area.id)
         db.add(db_parcel)
         db.commit()
         db.refresh(db_parcel)
@@ -161,6 +167,11 @@ def get_parcel_stats_by_job(db: Session, job_id: int):
     """Read a single stats entry by job ID."""
     return db.query(models.ParcelStats).filter(
             models.ParcelStats.job_id == job_id).first()
+
+def get_parcel_stats_by_wkt(db: Session, wkt: str):
+    """Read a single stats entry by wkt."""
+    return db.query(models.ParcelStats).filter(
+            models.ParcelStats.target_parcel_wkt == wkt).first()
 
 def update_parcel_stats(
         db: Session, parcel_stats: schemas.ParcelStatsUpdate, stats_id: int):

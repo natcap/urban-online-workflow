@@ -75,7 +75,7 @@ class Scenario(Base):
     description = Column(String)
     lulc_url_result = Column(String)
     lulc_stats = Column(String)
-    lulc_url_base = Column(String, default="NLCD_2016.tif")
+    lulc_url_base = Column(String, default="NLCD_2016_epsg3857.tif")
     operation = Column(String)
     # each scenario has an associated study area owner
     study_area_id = Column(String, ForeignKey("study_area.id"))
@@ -118,6 +118,8 @@ class Parcel(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     wkt = Column(String)
+    lulc_stats = Column(String)
+    address = Column(String)
 
     # each scenario has an associated study area owner
     study_area_id = Column(String, ForeignKey("study_area.id"))

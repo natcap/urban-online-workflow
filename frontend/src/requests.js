@@ -112,9 +112,10 @@ export async function getScenario(id) {
 /**
  * Create a new scenario.
  *
- * @param  {integer} sessionID - id of the current session
+ * @param  {integer} studyAreaID - id of the active study area
  * @param  {string} name - name to give the new scenario
  * @param  {string} description - description of the new scenario
+ * @param  {string} operation - 'wallpaper' or 'parcel_fill'
  * @return {integer} scenario id
  */
 export async function createScenario(studyAreaID, name, description, operation) {

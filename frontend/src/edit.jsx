@@ -7,7 +7,7 @@ import {
 } from '@blueprintjs/core';
 
 import ScenarioBuilder from './scenarioBuilder';
-import StudyAreaTable from './studyAreaTable';
+import ScenarioTable from './scenarioTable';
 
 FocusStyleManager.onlyShowFocusOnTabs();
 
@@ -26,6 +26,15 @@ export default function EditMenu(props) {
   console.log(savedStudyAreas)
 
   const [activeTab, setActiveTab] = useState('create');
+  const [activeStudyAreaID, setActiveStudyAreaID] = useState(null);
+  const [scenarioTable, setScenarioTable] = useState(null);
+
+  const addScenarioLULCTable = (table) => {
+    setScenarioTable((prev) => {
+      const newTable = { ...prev, ...table };
+      return newTable;
+    });
+  };
 
   return (
     <div className="menu-container">
@@ -47,15 +56,24 @@ export default function EditMenu(props) {
                 patternSampleWKT={patternSampleWKT}
                 togglePatternSamplingMode={togglePatternSamplingMode}
                 refreshSavedStudyAreas={refreshSavedStudyAreas}
+                activeStudyAreaID={activeStudyAreaID}
+                setActiveStudyAreaID={setActiveStudyAreaID}
+                addScenarioLULCTable={addScenarioLULCTable}
               />
             </div>
           )}
         />
-        {/*<Tab
-          id="explore"
-          title="Analyze"
-          panel={<StudyAreaTable savedScenarios={savedScenarios} />}
-        />*/}
+        {
+          (scenarioTable)
+            ? (
+              <Tab
+                id="explore"
+                title="Analyze"
+                panel={<ScenarioTable scenarioTable={scenarioTable} />}
+              />
+            )
+            : <div />
+        }
       </Tabs>
     </div>
   );

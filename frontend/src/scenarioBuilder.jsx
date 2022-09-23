@@ -25,6 +25,8 @@ import {
 
 export default function ScenarioBuilder(props) {
   const {
+    activeStudyAreaID,
+    setActiveStudyAreaID,
     parcelSet,
     sessionID,
     removeParcel,
@@ -32,6 +34,7 @@ export default function ScenarioBuilder(props) {
     togglePatternSamplingMode,
     patternSampleWKT,
     refreshSavedStudyAreas,
+    addScenarioLULCTable,
   } = props;
 
   const [singleLULC, setSingleLULC] = useState(Object.keys(landuseCodes)[0]);
@@ -41,7 +44,6 @@ export default function ScenarioBuilder(props) {
   const [selectedPattern, setSelectedPattern] = useState(null);
   const [jobID, setJobID] = useState(null);
   const [studyArea, setStudyArea] = useState('');
-  const [studyAreaID, setStudyAreaID] = useState(null)
 
   useInterval(async () => {
     console.log('checking status for job', jobID);
@@ -49,7 +51,8 @@ export default function ScenarioBuilder(props) {
     if (status === 'success') {
       const results = await getJobResults(jobID, scenarioID);
       console.log(results)
-      // setParcelTable(results);
+      addScenarioLULCTable({ [scenarioName]: results.lulc_stats.result });
+      refreshSavedStudyAreas();
       setJobID(null);
     }
   }, (jobID && scenarioID) ? 1000 : null);
@@ -66,30 +69,41 @@ export default function ScenarioBuilder(props) {
     // TODO: It might be more orthogonal to have the wallpapering/parcel_fill
     // endpoint create the scenario on the backend, rather than creating it up-front.
     currentScenarioID = await createScenario(
-      studyAreaID, scenarioName, 'description', conversionOption
+      activeStudyAreaID, scenarioName, 'description', conversionOption
     );
     setScenarioID(currentScenarioID);
     let jid;
     if (conversionOption === 'wallpaper' && selectedPattern) {
+      console.log('pattern_id', selectedPattern.pattern_id)
       jid = await doWallpaper(
         selectedPattern.pattern_id,
         currentScenarioID
       );
     }
     if (conversionOption === 'paint' && singleLULC) {
+      console.log(singleLULC)
       jid = await convertToSingleLULC(
         singleLULC,
         currentScenarioID
       );
     }
     setJobID(jid);
-    refreshSavedStudyAreas();
   };
 
   const submitStudyArea = async (name) => {
+    // Instantiate the 'baseline' scenario now.
+    const baseLulcTable = {};
+    Object.keys(landuseCodes).forEach((code) => {
+      baseLulcTable[code] = 0;
+      Object.values(parcelSet).forEach((parcel) => {
+        baseLulcTable[code] += parcel.table[code] || 0;
+      });
+    });
+    addScenarioLULCTable({ 'baseline': baseLulcTable });
+
     setStudyArea(name);
     const id = await createStudyArea(sessionID, name, parcelSet);
-    setStudyAreaID(id);
+    setActiveStudyAreaID(id);
     refreshSavedStudyAreas();
   };
 
@@ -165,14 +179,3 @@ export default function ScenarioBuilder(props) {
     </>
   );
 }
-
-{/*<datalist id="scenariolist">
-  {Object.values(savedScenarios).map(
-    (scenario) => (
-      <option
-        key={scenario.scenario_id}
-        value={scenario.name} />
-      ),
-    )
-  }
-</datalist>*/}

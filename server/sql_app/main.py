@@ -19,7 +19,7 @@ from .database import SessionLocal, engine
 # This will help with flexibility of where we store our files and DB
 # When gathering URL result for frontend request build the URL with this:
 WORKING_ENV = "/opt/appdata"
-BASE_LULC = "NLCD_2016.tif"
+BASE_LULC = "NLCD_2016_epsg3857.tif"
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -523,6 +523,9 @@ def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
 @app.post("/stats_under_parcel/", response_model=schemas.JobResponse)
 def get_lulc_stats_under_parcel(parcel_stats_req: schemas.ParcelStatsRequest,
                                 db: Session = Depends(get_db)):
+    # TODO: Check if this parcel has already been computed.
+    # NOTE this assumes we're always using baseline LULC
+
     # Create job entry for wallpapering task
     job_schema = schemas.JobBase(
         **{"name": "stats_under_parcel",
