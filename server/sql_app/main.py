@@ -44,6 +44,9 @@ STATUS_FAIL = "failed"
 LOW_PRIORITY = 3
 MEDIUM_PRIORITY = 2
 HIGH_PRIORITY = 1
+# InVEST model list
+INVEST_MODELS = ["pollination", "stormwater", "urban_cooling_model", "carbon",
+                 "urban_flood_risk_mitigation", "urban_nature_access"]
 
 # Normally you would probably initialize your db (create tables, etc) with
 # Alembic. Would also use Alembic for "migrations" (that's its main job).
@@ -600,6 +603,47 @@ def get_parcel_stats_results(job_id: int, db: Session = Depends(get_db)):
 def run_invest(scenario_id: int, db: Session = Depends(get_db)):
     """Add invest job to the queue."""
     LOGGER.info("Add InVEST runs to queue")
+    # Get the scenario LULC for model runs
+    scenario_db = crud.get_scenario(db, scenario_id=scenario_id)
+    if scenario_db is None:
+        raise HTTPException(status_code=404, detail="Scenario not found")
+    scenario_lulc = scenario_db.lulc_url_result
+
+    # Get the session_id
+    study_area_id = scenario_db.study_area_id
+    study_area_db = crud.get_study_area(db, study_area_id)
+    session_id = study_area_db.owner_id
+
+    # For each invest model create a new job and add to the queue
+    invest_job_dict = {}
+    for invest_model in INVEST_MODELS:
+        job_schema = schemas.JobBase(
+            **{"name": f"InVEST: {invest_model}",
+               "description": "executing invest model {invest_model}",
+               "status": STATUS_PENDING})
+        job_db = crud.create_job(
+            db=db, session_id=session_id, job=job_schema)
+
+        # Construct worker job and add to the queue
+        worker_task = {
+            "job_type": "invest",
+            "server_attrs": {
+                "job_id": job_db.job_id, "scenario_id": scenario_id,
+                "invest_model": invest_model
+            },
+            "job_args": {
+                "invest_model": invest_model,
+                "lulc_source_url": scenario_lulc
+                }
+            }
+
+        QUEUE.put_nowait((MEDIUM_PRIORITY, worker_task))
+
+        invest_job_dict[invest_model] = job_db.job_id
+
+    # Return dictionary of invest model names mapped to job_ids
+    return invest_job_dict
+
 
 ### Testing ideas from tutorial ###
 
