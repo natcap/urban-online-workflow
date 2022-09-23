@@ -28,6 +28,14 @@ services:
         volumes:
             - ./backend-worker:/opt/worker
             - ./appdata:/opt/appdata
+    fileserver:
+        image: nginx:mainline
+        restart: on-failure
+        ports:
+            - 9000:80
+        volumes:
+            - ./fileserver/app.conf:/etc/nginx/conf.d/default.conf
+            - ./appdata:/opt/appdata
 
 secrets:
     frontend-api-keys:
