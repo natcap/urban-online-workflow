@@ -229,7 +229,7 @@ export default function MapComponent(props) {
     if (scenarioLulcRasters) {
       console.log(scenarioLulcRasters)
       Object.entries(scenarioLulcRasters).forEach(([name, url]) => {
-        map.addLayer(lulcImageLayer(url, name));
+        map.addLayer(lulcTileLayer(url, name));
       });
     }
   }, [scenarioLulcRasters])

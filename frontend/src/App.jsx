@@ -56,6 +56,7 @@ export default function App() {
     setPatternSamplingMode((mode) => !mode);
   };
 
+  console.log(scenarioLulcRasters)
   return (
     (sessionID)
       ? (
@@ -66,7 +67,7 @@ export default function App() {
               patternSamplingMode={patternSamplingMode}
               setPatternSampleWKT={setPatternSampleWKT}
               sessionID={sessionID}
-              scenarioLulcRasters={{water: '/opt/appdata/scenarios/1/1_parcel_fill.tif'}}
+              scenarioLulcRasters={scenarioLulcRasters}
             />
             <EditMenu
               parcelSet={parcelSet}

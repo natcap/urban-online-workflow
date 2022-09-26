@@ -77,7 +77,7 @@ export async function createStudyArea(sessionID, name, parcelSet) {
   const payload = {
     name: name,
     parcels: Object.values(parcelSet).map((parcel) => (
-      { wkt: polygonCoordsToWKT(parcel.coords) }
+      { wkt: polygonCoordsToWKT(parcel.coords), address: '123 Main Street' }
     )),
   };
 

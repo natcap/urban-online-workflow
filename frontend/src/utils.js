@@ -7,7 +7,7 @@
  */
 export function publicUrl(filepath) {
 	if (filepath.startsWith('/opt/appdata/')) {
-    return filepath.replace('/opt/appdata/', '/')
+    return filepath.replace('/opt/appdata/', 'http://localhost:9000/')
   }
   return filepath;
 }
