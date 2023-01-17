@@ -16,11 +16,9 @@ import {
   createStudyArea,
   doWallpaper,
   createScenario,
-  getJobResults,
+  getScenarioResult,
   getJobStatus,
   convertToSingleLULC,
-  mulitPolygonCoordsToWKT,
-  polygonCoordsToWKT,
 } from './requests';
 
 export default function ScenarioBuilder(props) {
@@ -49,8 +47,8 @@ export default function ScenarioBuilder(props) {
     console.log('checking status for job', jobID);
     const status = await getJobStatus(jobID);
     if (status === 'success') {
-      const results = await getJobResults(jobID, scenarioID);
-      console.log(results)
+      const results = await getScenarioResult(jobID, scenarioID);
+      console.log(results);
       addScenarioLULCTable({ [scenarioName]: results.lulc_stats.result });
       refreshSavedStudyAreas();
       setJobID(null);
@@ -74,18 +72,13 @@ export default function ScenarioBuilder(props) {
     setScenarioID(currentScenarioID);
     let jid;
     if (conversionOption === 'wallpaper' && selectedPattern) {
-      console.log('pattern_id', selectedPattern.pattern_id)
       jid = await doWallpaper(
         selectedPattern.pattern_id,
         currentScenarioID
       );
     }
     if (conversionOption === 'paint' && singleLULC) {
-      console.log(singleLULC)
-      jid = await convertToSingleLULC(
-        singleLULC,
-        currentScenarioID
-      );
+      jid = await convertToSingleLULC(singleLULC, currentScenarioID);
     }
     setJobID(jid);
   };
@@ -99,8 +92,7 @@ export default function ScenarioBuilder(props) {
         baseLulcTable[code] += parcel.table[code] || 0;
       });
     });
-    addScenarioLULCTable({ 'baseline': baseLulcTable });
-
+    addScenarioLULCTable({ baseline: baseLulcTable });
     setStudyAreaName(name);
     const id = await createStudyArea(sessionID, name, parcelSet);
     setActiveStudyAreaID(id);

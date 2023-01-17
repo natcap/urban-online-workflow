@@ -161,7 +161,7 @@ export async function getJobStatus(jobID) {
  * @return {object} results object if job has succeeded, otherwise an object
  *  with a 'status' attribute (one of 'pending', 'running', 'failed')
  */
-export async function getJobResults(jobID, scenarioID) {
+export async function getScenarioResult(jobID, scenarioID) {
   return (
     window.fetch(`${apiBaseURL}/scenario/result/${jobID}/${scenarioID}`, {
       method: 'get',

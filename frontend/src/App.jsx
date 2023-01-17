@@ -20,11 +20,10 @@ export default function App() {
     const rasters = {};
     if (aoi && aoi.scenarios) {
       const rasterPaths = aoi.scenarios.forEach((scene) => {
-        rasters[scene.name] = scene.lulc_url_result
+        rasters[scene.name] = scene.lulc_url_result;
       });
       setScenarioLulcRasters(rasters);
     }
-    
   };
 
   useEffect(async () => {
