@@ -18,7 +18,7 @@ import { defaults } from 'ol/control';
 import { Button, Icon } from '@blueprintjs/core';
 
 import ParcelControl from './parcelControl';
-import { lulcTileLayer, lulcImageLayer } from './map/lulcLayer';
+import { lulcTileLayer } from './map/lulcLayer';
 import LayerPanel from './map/LayerPanel';
 import {
   satelliteLayer,
@@ -78,6 +78,7 @@ const patternSamplerLayer = new VectorLayer({
   style: patternSamplerBoxStyle,
   visible: false,
 });
+patternSamplerLayer.setZIndex(5);
 
 const wkt = new WKT();
 const translate = new Translate({
@@ -95,6 +96,7 @@ const parcelLayer = new VectorTileLayer({
   minZoom: 15, // don't display this layer below zoom level 14
 });
 parcelLayer.set('title', 'Parcels');
+parcelLayer.setZIndex(1);
 
 let selectedFeature = null;
 const selectionLayer = new VectorTileLayer({
@@ -109,6 +111,7 @@ const selectionLayer = new VectorTileLayer({
   },
 });
 selectionLayer.set('title', 'Selected Parcels');
+selectionLayer.setZIndex(2);
 
 // define the map
 const map = new Map({
@@ -140,7 +143,6 @@ export default function MapComponent(props) {
     setPatternSampleWKT,
     scenarioLulcRasters,
   } = props;
-  console.log(scenarioLulcRasters)
   const [layers, setLayers] = useState([]);
   const [showLayerControl, setShowLayerControl] = useState(false);
   const [basemap, setBasemap] = useState('Satellite');
