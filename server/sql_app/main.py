@@ -69,6 +69,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+###
 # We need to have an independent db session / connection (SessionLocal) per
 # request, use the same session through all the request and then close it after
 # the request is finished.
@@ -94,29 +95,31 @@ def get_db():
 
 # With that, we can just call crud.get_user directly from inside of the path
 # operation function and use that session.
-
+###
 
 ### Session Endpoints ###
 
 @app.post("/sessions/", response_model=schemas.SessionResponse)
 def create_session(db: Session = Depends(get_db)):
-    # Notice that the values returned are SQLA models. But as all path operations
-    # have a 'response_model' with Pydantic models / schemas using orm_mode,
-    # the data declared in your Pydantic models will be extracted from them
-    # and returned to the client, w/ all the normal filtering and validation.
+    # Notice that the values returned are SQLA models. But as all path
+    # operations have a 'response_model' with Pydantic models / schemas using
+    # orm_mode, the data declared in your Pydantic models will be extracted
+    # from them and returned to the client, w/ all the normal filtering and
+    # validation.
     return crud.create_session(db=db)
 
 
 # Type annotations in the function arguments will give you editor support
 # inside of your function, with error checks, completion, etc.
-# So, with that type declaration, FastAPI gives you automatic request "parsing".
-# With the same Python type declaration, FastAPI gives you data validation.
-# All the data validation is performed under the hood by Pydantic, so you get
-# all the benefits from it.
+# So, with that type declaration, FastAPI gives you automatic request
+# "parsing". With the same Python type declaration, FastAPI gives you data
+# validation. All the data validation is performed under the hood by Pydantic,
+# so you get all the benefits from it.
 
 # TODO: remove for production, this is a convenience endpoint
 @app.get("/sessions/", response_model=list[schemas.Session])
-def read_sessions(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def read_sessions(skip: int = 0, limit: int = 100,
+                  db: Session = Depends(get_db)):
     sessions = crud.get_sessions(db, skip=skip, limit=limit)
     return sessions
 
@@ -179,6 +182,7 @@ def update_scenario(
 def delete_scenario(scenario_id: int, db: Session = Depends(get_db)):
     return crud.delete_scenario(db=db, scenario_id=scenario_id)
 
+
 # TODO: Deprecate
 @app.get("/scenarios/{study_area_id}", response_model=list[schemas.Scenario])
 def read_scenarios(study_area_id: int, db: Session = Depends(get_db)):
@@ -190,6 +194,7 @@ def read_scenarios(study_area_id: int, db: Session = Depends(get_db)):
 
 
 ### Worker Endpoints ###
+
 @app.get("/jobsqueue/")
 async def worker_job_request(db: Session = Depends(get_db)):
     """If there's work to be done in the queue send it to the worker."""
@@ -226,7 +231,8 @@ def worker_invest_response(
     # Update job in db based on status
     job_db = crud.get_job(db, job_id=scenario_job.server_attrs['job_id'])
     # Update Scenario in db with the result
-    scenario_db = crud.get_scenario(db, scenario_id=scenario_job.server_attrs['scenario_id'])
+    scenario_db = crud.get_scenario(
+        db, scenario_id=scenario_job.server_attrs['scenario_id'])
 
     job_status = scenario_job.status
     if job_status == STATUS_SUCCESS:
@@ -255,6 +261,7 @@ def worker_invest_response(
     #_ = crud.update_scenario(
     #    db=db, scenario=scenario_update,
     #    scenario_id=scenario_job.server_attrs['scenario_id'])
+
 
 @app.post("/jobsqueue/scenario")
 def worker_scenario_response(
@@ -289,7 +296,8 @@ def worker_scenario_response(
     # Update job in db based on status
     job_db = crud.get_job(db, job_id=scenario_job.server_attrs['job_id'])
     # Update Scenario in db with the result
-    scenario_db = crud.get_scenario(db, scenario_id=scenario_job.server_attrs['scenario_id'])
+    scenario_db = crud.get_scenario(
+        db, scenario_id=scenario_job.server_attrs['scenario_id'])
 
     job_status = scenario_job.status
     if job_status == STATUS_SUCCESS:
@@ -382,7 +390,8 @@ def worker_pattern_response(
     # Update job in db based on status
     job_db = crud.get_job(db, job_id=pattern_job.server_attrs['job_id'])
     # Update Pattern in db with the result
-    pattern_db = crud.get_pattern(db, pattern_id=pattern_job.server_attrs['pattern_id'])
+    pattern_db = crud.get_pattern(
+        db, pattern_id=pattern_job.server_attrs['pattern_id'])
 
     job_status = pattern_job.status
     if job_status == "success":
@@ -393,7 +402,7 @@ def worker_pattern_response(
         # Update the pattern thumbnail path
         pattern_update = schemas.PatternUpdate(
             pattern_thumbnail_path=pattern_job.result['pattern_thumbnail_path'],
-            )
+        )
     else:
         # Update the job status in the DB to "failed"
         job_update = schemas.JobBase(
@@ -427,6 +436,7 @@ def read_job(job_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Job not found")
     return db_job
 
+
 @app.get("/jobs/", response_model=list[schemas.Job])
 def read_jobs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     jobs = crud.get_jobs(db, skip=skip, limit=limit)
@@ -443,6 +453,7 @@ def get_lulc_info(db: Session = Depends(get_db)):
     # server start.
 
     pass
+
 
 @app.post("/pattern/{session_id}", response_model=schemas.PatternResponse)
 def create_pattern(session_id: str, pattern: schemas.PatternBase,
@@ -534,7 +545,8 @@ def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
 
 
 @app.post("/parcel_fill/", response_model=schemas.JobResponse)
-def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
+def parcel_fill(parcel_fill: schemas.ParcelFill,
+                db: Session = Depends(get_db)):
     # Get Scenario details from scenario_id
     scenario_db = crud.get_scenario(db, parcel_fill.scenario_id)
     study_area_id = scenario_db.study_area_id
@@ -577,6 +589,7 @@ def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
 
     # Return job_id for response
     return job_db
+
 
 @app.post("/stats_under_parcel/", response_model=schemas.JobResponse)
 def get_lulc_stats_under_parcel(parcel_stats_req: schemas.ParcelStatsRequest,
@@ -647,7 +660,8 @@ def get_parcel_stats_results(job_id: int, db: Session = Depends(get_db)):
     if job_db.status == STATUS_SUCCESS:
         stats_db = crud.get_parcel_stats_by_job(db, job_id=job_id)
         if stats_db is None:
-            raise HTTPException(status_code=404, detail="Stats result not found")
+            raise HTTPException(
+                status_code=404, detail="Stats result not found")
         stats_results = stats_db.lulc_stats
         return stats_results
     else:
