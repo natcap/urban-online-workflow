@@ -228,12 +228,11 @@ def worker_invest_response(
 
             "result": {
                 result_directory: "relative path to file location",
-                result_1_path: "relative path to file location",
-                result_2_path: "relative path to file location",
+                model: "invest-model-name",
                 }
              "status": "success | failed",
              "server_attrs": {
-                "job_id": int, "scenario_id": int, invest_model: str,
+                "job_id": int, "scenario_id": int,
                 }
     """
     # Update job in db based on status
@@ -706,7 +705,6 @@ def run_invest(scenario_id: int, db: Session = Depends(get_db)):
             "job_type": JOB_TYPES["invest"],
             "server_attrs": {
                 "job_id": job_db.job_id, "scenario_id": scenario_id,
-                "invest_model": invest_model
             },
             "job_args": {
                 "invest_model": invest_model,
@@ -720,6 +718,27 @@ def run_invest(scenario_id: int, db: Session = Depends(get_db)):
 
     # Return dictionary of invest model names mapped to job_ids
     return invest_job_dict
+
+
+@app.get("/invest/result/{job_id}")
+def get_invest_results(job_id: int, db: Session = Depends(get_db)):
+    """Return the invest result if the job was successful."""
+    # Check job status and return URL and Stats from table
+    LOGGER.info(f'Job ID: {job_id}')
+    job_db = crud.get_job(db, job_id=job_id)
+    if job_db is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if job_db.status == STATUS_SUCCESS:
+        #invest_db = crud.get_invest_result_job(db, job_id=job_id)
+        invest_status = "SUCCESS"
+        #if invest_db is None:
+        #    raise HTTPException(
+        #        status_code=404, detail="InVEST result not found")
+        #invest_results = invest_db.lulc_stats
+        #return stats_results
+        return invest_status
+    else:
+        return job_db.status
 
 
 ### Testing ideas from tutorial ###
