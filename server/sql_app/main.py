@@ -47,6 +47,14 @@ HIGH_PRIORITY = 1
 # InVEST model list
 INVEST_MODELS = ["pollination", "stormwater", "urban_cooling_model", "carbon",
                  "urban_flood_risk_mitigation", "urban_nature_access"]
+JOB_TYPES = {
+    "invest": "invest",
+    "pattern_thumbnail": "pattern_thumbnail",
+    "wallpaper": "wallpaper",
+    "parcel_fill": "parcel_fill",
+    "stats_under_parcel": "stats_under_parcel",
+}
+
 
 # Normally you would probably initialize your db (create tables, etc) with
 # Alembic. Would also use Alembic for "migrations" (that's its main job).
@@ -241,7 +249,7 @@ def worker_invest_response(
             status=STATUS_SUCCESS,
             name=job_db.name, description=job_db.description)
         # TODO: how will we store InVEST model results? In Scenario table or in
-        # a separate InVEST table? Should each model have a table?
+        # a separate InVEST table? Should each model have a table? Issue #70
         #scenario_update = schemas.ScenarioUpdate(
         #    lulc_url_result=scenario_job.result['lulc_path'],
         #    lulc_stats=json.dumps(scenario_job.result['lulc_stats']))
@@ -473,7 +481,7 @@ def create_pattern(session_id: str, pattern: schemas.PatternBase,
 
     # Construct worker job and add to the queue
     worker_task = {
-        "job_type": "pattern_thumbnail",
+        "job_type": JOB_TYPES["pattern_thumbnail"],
         "server_attrs": {
             "job_id": job_db.job_id, "pattern_id": pattern_db.pattern_id
         },
@@ -527,7 +535,7 @@ def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
     pattern_db = crud.get_pattern(db, wallpaper.pattern_id)
     # Construct worker job and add to the queue
     worker_task = {
-        "job_type": "wallpaper",
+        "job_type": JOB_TYPES["wallpaper"],
         "server_attrs": {
             "job_id": job_db.job_id, "scenario_id": scenario_db.scenario_id
         },
@@ -574,7 +582,7 @@ def parcel_fill(parcel_fill: schemas.ParcelFill,
 
     # Construct worker job and add to the queue
     worker_task = {
-        "job_type": "parcel_fill",
+        "job_type": JOB_TYPES["parcel_fill"],
         "server_attrs": {
             "job_id": job_db.job_id, "scenario_id": scenario_db.scenario_id
         },
@@ -611,7 +619,7 @@ def get_lulc_stats_under_parcel(parcel_stats_req: schemas.ParcelStatsRequest,
 
     # Construct worker job and add to the queue
     worker_task = {
-        "job_type": "stats_under_parcel",
+        "job_type": JOB_TYPES["stats_under_parcel"],
         "server_attrs": {
             "job_id": job_db.job_id, "stats_id": parcel_stats_db.stats_id
         },
@@ -670,7 +678,7 @@ def get_parcel_stats_results(job_id: int, db: Session = Depends(get_db)):
 
 @app.post("/invest/{scenario_id}")
 def run_invest(scenario_id: int, db: Session = Depends(get_db)):
-    """Add invest job to the queue."""
+    """Add invest job to the queue. This runs all InVEST models."""
     LOGGER.info("Add InVEST runs to queue")
     # Get the scenario LULC for model runs
     scenario_db = crud.get_scenario(db, scenario_id=scenario_id)
@@ -695,7 +703,7 @@ def run_invest(scenario_id: int, db: Session = Depends(get_db)):
 
         # Construct worker job and add to the queue
         worker_task = {
-            "job_type": "invest",
+            "job_type": JOB_TYPES["invest"],
             "server_attrs": {
                 "job_id": job_db.job_id, "scenario_id": scenario_id,
                 "invest_model": invest_model
