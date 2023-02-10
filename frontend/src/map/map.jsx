@@ -229,12 +229,16 @@ export default function MapComponent(props) {
 
   useEffect(() => {
     if (scenarioLulcRasters) {
-      console.log(scenarioLulcRasters)
+      console.log(scenarioLulcRasters);
+      const mapLayerTitles = map.getLayers().getArray().map(lyr => lyr.get('title'));
+      console.log(mapLayerTitles);
       Object.entries(scenarioLulcRasters).forEach(([name, url]) => {
-        map.addLayer(lulcTileLayer(url, name));
+        if (!mapLayerTitles.includes(name)) {
+          map.addLayer(lulcTileLayer(url, name));
+        }
       });
     }
-  }, [scenarioLulcRasters])
+  }, [scenarioLulcRasters]);
 
   // toggle pattern sampler visibility according to the pattern sampling mode
   useEffect(() => {

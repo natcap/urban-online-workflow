@@ -37,7 +37,7 @@ const labelLayer = new MapboxVectorLayer({
   background: false,
 });
 labelLayer.set('title', 'Labels');
-labelLayer.setZIndex(10)
+labelLayer.setZIndex(10);
 
 export {
   satelliteLayer,

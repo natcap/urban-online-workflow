@@ -1,4 +1,4 @@
-import patternsTable from './patternsTable'; // TODO: this is temp
+import patternsTable from './edit/patternsTable'; // TODO: this is temp
 
 const apiBaseURL = 'http://127.0.0.1:8000';
 

@@ -8,8 +8,8 @@ import {
   RadioGroup,
 } from '@blueprintjs/core';
 
-import useInterval from './hooks/useInterval';
-import landuseCodes from './landuseCodes';
+import useInterval from '../hooks/useInterval';
+import landuseCodes from '../landuseCodes';
 import StudyAreaForm from './studyAreaForm';
 import WallpaperingMenu from './wallpaperingMenu';
 import {
@@ -19,7 +19,7 @@ import {
   getScenarioResult,
   getJobStatus,
   convertToSingleLULC,
-} from './requests';
+} from '../requests';
 
 export default function ScenarioBuilder(props) {
   const {
@@ -109,7 +109,8 @@ export default function ScenarioBuilder(props) {
         submitStudyArea={submitStudyArea}
         parcelSet={parcelSet}
         removeParcel={removeParcel}
-        immutableStudyArea={Boolean(activeStudyAreaID)}
+        // immutableStudyArea={Boolean(activeStudyAreaID)}
+        activeStudyAreaID={activeStudyAreaID}
       />
       {
         (studyAreaName)

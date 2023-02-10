@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-import landuseCodes from './landuseCodes';
+import landuseCodes from '../landuseCodes';
 
 import {
   HTMLTable,

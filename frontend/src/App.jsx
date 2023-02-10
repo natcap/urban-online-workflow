@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import MapComponent from './map';
-import EditMenu from './edit';
+import MapComponent from './map/map_new';
+import EditMenu from './edit/edit';
 
 import { getStudyAreas, createSession } from './requests';
 
 export default function App() {
-  const [savedStudyAreas, setSavedStudyAreas] = useState([]);
-  const [patternSamplingMode, setPatternSamplingMode] = useState(false);
-  const [patternSampleWKT, setPatternSampleWKT] = useState(null);
   const [sessionID, setSessionID] = useState(null);
-  const [parcelSet, setParcelSet] = useState({});
   const [activeStudyAreaID, setActiveStudyAreaID] = useState(null);
-  const [scenarioLulcRasters, setScenarioLulcRasters] = useState(null);
+  const [savedStudyAreas, setSavedStudyAreas] = useState([]);
+  // const [patternSamplingMode, setPatternSamplingMode] = useState(false);
+  // const [patternSampleWKT, setPatternSampleWKT] = useState(null);
+  const [parcelSet, setParcelSet] = useState({});
+  // const [scenarioLulcRasters, setScenarioLulcRasters] = useState(null);
 
   const refreshSavedStudyAreas = async () => {
     const studyAreas = await getStudyAreas(sessionID);
@@ -51,9 +51,9 @@ export default function App() {
     });
   };
 
-  const togglePatternSamplingMode = () => {
-    setPatternSamplingMode((mode) => !mode);
-  };
+  // const togglePatternSamplingMode = () => {
+  //   setPatternSamplingMode((mode) => !mode);
+  // };
 
   console.log(scenarioLulcRasters)
   return (
@@ -62,23 +62,23 @@ export default function App() {
         <div className="App">
           <div className="map-and-menu-container">
             <MapComponent
-              addParcel={addParcel}
-              patternSamplingMode={patternSamplingMode}
-              setPatternSampleWKT={setPatternSampleWKT}
               sessionID={sessionID}
-              scenarioLulcRasters={scenarioLulcRasters}
+              addParcel={addParcel}
+              // patternSamplingMode={patternSamplingMode}
+              // setPatternSampleWKT={setPatternSampleWKT}
+              // scenarioLulcRasters={scenarioLulcRasters}
             />
             <EditMenu
-              parcelSet={parcelSet}
+              sessionID={sessionID}
+              // parcelSet={parcelSet}
               removeParcel={removeParcel}
               refreshSavedStudyAreas={refreshSavedStudyAreas}
-              patternSamplingMode={patternSamplingMode}
-              togglePatternSamplingMode={togglePatternSamplingMode}
-              patternSampleWKT={patternSampleWKT}
-              sessionID={sessionID}
-              setScenarioLulcRasters={setScenarioLulcRasters}
+              // patternSamplingMode={patternSamplingMode}
+              // togglePatternSamplingMode={togglePatternSamplingMode}
+              // patternSampleWKT={patternSampleWKT}
+              // setScenarioLulcRasters={setScenarioLulcRasters}
               activeStudyAreaID={activeStudyAreaID}
-              setActiveStudyAreaID={setActiveStudyAreaID}
+              // setActiveStudyAreaID={setActiveStudyAreaID}
             />
           </div>
         </div>

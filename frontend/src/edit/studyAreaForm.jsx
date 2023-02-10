@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import {
   InputGroup,
@@ -6,17 +6,25 @@ import {
   HTMLTable,
 } from '@blueprintjs/core';
 
-import landuseCodes from './landuseCodes';
+import { getParcels } from '../requests';
+import landuseCodes from '../landuseCodes';
 
 export default function StudyAreaForm(props) {
   const {
+    activeStudyAreaID,
     submitStudyArea,
-    parcelSet,
+    // parcelSet,
     removeParcel,
     immutableStudyArea,
   } = props;
   const [studyAreaName, setStudyAreaName] = useState('');
   const [highlightedCode, setHighlightedCode] = useState(null);
+  const [parcelSet, setParcelSet] = useState(null);
+
+  useEffect(async () => {
+    const parcels = await getParcels(activeStudyAreaID);
+    setParcelSet(parcels);
+  }, [activeStudyAreaID]);
 
   function plot(table) {
     const blocks = [];
@@ -44,11 +52,11 @@ export default function StudyAreaForm(props) {
   const rows = [];
   rows.push(
     <tr>
-      <td></td>
+      <td />
       <td><em>address</em></td>
       <td><em>landuse composition</em></td>
-    </tr>
-  )
+    </tr>,
+  );
   Object.entries(parcelSet).forEach(([id, data]) => {
     rows.push(
       <tr key={id}>
