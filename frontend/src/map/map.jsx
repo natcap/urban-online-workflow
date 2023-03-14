@@ -18,18 +18,18 @@ import { defaults } from 'ol/control';
 import { Button, Icon } from '@blueprintjs/core';
 
 import ParcelControl from './parcelControl';
-import { lulcTileLayer } from './map/lulcLayer';
-import LayerPanel from './map/LayerPanel';
+import { lulcTileLayer } from './lulcLayer';
+import LayerPanel from './LayerPanel';
 import {
   satelliteLayer,
   streetMapLayer,
   labelLayer,
-} from './map/baseLayers';
+} from './baseLayers';
 import {
   selectedFeatureStyle,
   patternSamplerBoxStyle,
   styleParcel,
-} from './map/styles';
+} from './styles';
 
 const BASE_LULC_URL = 'https://storage.googleapis.com/natcap-urban-online-datasets-public/NLCD_2016_epsg3857.tif'
 const GEOTIFF_SOURCE_OPTIONS = {
@@ -139,9 +139,7 @@ export default function MapComponent(props) {
   const {
     sessionID,
     addParcel,
-    patternSamplingMode,
-    setPatternSampleWKT,
-    scenarioLulcRasters,
+    parcelSet,
   } = props;
   const [layers, setLayers] = useState([]);
   const [showLayerControl, setShowLayerControl] = useState(false);
@@ -227,34 +225,34 @@ export default function MapComponent(props) {
     });
   }, []);
 
-  useEffect(() => {
-    if (scenarioLulcRasters) {
-      console.log(scenarioLulcRasters);
-      const mapLayerTitles = map.getLayers().getArray().map(lyr => lyr.get('title'));
-      console.log(mapLayerTitles);
-      Object.entries(scenarioLulcRasters).forEach(([name, url]) => {
-        if (!mapLayerTitles.includes(name)) {
-          map.addLayer(lulcTileLayer(url, name));
-        }
-      });
-    }
-  }, [scenarioLulcRasters]);
+  // useEffect(() => {
+  //   if (scenarioLulcRasters) {
+  //     console.log(scenarioLulcRasters);
+  //     const mapLayerTitles = map.getLayers().getArray().map(lyr => lyr.get('title'));
+  //     console.log(mapLayerTitles);
+  //     Object.entries(scenarioLulcRasters).forEach(([name, url]) => {
+  //       if (!mapLayerTitles.includes(name)) {
+  //         map.addLayer(lulcTileLayer(url, name));
+  //       }
+  //     });
+  //   }
+  // }, [scenarioLulcRasters]);
 
   // toggle pattern sampler visibility according to the pattern sampling mode
-  useEffect(() => {
-    if (patternSamplerLayer) {
-      if (patternSamplingMode) {
-        switchBasemap('Landcover');
-        // when pattern sampling mode is turned on,
-        // recenter the sampler box in the current view
-        const [mapCenterX, mapCenterY] = map.getView().getCenter();
-        patternSamplerFeature.setGeometry(
-          centeredPatternSamplerGeom(mapCenterX, mapCenterY)
-        );
-      }
-      patternSamplerLayer.setVisible(patternSamplingMode);
-    }
-  }, [patternSamplingMode]);
+  // useEffect(() => {
+  //   if (patternSamplerLayer) {
+  //     if (patternSamplingMode) {
+  //       switchBasemap('Landcover');
+  //       // when pattern sampling mode is turned on,
+  //       // recenter the sampler box in the current view
+  //       const [mapCenterX, mapCenterY] = map.getView().getCenter();
+  //       patternSamplerFeature.setGeometry(
+  //         centeredPatternSamplerGeom(mapCenterX, mapCenterY)
+  //       );
+  //     }
+  //     patternSamplerLayer.setVisible(patternSamplingMode);
+  //   }
+  // }, [patternSamplingMode]);
 
   return (
     <div className="map-container">

@@ -13,7 +13,6 @@ import landuseCodes from '../landuseCodes';
 import StudyAreaForm from './studyAreaForm';
 import WallpaperingMenu from './wallpaperingMenu';
 import {
-  createStudyArea,
   doWallpaper,
   createScenario,
   getScenarioResult,
@@ -23,8 +22,9 @@ import {
 
 export default function ScenarioBuilder(props) {
   const {
+    createStudyArea,
     activeStudyAreaID,
-    setActiveStudyAreaID,
+    // setActiveStudyAreaID,
     parcelSet,
     sessionID,
     removeParcel,
@@ -94,9 +94,10 @@ export default function ScenarioBuilder(props) {
     });
     addScenarioLULCTable({ baseline: baseLulcTable });
     setStudyAreaName(name);
-    const id = await createStudyArea(sessionID, name, parcelSet);
-    setActiveStudyAreaID(id);
-    refreshSavedStudyAreas();
+    createStudyArea(name);
+    // const id = await createStudyArea(sessionID, name, parcelSet);
+    // setActiveStudyAreaID(id);
+    // refreshSavedStudyAreas();
   };
 
   if (!Object.keys(parcelSet).length) {
@@ -110,7 +111,7 @@ export default function ScenarioBuilder(props) {
         parcelSet={parcelSet}
         removeParcel={removeParcel}
         // immutableStudyArea={Boolean(activeStudyAreaID)}
-        activeStudyAreaID={activeStudyAreaID}
+        // activeStudyAreaID={activeStudyAreaID}
       />
       {
         (studyAreaName)

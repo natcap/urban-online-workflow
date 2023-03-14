@@ -73,7 +73,7 @@ export async function getStudyAreas(sessionID) {
  *
  * @return {integer} id for the new study area
  */
-export async function createStudyArea(sessionID, name, parcelSet) {
+export async function postStudyArea(sessionID, name, parcelSet) {
   const payload = {
     name: name,
     parcels: Object.values(parcelSet).map((parcel) => (

@@ -13,6 +13,7 @@ FocusStyleManager.onlyShowFocusOnTabs();
 
 export default function EditMenu(props) {
   const {
+    createStudyArea,
     parcelSet,
     selectedParcel,
     removeParcel,
@@ -22,7 +23,7 @@ export default function EditMenu(props) {
     patternSampleWKT,
     sessionID,
     activeStudyAreaID,
-    setActiveStudyAreaID,
+    // setActiveStudyAreaID,
   } = props;
 
   const [activeTab, setActiveTab] = useState('create');
@@ -48,6 +49,7 @@ export default function EditMenu(props) {
           panel={(
             <div>
               <ScenarioBuilder
+                createStudyArea={createStudyArea}
                 sessionID={sessionID}
                 parcelSet={parcelSet}
                 removeParcel={removeParcel}
@@ -56,7 +58,7 @@ export default function EditMenu(props) {
                 togglePatternSamplingMode={togglePatternSamplingMode}
                 refreshSavedStudyAreas={refreshSavedStudyAreas}
                 activeStudyAreaID={activeStudyAreaID}
-                setActiveStudyAreaID={setActiveStudyAreaID}
+                // setActiveStudyAreaID={setActiveStudyAreaID}
                 addScenarioLULCTable={addScenarioLULCTable}
               />
             </div>
