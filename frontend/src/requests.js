@@ -53,6 +53,22 @@ export async function createSession() {
 }
 
 /**
+ * Get an existing session.
+ *
+ * @return {object}
+ */
+export async function getSession(sessionID) {
+  return (
+    window.fetch(`${apiBaseURL}/session/${sessionID}`, {
+      method: 'get',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
+}
+
+/**
  * Get all study areas associated with a given session.
  *
  * @param  {integer} sessionID - id of the session to get study areas for

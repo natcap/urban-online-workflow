@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import MapComponent from './map/map_new';
+import MapComponent from './map/map';
 import EditMenu from './edit/edit';
 
 import {
   getStudyAreas,
   createSession,
+  getSession,
   postStudyArea,
 } from './requests';
 
@@ -38,7 +39,15 @@ export default function App() {
   };
 
   useEffect(async () => {
-    setSessionID(await createSession());
+    let SID = localStorage.getItem('sessionID');
+    if (SID) {
+      const session = await getSession(SID);
+      setSessionID(SID);
+    } else {
+      SID = await createSession();
+      setSessionID(SID);
+      localStorage.setItem('sessionID', SID);
+    }
   }, []);
 
   useEffect(() => {
