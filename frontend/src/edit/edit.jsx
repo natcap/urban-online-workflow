@@ -8,6 +8,10 @@ import {
 
 import ScenarioBuilder from './scenarioBuilder';
 import ScenarioTable from './scenarioTable';
+import SelectStudyArea from './selectStudyArea';
+import StudyAreaForm from './studyAreaForm';
+import landuseCodes from '../landuseCodes';
+
 
 FocusStyleManager.onlyShowFocusOnTabs();
 
@@ -23,7 +27,8 @@ export default function EditMenu(props) {
     patternSampleWKT,
     sessionID,
     activeStudyAreaID,
-    // setActiveStudyAreaID,
+    switchStudyArea,
+    savedStudyAreas,
   } = props;
 
   const [activeTab, setActiveTab] = useState('create');
@@ -34,6 +39,23 @@ export default function EditMenu(props) {
       const newTable = { ...prev, ...table };
       return newTable;
     });
+  };
+
+  const submitStudyArea = async (name) => {
+    // Instantiate the 'baseline' scenario now.
+    // const baseLulcTable = {};
+    // Object.keys(landuseCodes).forEach((code) => {
+    //   baseLulcTable[code] = 0;
+    //   Object.values(parcelSet).forEach((parcel) => {
+    //     baseLulcTable[code] += parcel.table[code] || 0;
+    //   });
+    // });
+    // addScenarioLULCTable({ baseline: baseLulcTable });
+    // setStudyAreaName(name);
+    createStudyArea(name);
+    // const id = await createStudyArea(sessionID, name, parcelSet);
+    // setActiveStudyAreaID(id);
+    // refreshSavedStudyAreas();
   };
 
   return (
@@ -48,6 +70,17 @@ export default function EditMenu(props) {
           title="Create"
           panel={(
             <div>
+              <SelectStudyArea
+                switchStudyArea={switchStudyArea}
+                savedStudyAreas={savedStudyAreas}
+              />
+              <StudyAreaForm
+                submitStudyArea={submitStudyArea}
+                parcelSet={parcelSet}
+                removeParcel={removeParcel}
+                // immutableStudyArea={Boolean(activeStudyAreaID)}
+                // activeStudyAreaID={activeStudyAreaID}
+              />
               <ScenarioBuilder
                 createStudyArea={createStudyArea}
                 sessionID={sessionID}

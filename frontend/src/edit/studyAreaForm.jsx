@@ -17,6 +17,7 @@ export default function StudyAreaForm(props) {
     removeParcel,
     immutableStudyArea,
   } = props;
+  console.log(parcelSet)
   const [studyAreaName, setStudyAreaName] = useState('');
   const [highlightedCode, setHighlightedCode] = useState(null);
   // const [parcelSet, setParcelSet] = useState(null);
@@ -27,6 +28,7 @@ export default function StudyAreaForm(props) {
   // }, [activeStudyAreaID]);
 
   function plot(table) {
+    console.log(table)
     const blocks = [];
     Object.entries(table).forEach(([code, count]) => {
       let n = 0;
@@ -46,6 +48,7 @@ export default function StudyAreaForm(props) {
         n++;
       }
     });
+    console.log(blocks)
     return blocks;
   }
 
@@ -57,13 +60,13 @@ export default function StudyAreaForm(props) {
       <td><em>landuse composition</em></td>
     </tr>,
   );
-  Object.entries(parcelSet).forEach(([id, data]) => {
+  parcelSet.forEach((parcel) => {
     rows.push(
-      <tr key={id}>
+      <tr key={parcel.id}>
         <td>
           <Button
             icon="remove"
-            onClick={() => removeParcel(id)}
+            onClick={() => removeParcel(parcel.id)}
             disabled={immutableStudyArea}
           />
         </td>
@@ -79,8 +82,12 @@ export default function StudyAreaForm(props) {
             )
             : null
         }*/}
-        <td>{id}</td>
-        <td><div className="parcel-block">{plot(data.table)}</div></td>
+        <td>{parcel.id}</td>
+        <td>
+          <div className="parcel-block">
+            {plot(JSON.parse(parcel.lulc_stats).base)}
+          </div>
+        </td>
       </tr>,
     );
   });

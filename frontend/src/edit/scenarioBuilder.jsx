@@ -10,7 +10,6 @@ import {
 
 import useInterval from '../hooks/useInterval';
 import landuseCodes from '../landuseCodes';
-import StudyAreaForm from './studyAreaForm';
 import WallpaperingMenu from './wallpaperingMenu';
 import {
   doWallpaper,
@@ -41,7 +40,6 @@ export default function ScenarioBuilder(props) {
   const [scenarioID, setScenarioID] = useState(null);
   const [selectedPattern, setSelectedPattern] = useState(null);
   const [jobID, setJobID] = useState(null);
-  const [studyAreaName, setStudyAreaName] = useState('');
 
   useInterval(async () => {
     console.log('checking status for job', jobID);
@@ -83,38 +81,15 @@ export default function ScenarioBuilder(props) {
     setJobID(jid);
   };
 
-  const submitStudyArea = async (name) => {
-    // Instantiate the 'baseline' scenario now.
-    const baseLulcTable = {};
-    Object.keys(landuseCodes).forEach((code) => {
-      baseLulcTable[code] = 0;
-      Object.values(parcelSet).forEach((parcel) => {
-        baseLulcTable[code] += parcel.table[code] || 0;
-      });
-    });
-    addScenarioLULCTable({ baseline: baseLulcTable });
-    setStudyAreaName(name);
-    createStudyArea(name);
-    // const id = await createStudyArea(sessionID, name, parcelSet);
-    // setActiveStudyAreaID(id);
-    // refreshSavedStudyAreas();
-  };
-
   if (!Object.keys(parcelSet).length) {
     return <div />;
   }
 
   return (
     <>
-      <StudyAreaForm
-        submitStudyArea={submitStudyArea}
-        parcelSet={parcelSet}
-        removeParcel={removeParcel}
-        // immutableStudyArea={Boolean(activeStudyAreaID)}
-        // activeStudyAreaID={activeStudyAreaID}
-      />
+
       {
-        (studyAreaName)
+        (activeStudyAreaID)
           ? (
             <form>
               <label
@@ -156,7 +131,6 @@ export default function ScenarioBuilder(props) {
               </div>
               <p className="sidebar-subheading">
                 <span>Save as a new scenario for study area </span>
-                <em>{studyAreaName}</em>
               </p>
               <InputGroup
                 placeholder="name this scenario"

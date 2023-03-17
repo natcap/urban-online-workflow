@@ -12,7 +12,7 @@ import {
 export default function App() {
   const [sessionID, setSessionID] = useState(null);
   const [savedStudyAreas, setSavedStudyAreas] = useState([]);
-  const [parcelSet, setParcelSet] = useState({});
+  const [parcelSet, setParcelSet] = useState([]);
   const [activeStudyAreaID, setActiveStudyAreaID] = useState(null);
 
   const refreshSavedStudyAreas = async () => {
@@ -31,11 +31,14 @@ export default function App() {
 
   const switchStudyArea = (id) => {
     const activeArea = savedStudyAreas.filter(
-      (area) => area.id === id
-    );
-    console.log(activeArea);
+      (area) => area.id === Number(id)
+    )[0];
     setActiveStudyAreaID(id);
-    setParcelSet(activeArea.parcels);
+    if (activeArea) {
+      setParcelSet(activeArea.parcels);
+    } else {
+      setParcelSet([]);
+    }
   };
 
   useEffect(async () => {
@@ -57,17 +60,25 @@ export default function App() {
   }, [sessionID]);
 
   const addParcel = async (parcel) => {
+    console.log(parcel)
     setParcelSet((prev) => {
-      const newSet = { ...prev, ...parcel };
+      const match = prev.filter((p) => p.id === parcel.id);
+      console.log(match)
+      if (match.length === 0) { return prev; }
+      const newSet = prev.concat(parcel);
       return newSet;
+      // const newSet = { ...prev, ...parcel };
+      // return newSet;
     });
   };
 
   const removeParcel = (parcelID) => {
     setParcelSet((prev) => {
-      const newSet = { ...prev };
-      delete newSet[parcelID];
-      return newSet;
+      const match = prev.filter((p) => p.id !== parcelID);
+      return match;
+      // const newSet = { ...prev };
+      // delete newSet[parcelID];
+      // return newSet;
     });
   };
 
@@ -88,8 +99,8 @@ export default function App() {
               createStudyArea={createStudyArea}
               refreshSavedStudyAreas={refreshSavedStudyAreas}
               activeStudyAreaID={activeStudyAreaID}
-              // setActiveStudyAreaID={setActiveStudyAreaID}
-              // savedStudyAreas={savedStudyAreas}
+              switchStudyArea={switchStudyArea}
+              savedStudyAreas={savedStudyAreas}
             />
           </div>
         </div>
