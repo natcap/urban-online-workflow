@@ -18,7 +18,7 @@ import { defaults } from 'ol/control';
 import { Button, Icon } from '@blueprintjs/core';
 
 import ParcelControl from './parcelControl';
-import lulcLayer from './map/lulcLayer';
+import { lulcTileLayer, lulcImageLayer } from './map/lulcLayer';
 import LayerPanel from './map/LayerPanel';
 import {
   satelliteLayer,
@@ -30,6 +30,18 @@ import {
   patternSamplerBoxStyle,
   styleParcel,
 } from './map/styles';
+
+const BASE_LULC_URL = 'https://storage.googleapis.com/natcap-urban-online-datasets-public/NLCD_2016_epsg3857.tif'
+const GEOTIFF_SOURCE_OPTIONS = {
+  allowFullFile: true,
+  blockSize: 256,
+  maxRanges: 1, // doesn't seem to work as advertised
+  headers: {
+    // 'range' is case-sensitive, despite the fact that browser & docs
+    // capitalize 'Range'.
+    // 'range': 'bytes=0-3356',
+  }
+}
 
 function getCoords(geometry) {
   const flatCoords = geometry.getFlatCoordinates();
@@ -103,7 +115,7 @@ const map = new Map({
   layers: [
     satelliteLayer,
     streetMapLayer,
-    lulcLayer,
+    lulcTileLayer(BASE_LULC_URL, 'Landcover'),
     parcelLayer,
     selectionLayer,
     patternSamplerLayer,
@@ -126,7 +138,9 @@ export default function MapComponent(props) {
     addParcel,
     patternSamplingMode,
     setPatternSampleWKT,
+    scenarioLulcRasters,
   } = props;
+  console.log(scenarioLulcRasters)
   const [layers, setLayers] = useState([]);
   const [showLayerControl, setShowLayerControl] = useState(false);
   const [basemap, setBasemap] = useState('Satellite');
@@ -210,6 +224,15 @@ export default function MapComponent(props) {
       }
     });
   }, []);
+
+  useEffect(() => {
+    if (scenarioLulcRasters) {
+      console.log(scenarioLulcRasters)
+      Object.entries(scenarioLulcRasters).forEach(([name, url]) => {
+        map.addLayer(lulcTileLayer(url, name));
+      });
+    }
+  }, [scenarioLulcRasters])
 
   // toggle pattern sampler visibility according to the pattern sampling mode
   useEffect(() => {

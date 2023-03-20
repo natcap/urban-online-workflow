@@ -10,9 +10,21 @@ export default function App() {
   const [patternSampleWKT, setPatternSampleWKT] = useState(null);
   const [sessionID, setSessionID] = useState(null);
   const [parcelSet, setParcelSet] = useState({});
+  const [activeStudyAreaID, setActiveStudyAreaID] = useState(null);
+  const [scenarioLulcRasters, setScenarioLulcRasters] = useState(null);
 
   const refreshSavedStudyAreas = async () => {
-    setSavedStudyAreas(await getStudyAreas(sessionID));
+    const studyAreas = await getStudyAreas(sessionID);
+    // setSavedStudyAreas(studyAreas); // TODO: not using this just yet
+    const aoi = studyAreas.filter((area) => area.id === activeStudyAreaID)[0];
+    const rasters = {};
+    if (aoi && aoi.scenarios) {
+      const rasterPaths = aoi.scenarios.forEach((scene) => {
+        rasters[scene.name] = scene.lulc_url_result
+      });
+      setScenarioLulcRasters(rasters);
+    }
+    
   };
 
   useEffect(async () => {
@@ -44,6 +56,7 @@ export default function App() {
     setPatternSamplingMode((mode) => !mode);
   };
 
+  console.log(scenarioLulcRasters)
   return (
     (sessionID)
       ? (
@@ -54,16 +67,19 @@ export default function App() {
               patternSamplingMode={patternSamplingMode}
               setPatternSampleWKT={setPatternSampleWKT}
               sessionID={sessionID}
+              scenarioLulcRasters={scenarioLulcRasters}
             />
             <EditMenu
               parcelSet={parcelSet}
               removeParcel={removeParcel}
               refreshSavedStudyAreas={refreshSavedStudyAreas}
-              savedStudyAreas={savedStudyAreas}
               patternSamplingMode={patternSamplingMode}
               togglePatternSamplingMode={togglePatternSamplingMode}
               patternSampleWKT={patternSampleWKT}
               sessionID={sessionID}
+              setScenarioLulcRasters={setScenarioLulcRasters}
+              activeStudyAreaID={activeStudyAreaID}
+              setActiveStudyAreaID={setActiveStudyAreaID}
             />
           </div>
         </div>

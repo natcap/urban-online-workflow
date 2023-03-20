@@ -17,6 +17,7 @@ import {
   getJobStatus,
 } from './requests';
 import useInterval from './hooks/useInterval';
+import { publicUrl } from './utils';
 
 export default function WallpaperingMenu(props) {
   const {
@@ -39,11 +40,7 @@ export default function WallpaperingMenu(props) {
     // vite dev server serves /opt/appdata at root
     const newPatterns = data.map((item) => {
       const pattern = item;
-      pattern.url = (
-        pattern.pattern_thumbnail_path.startsWith('/opt/appdata/')
-      )
-        ? pattern.pattern_thumbnail_path.replace('/opt/appdata/', '/')
-        : pattern.pattern_thumbnail_path;
+      pattern.url = publicUrl(pattern.pattern_thumbnail_path)
       return pattern;
     });
     setPatterns(newPatterns);

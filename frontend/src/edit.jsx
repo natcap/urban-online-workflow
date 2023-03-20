@@ -16,17 +16,16 @@ export default function EditMenu(props) {
     parcelSet,
     selectedParcel,
     removeParcel,
-    savedStudyAreas,
     refreshSavedStudyAreas,
     patternSamplingMode,
     togglePatternSamplingMode,
     patternSampleWKT,
     sessionID,
+    activeStudyAreaID,
+    setActiveStudyAreaID,
   } = props;
-  console.log(savedStudyAreas)
 
   const [activeTab, setActiveTab] = useState('create');
-  const [activeStudyAreaID, setActiveStudyAreaID] = useState(null);
   const [scenarioTable, setScenarioTable] = useState(null);
 
   const addScenarioLULCTable = (table) => {

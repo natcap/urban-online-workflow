@@ -13,7 +13,7 @@ export default function StudyAreaForm(props) {
     submitStudyArea,
     parcelSet,
     removeParcel,
-    studyArea,
+    immutableStudyArea,
   } = props;
   const [studyAreaName, setStudyAreaName] = useState('');
   const [highlightedCode, setHighlightedCode] = useState(null);
@@ -42,11 +42,25 @@ export default function StudyAreaForm(props) {
   }
 
   const rows = [];
+  rows.push(
+    <tr>
+      <td></td>
+      <td><em>address</em></td>
+      <td><em>landuse composition</em></td>
+    </tr>
+  )
   Object.entries(parcelSet).forEach(([id, data]) => {
     rows.push(
       <tr key={id}>
-        {
-          (!studyArea) // study area not yet submitted; allow changes
+        <td>
+          <Button
+            icon="remove"
+            onClick={() => removeParcel(id)}
+            disabled={immutableStudyArea}
+          />
+        </td>
+        {/*{
+          (!immutableStudyArea) // study area not yet submitted; allow changes
             ? (
               <td>
                 <Button
@@ -56,7 +70,7 @@ export default function StudyAreaForm(props) {
               </td>
             )
             : null
-        }
+        }*/}
         <td>{id}</td>
         <td><div className="parcel-block">{plot(data.table)}</div></td>
       </tr>,
@@ -67,10 +81,10 @@ export default function StudyAreaForm(props) {
     <div>
       <p className="sidebar-subheading">
         <span>Parcels in study area </span>
-        <em>{studyArea}</em>
+        {/*<em>{studyArea}</em>*/}
       </p>
       {
-        (!studyArea)
+        (!immutableStudyArea)
           ? (
             <InputGroup
               placeholder="name this study area"

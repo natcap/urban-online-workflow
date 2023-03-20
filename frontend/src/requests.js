@@ -77,7 +77,7 @@ export async function createStudyArea(sessionID, name, parcelSet) {
   const payload = {
     name: name,
     parcels: Object.values(parcelSet).map((parcel) => (
-      { wkt: polygonCoordsToWKT(parcel.coords) }
+      { wkt: polygonCoordsToWKT(parcel.coords), address: '123 Main Street' }
     )),
   };
 
@@ -227,6 +227,7 @@ export async function convertToSingleLULC(lulcCode, scenarioID) {
  * @return {[object]} ? - fill in when this endpoint is working
  */
 export async function postLulcTableForParcel(sessionID, parcelCoords) {
+  console.log(polygonCoordsToWKT(parcelCoords))
   return (
     window.fetch(`${apiBaseURL}/stats_under_parcel`, {
       method: 'post',
