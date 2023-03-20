@@ -44,6 +44,17 @@ STATUS_FAIL = "failed"
 LOW_PRIORITY = 3
 MEDIUM_PRIORITY = 2
 HIGH_PRIORITY = 1
+# InVEST model list
+INVEST_MODELS = ["pollination", "stormwater", "urban_cooling_model", "carbon",
+                 "urban_flood_risk_mitigation", "urban_nature_access"]
+JOB_TYPES = {
+    "invest": "invest",
+    "pattern_thumbnail": "pattern_thumbnail",
+    "wallpaper": "wallpaper",
+    "parcel_fill": "parcel_fill",
+    "stats_under_parcel": "stats_under_parcel",
+}
+
 
 # Normally you would probably initialize your db (create tables, etc) with
 # Alembic. Would also use Alembic for "migrations" (that's its main job).
@@ -66,6 +77,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+###
 # We need to have an independent db session / connection (SessionLocal) per
 # request, use the same session through all the request and then close it after
 # the request is finished.
@@ -91,32 +103,26 @@ def get_db():
 
 # With that, we can just call crud.get_user directly from inside of the path
 # operation function and use that session.
-
+###
 
 ### Session Endpoints ###
 
 @app.post("/sessions/", response_model=schemas.SessionResponse)
 def create_session(db: Session = Depends(get_db)):
-    # Notice that the values returned are SQLA models. But as all path operations
-    # have a 'response_model' with Pydantic models / schemas using orm_mode,
-    # the data declared in your Pydantic models will be extracted from them
-    # and returned to the client, w/ all the normal filtering and validation.
+    # Notice that the values returned are SQLA models. But as all path
+    # operations have a 'response_model' with Pydantic models / schemas using
+    # orm_mode, the data declared in your Pydantic models will be extracted
+    # from them and returned to the client, w/ all the normal filtering and
+    # validation.
     return crud.create_session(db=db)
 
 
 # Type annotations in the function arguments will give you editor support
 # inside of your function, with error checks, completion, etc.
-# So, with that type declaration, FastAPI gives you automatic request "parsing".
-# With the same Python type declaration, FastAPI gives you data validation.
-# All the data validation is performed under the hood by Pydantic, so you get
-# all the benefits from it.
-
-# TODO: remove for production, this is a convenience endpoint
-@app.get("/sessions/", response_model=list[schemas.Session])
-def read_sessions(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    sessions = crud.get_sessions(db, skip=skip, limit=limit)
-    return sessions
-
+# So, with that type declaration, FastAPI gives you automatic request
+# "parsing". With the same Python type declaration, FastAPI gives you data
+# validation. All the data validation is performed under the hood by Pydantic,
+# so you get all the benefits from it.
 
 @app.get("/session/{session_id}", response_model=schemas.Session)
 def read_session(session_id: str, db: Session = Depends(get_db)):
@@ -176,17 +182,9 @@ def update_scenario(
 def delete_scenario(scenario_id: int, db: Session = Depends(get_db)):
     return crud.delete_scenario(db=db, scenario_id=scenario_id)
 
-# TODO: Deprecate
-@app.get("/scenarios/{study_area_id}", response_model=list[schemas.Scenario])
-def read_scenarios(study_area_id: int, db: Session = Depends(get_db)):
-    db_study_area = crud.get_study_area(db, study_area_id=study_area_id)
-    if db_study_area is None:
-        raise HTTPException(status_code=404, detail="Study area not found")
-    db_scenarios = crud.get_scenarios(db, study_area_id=study_area_id)
-    return db_scenarios
-
 
 ### Worker Endpoints ###
+
 @app.get("/jobsqueue/")
 async def worker_job_request(db: Session = Depends(get_db)):
     """If there's work to be done in the queue send it to the worker."""
@@ -196,6 +194,62 @@ async def worker_job_request(db: Session = Depends(get_db)):
         return json.dumps(job_details)
     except queue.Empty:
         return None
+
+
+@app.post("/jobsqueue/invest")
+def worker_invest_response(
+    invest_job: schemas.WorkerResponse, db: Session = Depends(get_db)):
+    """Update the db given the job details from the worker.
+
+    Returned URL result will be partial to allow for local vs cloud stored
+    depending on production vs dev environment.
+
+    Args:
+        invest_job (pydantic model): a pydantic model with the following
+            key/vals
+
+            "result": {
+                result_directory: "relative path to file location",
+                model: "invest-model-name",
+                }
+             "status": "success | failed",
+             "server_attrs": {
+                "job_id": int, "scenario_id": int,
+                }
+    """
+    # Update job in db based on status
+    job_db = crud.get_job(db, job_id=scenario_job.server_attrs['job_id'])
+    # Update Scenario in db with the result
+    scenario_db = crud.get_scenario(
+        db, scenario_id=scenario_job.server_attrs['scenario_id'])
+
+    job_status = scenario_job.status
+    if job_status == STATUS_SUCCESS:
+        # Update the job status in the DB to "success"
+        job_update = schemas.JobBase(
+            status=STATUS_SUCCESS,
+            name=job_db.name, description=job_db.description)
+        # TODO: how will we store InVEST model results? In Scenario table or in
+        # a separate InVEST table? Should each model have a table? Issue #70
+        #scenario_update = schemas.ScenarioUpdate(
+        #    lulc_url_result=scenario_job.result['lulc_path'],
+        #    lulc_stats=json.dumps(scenario_job.result['lulc_stats']))
+    else:
+        # Update the job status in the DB to "failed"
+        job_update = schemas.JobBase(
+            status=STATUS_FAILED,
+            name=job_db.name, description=job_db.description)
+        # Update the the scenario lulc path stats with None
+        #scenario_update = schemas.ScenarioUpdate(
+        #    lulc_url_result=None, lulc_stats=None)
+
+    LOGGER.debug('Update job status')
+    _ = crud.update_job(
+        db=db, job=job_update, job_id=scenario_job.server_attrs['job_id'])
+    LOGGER.debug('Update scenario result')
+    #_ = crud.update_scenario(
+    #    db=db, scenario=scenario_update,
+    #    scenario_id=scenario_job.server_attrs['scenario_id'])
 
 
 @app.post("/jobsqueue/scenario")
@@ -231,7 +285,8 @@ def worker_scenario_response(
     # Update job in db based on status
     job_db = crud.get_job(db, job_id=scenario_job.server_attrs['job_id'])
     # Update Scenario in db with the result
-    scenario_db = crud.get_scenario(db, scenario_id=scenario_job.server_attrs['scenario_id'])
+    scenario_db = crud.get_scenario(
+        db, scenario_id=scenario_job.server_attrs['scenario_id'])
 
     job_status = scenario_job.status
     if job_status == STATUS_SUCCESS:
@@ -324,7 +379,8 @@ def worker_pattern_response(
     # Update job in db based on status
     job_db = crud.get_job(db, job_id=pattern_job.server_attrs['job_id'])
     # Update Pattern in db with the result
-    pattern_db = crud.get_pattern(db, pattern_id=pattern_job.server_attrs['pattern_id'])
+    pattern_db = crud.get_pattern(
+        db, pattern_id=pattern_job.server_attrs['pattern_id'])
 
     job_status = pattern_job.status
     if job_status == "success":
@@ -335,7 +391,7 @@ def worker_pattern_response(
         # Update the pattern thumbnail path
         pattern_update = schemas.PatternUpdate(
             pattern_thumbnail_path=pattern_job.result['pattern_thumbnail_path'],
-            )
+        )
     else:
         # Update the job status in the DB to "failed"
         job_update = schemas.JobBase(
@@ -369,6 +425,7 @@ def read_job(job_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Job not found")
     return db_job
 
+
 @app.get("/jobs/", response_model=list[schemas.Job])
 def read_jobs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     jobs = crud.get_jobs(db, skip=skip, limit=limit)
@@ -385,6 +442,7 @@ def get_lulc_info(db: Session = Depends(get_db)):
     # server start.
 
     pass
+
 
 @app.post("/pattern/{session_id}", response_model=schemas.PatternResponse)
 def create_pattern(session_id: str, pattern: schemas.PatternBase,
@@ -404,7 +462,7 @@ def create_pattern(session_id: str, pattern: schemas.PatternBase,
 
     # Construct worker job and add to the queue
     worker_task = {
-        "job_type": "pattern_thumbnail",
+        "job_type": JOB_TYPES["pattern_thumbnail"],
         "server_attrs": {
             "job_id": job_db.job_id, "pattern_id": pattern_db.pattern_id
         },
@@ -458,7 +516,7 @@ def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
     pattern_db = crud.get_pattern(db, wallpaper.pattern_id)
     # Construct worker job and add to the queue
     worker_task = {
-        "job_type": "wallpaper",
+        "job_type": JOB_TYPES["wallpaper"],
         "server_attrs": {
             "job_id": job_db.job_id, "scenario_id": scenario_db.scenario_id
         },
@@ -476,7 +534,8 @@ def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
 
 
 @app.post("/parcel_fill/", response_model=schemas.JobResponse)
-def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
+def parcel_fill(parcel_fill: schemas.ParcelFill,
+                db: Session = Depends(get_db)):
     # Get Scenario details from scenario_id
     scenario_db = crud.get_scenario(db, parcel_fill.scenario_id)
     study_area_id = scenario_db.study_area_id
@@ -504,7 +563,7 @@ def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
 
     # Construct worker job and add to the queue
     worker_task = {
-        "job_type": "parcel_fill",
+        "job_type": JOB_TYPES["parcel_fill"],
         "server_attrs": {
             "job_id": job_db.job_id, "scenario_id": scenario_db.scenario_id
         },
@@ -519,6 +578,7 @@ def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
 
     # Return job_id for response
     return job_db
+
 
 @app.post("/stats_under_parcel/", response_model=schemas.JobResponse)
 def get_lulc_stats_under_parcel(parcel_stats_req: schemas.ParcelStatsRequest,
@@ -540,7 +600,7 @@ def get_lulc_stats_under_parcel(parcel_stats_req: schemas.ParcelStatsRequest,
 
     # Construct worker job and add to the queue
     worker_task = {
-        "job_type": "stats_under_parcel",
+        "job_type": JOB_TYPES["stats_under_parcel"],
         "server_attrs": {
             "job_id": job_db.job_id, "stats_id": parcel_stats_db.stats_id
         },
@@ -589,9 +649,76 @@ def get_parcel_stats_results(job_id: int, db: Session = Depends(get_db)):
     if job_db.status == STATUS_SUCCESS:
         stats_db = crud.get_parcel_stats_by_job(db, job_id=job_id)
         if stats_db is None:
-            raise HTTPException(status_code=404, detail="Stats result not found")
+            raise HTTPException(
+                status_code=404, detail="Stats result not found")
         stats_results = stats_db.lulc_stats
         return stats_results
+    else:
+        return job_db.status
+
+
+@app.post("/invest/{scenario_id}")
+def run_invest(scenario_id: int, db: Session = Depends(get_db)):
+    """Add invest job to the queue. This runs all InVEST models."""
+    LOGGER.info("Add InVEST runs to queue")
+    # Get the scenario LULC for model runs
+    scenario_db = crud.get_scenario(db, scenario_id=scenario_id)
+    if scenario_db is None:
+        raise HTTPException(status_code=404, detail="Scenario not found")
+    scenario_lulc = scenario_db.lulc_url_result
+
+    # Get the session_id
+    study_area_id = scenario_db.study_area_id
+    study_area_db = crud.get_study_area(db, study_area_id)
+    session_id = study_area_db.owner_id
+
+    # For each invest model create a new job and add to the queue
+    invest_job_dict = {}
+    for invest_model in INVEST_MODELS:
+        job_schema = schemas.JobBase(
+            **{"name": f"InVEST: {invest_model}",
+               "description": "executing invest model {invest_model}",
+               "status": STATUS_PENDING})
+        job_db = crud.create_job(
+            db=db, session_id=session_id, job=job_schema)
+
+        # Construct worker job and add to the queue
+        worker_task = {
+            "job_type": JOB_TYPES["invest"],
+            "server_attrs": {
+                "job_id": job_db.job_id, "scenario_id": scenario_id,
+            },
+            "job_args": {
+                "invest_model": invest_model,
+                "lulc_source_url": scenario_lulc
+                }
+            }
+
+        QUEUE.put_nowait((MEDIUM_PRIORITY, worker_task))
+
+        invest_job_dict[invest_model] = job_db.job_id
+
+    # Return dictionary of invest model names mapped to job_ids
+    return invest_job_dict
+
+
+@app.get("/invest/result/{job_id}")
+def get_invest_results(job_id: int, db: Session = Depends(get_db)):
+    """Return the invest result if the job was successful."""
+    # Check job status and return URL and Stats from table
+    LOGGER.info(f'Job ID: {job_id}')
+    job_db = crud.get_job(db, job_id=job_id)
+    if job_db is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if job_db.status == STATUS_SUCCESS:
+        #invest_db = crud.get_invest_result_job(db, job_id=job_id)
+        invest_status = "SUCCESS"
+        #if invest_db is None:
+        #    raise HTTPException(
+        #        status_code=404, detail="InVEST result not found")
+        #invest_results = invest_db.lulc_stats
+        #return stats_results
+        return invest_status
     else:
         return job_db.status
 
