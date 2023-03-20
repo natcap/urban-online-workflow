@@ -124,14 +124,6 @@ def create_session(db: Session = Depends(get_db)):
 # validation. All the data validation is performed under the hood by Pydantic,
 # so you get all the benefits from it.
 
-# TODO: remove for production, this is a convenience endpoint
-@app.get("/sessions/", response_model=list[schemas.Session])
-def read_sessions(skip: int = 0, limit: int = 100,
-                  db: Session = Depends(get_db)):
-    sessions = crud.get_sessions(db, skip=skip, limit=limit)
-    return sessions
-
-
 @app.get("/session/{session_id}", response_model=schemas.Session)
 def read_session(session_id: str, db: Session = Depends(get_db)):
     db_session = crud.get_session(db, session_id=session_id)
@@ -189,16 +181,6 @@ def update_scenario(
 @app.delete("/scenario/{scenario_id}", status_code=200)
 def delete_scenario(scenario_id: int, db: Session = Depends(get_db)):
     return crud.delete_scenario(db=db, scenario_id=scenario_id)
-
-
-# TODO: Deprecate
-@app.get("/scenarios/{study_area_id}", response_model=list[schemas.Scenario])
-def read_scenarios(study_area_id: int, db: Session = Depends(get_db)):
-    db_study_area = crud.get_study_area(db, study_area_id=study_area_id)
-    if db_study_area is None:
-        raise HTTPException(status_code=404, detail="Study area not found")
-    db_scenarios = crud.get_scenarios(db, study_area_id=study_area_id)
-    return db_scenarios
 
 
 ### Worker Endpoints ###
