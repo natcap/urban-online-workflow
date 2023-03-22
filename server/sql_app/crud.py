@@ -71,28 +71,30 @@ def create_session(db: Session):
     return db_session
 
 def create_study_area(
-        db: Session, session_id: str, study_area: schemas.StudyAreaParcel):
+        db: Session, session_id: str):
     """Create a study area entry."""
     LOGGER.debug("Create study area")
-    study_area_dict = study_area.dict()
-    parcel_list = study_area_dict.pop("parcels", None)
+    # study_area_dict = study_area.dict()
+    # LOGGER.debug(study_area_dict)
+    # parcel_list = study_area_dict.pop("parcels", None)
 
-    db_study_area = models.StudyArea(**study_area_dict, owner_id=session_id)
+    db_study_area = models.StudyArea(owner_id=session_id)
     db.add(db_study_area)
     db.commit()
     db.refresh(db_study_area)
 
-    for parcel in parcel_list:
-        # Get the lulc_stats from ParcelStats table
-        db_parcel_stats = get_parcel_stats_by_wkt(db, parcel["wkt"])
-        if not db_parcel_stats:
-            raise HTTPException(status_code=404, detail="Parcel stats not found")
-        db_parcel = models.Parcel(
-            **parcel, lulc_stats=db_parcel_stats.lulc_stats,
-            study_area_id=db_study_area.id)
-        db.add(db_parcel)
-        db.commit()
-        db.refresh(db_parcel)
+    # TODO: not sure this will ever get called with parcels, they will be added later
+    # for parcel in parcel_list:
+    #     # Get the lulc_stats from ParcelStats table
+    #     db_parcel_stats = get_parcel_stats_by_wkt(db, parcel["wkt"])
+    #     if not db_parcel_stats:
+    #         raise HTTPException(status_code=404, detail="Parcel stats not found")
+    #     db_parcel = models.Parcel(
+    #         **parcel, lulc_stats=db_parcel_stats.lulc_stats,
+    #         study_area_id=db_study_area.id)
+    #     db.add(db_parcel)
+    #     db.commit()
+    #     db.refresh(db_parcel)
 
     return db_study_area
 
@@ -157,6 +159,14 @@ def create_parcel_stats(db: Session, parcel_wkt: schemas.ParcelStatsBase, job_id
     db.commit()
     db.refresh(db_parcel_stats)
     return db_parcel_stats
+
+def create_parcel(db: Session, parcel_wkt: schemas.Parcel, study_area_id: int):
+    """Create an entry in parcel table."""
+    db_parcel = models.Parcel(wkt=parcel_wkt, study_area_id=study_area_id)
+    db.add(db_parcel)
+    db.commit()
+    db.refresh(db_parcel)
+    return db_parcel
 
 def get_parcel_stats(db: Session, stats_id: int):
     """Read a single stats entry by ID."""

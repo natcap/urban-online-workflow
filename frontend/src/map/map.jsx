@@ -80,7 +80,7 @@ const patternSamplerLayer = new VectorLayer({
 });
 patternSamplerLayer.setZIndex(5);
 
-const wkt = new WKT();
+const wktFormat = new WKT();
 const translate = new Translate({
   layers: [patternSamplerLayer],
 });
@@ -113,7 +113,13 @@ const selectionLayer = new VectorTileLayer({
 selectionLayer.set('title', 'Selected Parcels');
 selectionLayer.setZIndex(2);
 
-// define the map
+const studyAreaSource = new VectorSource({});
+const studyAreaLayer = new VectorLayer({
+  source: studyAreaSource
+});
+studyAreaLayer.set('title', 'Study Area');
+studyAreaLayer.setZIndex(3);
+
 const map = new Map({
   layers: [
     satelliteLayer,
@@ -138,8 +144,10 @@ const map = new Map({
 export default function MapComponent(props) {
   const {
     sessionID,
-    addParcel,
+    // addParcel,
     parcelSet,
+    activeStudyAreaID,
+    updateStudyArea,
   } = props;
   const [layers, setLayers] = useState([]);
   const [showLayerControl, setShowLayerControl] = useState(false);
@@ -187,11 +195,11 @@ export default function MapComponent(props) {
     // update state with its new location
     translate.on(
       'translateend',
-      () => setPatternSampleWKT(wkt.writeFeature(patternSamplerFeature)),
+      () => setPatternSampleWKT(wktFormat.writeFeature(patternSamplerFeature)),
     );
     patternSamplerLayer.on(
       'change:visible',
-      () => setPatternSampleWKT(wkt.writeFeature(patternSamplerFeature)),
+      () => setPatternSampleWKT(wktFormat.writeFeature(patternSamplerFeature)),
     );
 
     map.on(['click'], async (event) => {
@@ -224,6 +232,19 @@ export default function MapComponent(props) {
       }
     });
   }, []);
+
+  // useEffect(() => {
+  //   if (parcelSet.length) {
+  //     const features = parcelSet.forEach(parcel => {
+  //       const feature = wktFormat.readFeature(parcel.wkt, {
+  //         dataProjection: 'EPSG:3857',
+  //         featureProjection: 'EPSG:3857',
+  //       });
+  //       return feature;
+  //     });
+  //     studyAreaSource.addFeatures()
+  //   }
+  // })
 
   // useEffect(() => {
   //   if (scenarioLulcRasters) {
@@ -273,9 +294,10 @@ export default function MapComponent(props) {
       </div>
       <ParcelControl
         sessionID={sessionID}
+        activeStudyAreaID={activeStudyAreaID}
         parcel={selectedParcel}
-        addParcel={addParcel}
         clearSelection={clearSelection}
+        updateStudyArea={updateStudyArea}
       />
     </div>
   );

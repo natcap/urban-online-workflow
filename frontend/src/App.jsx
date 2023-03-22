@@ -3,6 +3,7 @@ import MapComponent from './map/map';
 import EditMenu from './edit/edit';
 
 import {
+  getStudyArea,
   getStudyAreas,
   createSession,
   getSession,
@@ -23,8 +24,10 @@ export default function App() {
     setSavedStudyAreas(studyAreas);
   };
 
-  const createStudyArea = async (name) => {
-    const id = await postStudyArea(sessionID, name, parcelSet);
+  const createStudyArea = async () => {
+    const id = await postStudyArea(sessionID);
+    // const id = await postStudyArea(sessionID, name, parcelSet);
+    console.log(id)
     setActiveStudyAreaID(id);
     // refreshSavedStudyAreas();
   };
@@ -41,46 +44,58 @@ export default function App() {
     }
   };
 
+  const updateStudyArea = async () => {
+    console.log(sessionID)
+    console.log(activeStudyAreaID)
+    const activeArea = await getStudyArea(sessionID, activeStudyAreaID);
+    console.log(activeArea)
+    setParcelSet(activeArea.parcels);
+  };
+
   useEffect(async () => {
     let SID = localStorage.getItem('sessionID');
     if (SID) {
       const session = await getSession(SID);
-      setSessionID(SID);
-    } else {
-      SID = await createSession();
-      setSessionID(SID);
-      localStorage.setItem('sessionID', SID);
+      console.log(session)
+      if (session && session.id) {
+        setSessionID(SID);
+        return;
+      }
     }
+    SID = await createSession();
+    setSessionID(SID);
+    localStorage.setItem('sessionID', SID);
   }, []);
 
   useEffect(() => {
     if (sessionID) {
       refreshSavedStudyAreas();
+      createStudyArea();
     }
   }, [sessionID]);
 
-  const addParcel = async (parcel) => {
-    console.log(parcel)
-    setParcelSet((prev) => {
-      const match = prev.filter((p) => p.id === parcel.id);
-      console.log(match)
-      if (match.length === 0) { return prev; }
-      const newSet = prev.concat(parcel);
-      return newSet;
+  // const addParcel = async (parcelCoords) => {
+    // console.log(parcel)
+    // setParcelSet((prev) => {
+    //   const match = prev.filter((p) => p.id === parcel.id);
+    //   console.log(match)
+    //   if (match.length === 0) { return prev; }
+    //   const newSet = prev.concat(parcel);
+    //   return newSet;
       // const newSet = { ...prev, ...parcel };
       // return newSet;
-    });
-  };
+    // });
+  // };
 
-  const removeParcel = (parcelID) => {
-    setParcelSet((prev) => {
-      const match = prev.filter((p) => p.id !== parcelID);
-      return match;
-      // const newSet = { ...prev };
-      // delete newSet[parcelID];
-      // return newSet;
-    });
-  };
+  // const removeParcel = (parcelID) => {
+  //   setParcelSet((prev) => {
+  //     const match = prev.filter((p) => p.id !== parcelID);
+  //     return match;
+  //     // const newSet = { ...prev };
+  //     // delete newSet[parcelID];
+  //     // return newSet;
+  //   });
+  // };
 
   return (
     (sessionID)
@@ -90,12 +105,13 @@ export default function App() {
             <MapComponent
               sessionID={sessionID}
               parcelSet={parcelSet}
-              addParcel={addParcel}
+              activeStudyAreaID={activeStudyAreaID}
+              updateStudyArea={updateStudyArea}
             />
             <EditMenu
               sessionID={sessionID}
               parcelSet={parcelSet}
-              removeParcel={removeParcel}
+              // removeParcel={removeParcel}
               createStudyArea={createStudyArea}
               refreshSavedStudyAreas={refreshSavedStudyAreas}
               activeStudyAreaID={activeStudyAreaID}

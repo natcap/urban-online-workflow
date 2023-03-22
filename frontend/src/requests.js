@@ -85,23 +85,39 @@ export async function getStudyAreas(sessionID) {
 }
 
 /**
+ * Get a study area.
+ *
+ * @param  {integer} sessionID - id of the session to get study areas for
+ * @return {array[object]} array of study area objects
+ */
+export async function getStudyArea(sessionID, studyAreaID) {
+  return (
+    window.fetch(`${apiBaseURL}/study_area/${sessionID}/${studyAreaID}`, {
+      method: 'get',
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
+}
+
+/**
  * Create a new study area
  *
  * @return {integer} id for the new study area
  */
-export async function postStudyArea(sessionID, name, parcelSet) {
-  const payload = {
-    name: name,
-    parcels: Object.values(parcelSet).map((parcel) => (
-      { wkt: polygonCoordsToWKT(parcel.coords), address: '123 Main Street' }
-    )),
-  };
+export async function postStudyArea(sessionID) {
+  // const payload = {
+  //   name: name,
+  //   parcels: Object.values(parcelSet).map((parcel) => (
+  //     { wkt: polygonCoordsToWKT(parcel.coords), address: '123 Main Street' }
+  //   )),
+  // };
 
   return (
     window.fetch(`${apiBaseURL}/study_area/${sessionID}`, {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      // body: JSON.stringify(payload),
     })
       .then((response) => response.json())
       .then((json) => json.id)
@@ -242,15 +258,16 @@ export async function convertToSingleLULC(lulcCode, scenarioID) {
  *  representing [lon, lat] coordinate pairs outlining the parcel to query
  * @return {[object]} ? - fill in when this endpoint is working
  */
-export async function postLulcTableForParcel(sessionID, parcelCoords) {
+export async function addParcel(sessionID, studyAreaID, parcelCoords) {
   console.log(polygonCoordsToWKT(parcelCoords))
   return (
-    window.fetch(`${apiBaseURL}/stats_under_parcel`, {
+    window.fetch(`${apiBaseURL}/add_parcel`, {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         session_id: sessionID,
-        target_parcel_wkt: polygonCoordsToWKT(parcelCoords),
+        study_area_id: studyAreaID,
+        wkt: polygonCoordsToWKT(parcelCoords),
       }),
     })
       .then((response) => response.json())

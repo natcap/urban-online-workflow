@@ -57,7 +57,7 @@ class StudyArea(Base):
     __tablename__ = "study_area"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
+    name = Column(String)
     # each study area has an associated session owner
     owner_id = Column(String, ForeignKey("sessions.session_id"))
 

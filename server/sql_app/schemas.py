@@ -80,31 +80,31 @@ class Parcel(ParcelBase):
         orm_mode = True
 
 
-class StudyAreaParcel(BaseModel):
-    """Pydantic model base for Study Areas."""
-    name: str
-    parcels: list[ParcelBase] = []
+# class StudyAreaParcel(BaseModel):
+#     """Pydantic model base for Study Areas."""
+#     name: str
+#     parcels: list[ParcelBase] = []
 
 
-class StudyAreaBase(BaseModel):
+# class StudyAreaBase(BaseModel):
     """Pydantic model base for Study Areas."""
-    name: str
-    parcels: list[Parcel] = []
+    # name: str
+    # parcels: list[Parcel] = []
     #parcel_wkts: str
     #parcel_wkts: list[str]
 
 
-class StudyArea(StudyAreaBase):
+class StudyArea(BaseModel):
     """Pydantic model used when reading data, when returning it from API."""
     id: int
-    scenarios: list[Scenario] = []
-    owner_id: str
+    # scenarios: list[Scenario] = []
+    # owner_id: str
 
     class Config:
         orm_mode = True
 
 
-class StudyAreaResponse(BaseModel):
+class StudyAreaCreateResponse(BaseModel):
     """Pydantic model for the response after study area creation."""
     id: int
 
@@ -112,13 +112,14 @@ class StudyAreaResponse(BaseModel):
         orm_mode = True
 
 
-class StudyAreaRequest(BaseModel):
-    """Pydantic model for the response after study area creation."""
-    id: int
-    name: str
+# TODO: unused
+# class StudyAreaRequest(BaseModel):
+#     """Pydantic model for the response after study area creation."""
+#     id: int
+#     name: str
 
-    class Config:
-        orm_mode = True
+#     class Config:
+#         orm_mode = True
 
 
 class ScenarioResponse(BaseModel):
@@ -195,14 +196,14 @@ class ParcelStatsBase(BaseModel):
     target_parcel_wkt: str
 
 
-class ParcelStats(ParcelStatsBase):
-    """Pydantic model used when reading data, when returning it from API."""
-    stats_id: int
-    job_id: int
-    #owner_id: str
+# class ParcelStats(ParcelStatsBase):
+#     """Pydantic model used when reading data, when returning it from API."""
+#     stats_id: int
+#     job_id: int
+#     #owner_id: str
 
-    class Config:
-        orm_mode = True
+#     class Config:
+#         orm_mode = True
 
 
 class ParcelStatsRequest(BaseModel):
@@ -211,11 +212,19 @@ class ParcelStatsRequest(BaseModel):
     target_parcel_wkt: str
 
 
+class ParcelCreateRequest(BaseModel):
+    session_id: str
+    study_area_id: int
+    wkt: str
+
+
+# TODO: unused?
 class ParcelStatsUpdate(BaseModel):
     """Pydantic model used for updating stats."""
     lulc_stats: str
 
 
+# TODO: unused?
 class ParcelStatsResponse(BaseModel):
     """Pydantic model for the response after parcel stats creation request."""
     job_id: int

@@ -7,37 +7,42 @@ import {
 
 import useInterval from '../hooks/useInterval';
 import {
-  getLulcTableForParcel,
-  postLulcTableForParcel,
+  // getLulcTableForParcel,
+  getJobStatus,
+  addParcel,
 } from '../requests';
 
 export default function ParcelControl(props) {
   const {
     parcel,
-    addParcel,
+    // addParcel,
     clearSelection,
     sessionID,
-    studyAreaID,
+    activeStudyAreaID,
+    updateStudyArea,
   } = props;
 
   const [jobID, setJobID] = useState(null);
 
   useInterval(async () => {
-    const results = await getLulcTableForParcel(jobID);
-    if (!['pending', 'running'].includes(results)) {
-      const addition = {
-        [parcel.parcelID]: {
-          coords: parcel.coords,
-          table: JSON.parse(results).base, // TODO: do we need the scenario identifier in these results?
-        },
-      };
+    // const results = await getLulcTableForParcel(jobID);
+    const status = await getJobStatus(jobID);
+    if (!['pending', 'running'].includes(status)) {
+      // const addition = {
+      //   [parcel.parcelID]: {
+      //     coords: parcel.coords,
+      //     table: JSON.parse(results).base, // TODO: do we need the scenario identifier in these results?
+      //   },
+      // };
       setJobID(null);
-      addParcel(addition);
+      // addParcel(addition);
+      updateStudyArea();
     }
   }, (jobID) ? 200 : null); // This server operation should be quick
 
   const handleClick = async (parcel) => {
-    const jid = await postLulcTableForParcel(sessionID, parcel.coords);
+    console.log(activeStudyAreaID)
+    const jid = await addParcel(sessionID, activeStudyAreaID, parcel.coords);
     setJobID(jid.job_id);
   };
 

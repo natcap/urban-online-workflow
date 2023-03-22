@@ -8,8 +8,10 @@ import shapely.geometry
 import shapely.wkt
 
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.testclient import TestClient
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from . import crud, models, schemas
@@ -65,6 +67,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Get feedback on 422 errors. Taken wholesale from
+# https://github.com/tiangolo/fastapi/issues/3361
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+        request: Request, exc: RequestValidationError):
+    exc_str = f'{exc}'.replace('\n', ' ').replace('   ', ' ')
+    logging.error(f"{request}: {exc_str}")
+    content = {'status_code': 10422, 'message': exc_str, 'data': None}
+    return JSONResponse(
+        content=content, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 # We need to have an independent db session / connection (SessionLocal) per
 # request, use the same session through all the request and then close it after
@@ -128,17 +141,28 @@ def read_session(session_id: str, db: Session = Depends(get_db)):
 
 ### Study Area and Scenario Endpoints ###
 
-@app.post("/study_area/{session_id}", response_model=schemas.StudyAreaResponse)
-def create_study_area(
-        session_id: str, study_area: schemas.StudyAreaParcel,
-        db: Session = Depends(get_db)
-):
+@app.post("/study_area/{session_id}", response_model=schemas.StudyAreaCreateResponse)
+def create_study_area(session_id: str, db: Session = Depends(get_db)):
     # check that the session exists
     db_session = crud.get_session(db, session_id=session_id)
     if db_session is None:
         raise HTTPException(status_code=404, detail="Session not found")
+    # return crud.create_study_area(
+    #     db=db, study_area=study_area, session_id=session_id)
     return crud.create_study_area(
-        db=db, study_area=study_area, session_id=session_id)
+        db=db, session_id=session_id)
+
+
+@app.get("/study_area/{session_id}/{study_area_id}", response_model=schemas.StudyArea)
+def get_study_area(
+    session_id: str, study_area_id: int, db: Session = Depends(get_db)):
+    # check that the session exists
+    db_session = crud.get_session(db, session_id=session_id)
+    if db_session is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    LOGGER.debug(study_area_id)
+    db_study_area = crud.get_study_area(db, study_area_id=study_area_id)
+    return db_study_area
 
 
 @app.get("/study_areas/{session_id}", response_model=list[schemas.StudyArea])
@@ -520,9 +544,15 @@ def parcel_fill(parcel_fill: schemas.ParcelFill, db: Session = Depends(get_db)):
     # Return job_id for response
     return job_db
 
-@app.post("/stats_under_parcel/", response_model=schemas.JobResponse)
-def get_lulc_stats_under_parcel(parcel_stats_req: schemas.ParcelStatsRequest,
-                                db: Session = Depends(get_db)):
+@app.post("/add_parcel/", response_model=schemas.JobResponse)
+def add_parcel(create_parcel_request: schemas.ParcelCreateRequest,
+               db: Session = Depends(get_db)):
+
+    parcel_db = crud.create_parcel(
+        db=db,
+        parcel_wkt=create_parcel_request.wkt,
+        study_area_id=create_parcel_request.study_area_id)
+
     # TODO: Check if this parcel has already been computed.
     # NOTE this assumes we're always using baseline LULC
 
@@ -532,10 +562,10 @@ def get_lulc_stats_under_parcel(parcel_stats_req: schemas.ParcelStatsRequest,
            "description": "get lulc base stats under parcel",
            "status": STATUS_PENDING})
     job_db = crud.create_job(
-        db=db, session_id=parcel_stats_req.session_id, job=job_schema)
+        db=db, session_id=create_parcel_request.session_id, job=job_schema)
 
     parcel_stats_db = crud.create_parcel_stats(
-        db=db, parcel_wkt=parcel_stats_req.target_parcel_wkt,
+        db=db, parcel_wkt=create_parcel_request.wkt,
         job_id=job_db.job_id)
 
     # Construct worker job and add to the queue
@@ -545,7 +575,7 @@ def get_lulc_stats_under_parcel(parcel_stats_req: schemas.ParcelStatsRequest,
             "job_id": job_db.job_id, "stats_id": parcel_stats_db.stats_id
         },
         "job_args": {
-            "target_parcel_wkt": parcel_stats_req.target_parcel_wkt,
+            "target_parcel_wkt": create_parcel_request.wkt,
             "lulc_source_url": f'{WORKING_ENV}/{BASE_LULC}',
             }
         }
@@ -578,23 +608,22 @@ def get_scenario_results(
         return job_db.status
 
 
-@app.get("/stats_under_parcel/result/{job_id}")
-def get_parcel_stats_results(job_id: int, db: Session = Depends(get_db)):
-    """Return the stats under parcel if the job was successful."""
-    # Check job status and return URL and Stats from table
-    LOGGER.info(f'Job ID: {job_id}')
-    job_db = crud.get_job(db, job_id=job_id)
-    if job_db is None:
-        raise HTTPException(status_code=404, detail="Job not found")
-    if job_db.status == STATUS_SUCCESS:
-        stats_db = crud.get_parcel_stats_by_job(db, job_id=job_id)
-        if stats_db is None:
-            raise HTTPException(status_code=404, detail="Stats result not found")
-        stats_results = stats_db.lulc_stats
-        return stats_results
-    else:
-        return job_db.status
-
+# @app.get("/stats_under_parcel/result/{job_id}")
+# def get_parcel_stats_results(job_id: int, db: Session = Depends(get_db)):
+#     """Return the stats under parcel if the job was successful."""
+#     # Check job status and return URL and Stats from table
+#     LOGGER.info(f'Job ID: {job_id}')
+#     job_db = crud.get_job(db, job_id=job_id)
+#     if job_db is None:
+#         raise HTTPException(status_code=404, detail="Job not found")
+#     if job_db.status == STATUS_SUCCESS:
+#         stats_db = crud.get_parcel_stats_by_job(db, job_id=job_id)
+#         if stats_db is None:
+#             raise HTTPException(status_code=404, detail="Stats result not found")
+#         stats_results = stats_db.lulc_stats
+#         return stats_results
+#     else:
+#         return job_db.status
 
 ### Testing ideas from tutorial ###
 
