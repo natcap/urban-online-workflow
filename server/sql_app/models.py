@@ -102,13 +102,15 @@ class ParcelStats(Base):
     """SQLAlchemy model for storing lulc stats under parcels."""
     __tablename__ = "parcel_stats"
 
-    stats_id = Column(Integer, primary_key=True, index=True)
-    target_parcel_wkt = Column(String)
+    stats_id = Column(Integer, index=True)
+    parcel_id = Column(Integer, ForeignKey("parcel.id"))
+    target_parcel_wkt = Column(String, primary_key=True)
     lulc_stats = Column(String)
     #TODO: I'm not sure if parcel stats not associated with a scenario
     # should be related to another table...
     job_id = Column(Integer, ForeignKey("jobs.job_id"))
 
+    parcel = relationship("Parcel", back_populates="lulc_stats")
     #owner = relationship("Job", back_populates="parcel_stats")
 
 
@@ -118,10 +120,11 @@ class Parcel(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     wkt = Column(String)
-    lulc_stats = Column(String)
+    # lulc_stats = Column(String)
     address = Column(String)
 
     # each scenario has an associated study area owner
     study_area_id = Column(String, ForeignKey("study_area.id"))
 
     study_area = relationship("StudyArea", back_populates="parcels")
+    lulc_stats = relationship("ParcelStats", back_populates="parcel")

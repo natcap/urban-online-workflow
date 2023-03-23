@@ -162,6 +162,7 @@ def get_study_area(
         raise HTTPException(status_code=404, detail="Session not found")
     LOGGER.debug(study_area_id)
     db_study_area = crud.get_study_area(db, study_area_id=study_area_id)
+    LOGGER.debug(db_study_area.__dict__)
     return db_study_area
 
 
@@ -553,9 +554,19 @@ def add_parcel(create_parcel_request: schemas.ParcelCreateRequest,
         parcel_wkt=create_parcel_request.wkt,
         study_area_id=create_parcel_request.study_area_id)
 
-    # TODO: Check if this parcel has already been computed.
-    # NOTE this assumes we're always using baseline LULC
+    # Check if this parcel has already been computed.
+    stats_db = crud.get_parcel_stats_by_wkt(db, create_parcel_request.wkt)
+    if stats_db:
+        # This is what the frontend is expecting.
+        # even though we don't need to submit a new job,
+        # the frontend is expecting to need to poll
+        # for the status before requesting the results.
+        return {
+            "job_id": stats_db.job_id,
+            "stats_id": stats_db.stats_id
+        }
 
+    # NOTE this assumes we're always using baseline LULC
     # Create job entry for wallpapering task
     job_schema = schemas.JobBase(
         **{"name": "stats_under_parcel",

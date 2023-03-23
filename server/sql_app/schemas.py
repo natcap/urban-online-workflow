@@ -68,13 +68,14 @@ class Scenario(ScenarioBase):
 class ParcelBase(BaseModel):
     """Pydantic model base for Parcels."""
     wkt: str
-    address: str
+    address: str = None
 
 
 class Parcel(ParcelBase):
     """Pydantic model used when reading data, when returning it from API."""
     id: int
-    lulc_stats: Union[str, None] = None
+    lulc_stats: str = None
+    # lulc_stats: Union[str, None] = None
 
     class Config:
         orm_mode = True
@@ -97,6 +98,7 @@ class Parcel(ParcelBase):
 class StudyArea(BaseModel):
     """Pydantic model used when reading data, when returning it from API."""
     id: int
+    parcels: list[Parcel] = []
     # scenarios: list[Scenario] = []
     # owner_id: str
 
