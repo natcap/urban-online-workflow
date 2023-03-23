@@ -22,7 +22,7 @@ from PIL import Image
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
 
-POLLING_INTERVAL_S = 1
+POLLING_INTERVAL_S = 10
 DEFAULT_GTIFF_CREATION_TUPLE_OPTIONS = ('GTIFF', (
     'TILED=YES', 'BIGTIFF=YES', 'COMPRESS=LZW',
     'BLOCKXSIZE=256', 'BLOCKYSIZE=256'))
@@ -84,12 +84,14 @@ JOBTYPE_WALLPAPER = 'wallpaper'
 JOBTYPE_PARCEL_STATS = 'stats_under_parcel'
 JOBTYPE_LULC_CLASSNAMES = 'raster_classnames'
 JOBTYPE_PATTERN_THUMBNAIL = 'pattern_thumbnail'
+JOBTYPE_INVEST = 'invest'
 ENDPOINTS = {
     JOBTYPE_FILL: 'scenario',
     JOBTYPE_WALLPAPER: 'scenario',
     JOBTYPE_PARCEL_STATS: 'parcel_stats',
     JOBTYPE_LULC_CLASSNAMES: 'raster_classnames',  # TODO: fixme!
     JOBTYPE_PATTERN_THUMBNAIL: 'pattern',
+    JOBTYPE_INVEST: 'invest',
 }
 
 
@@ -778,6 +780,15 @@ def do_work(host, port, outputs_location):
                 data = {
                     'result': {
                         'pattern_thumbnail_path': thumbnail_path,
+                    }
+                }
+            elif job_type == JOBTYPE_INVEST:
+                # TODO: run invest models!
+                LOGGER.info(f"TODO: Run InVEST model: {job_args['invest_model']}")
+                data = {
+                    'result': {
+                        'output_path': "return-something",
+                        'model': jobs_args['invest_model'],
                     }
                 }
             else:

@@ -34,10 +34,6 @@ def get_session(db: Session, session_id: str):
     return db.query(models.Session).filter(
             models.Session.session_id == session_id).first()
 
-def get_sessions(db: Session, skip: int = 0, limit: int = 100):
-    """Read multiple sessions."""
-    return db.query(models.Session).offset(skip).limit(limit).all()
-
 def create_session(db: Session):
     """Create session using UUID as unique ID."""
     # It is unlikely that a UUID would be duplicated but we can do three
