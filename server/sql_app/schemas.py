@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Optional, Union, Literal
 
 from pydantic import BaseModel
+from pydantic import validator
 
 
 # Pydantic models declare the types using ":", the new type annotation
@@ -71,11 +72,21 @@ class ParcelBase(BaseModel):
     address: str = None
 
 
+class ParcelStats(BaseModel):
+    """Pydantic model base for ParcelStats."""
+    # target_parcel_wkt: str
+    lulc_stats: Union[str, None] = None
+
+    class Config:
+        orm_mode = True
+
+
 class Parcel(ParcelBase):
     """Pydantic model used when reading data, when returning it from API."""
     id: int
-    lulc_stats: str = None
+    # lulc_stats: str = None
     # lulc_stats: Union[str, None] = None
+    parcel_stats: Union[ParcelStats, None] = None
 
     class Config:
         orm_mode = True
@@ -192,12 +203,6 @@ class JobResponse(BaseModel):
         orm_mode = True
 
 
-
-class ParcelStatsBase(BaseModel):
-    """Pydantic model base for ParcelStats."""
-    target_parcel_wkt: str
-
-
 # class ParcelStats(ParcelStatsBase):
 #     """Pydantic model used when reading data, when returning it from API."""
 #     stats_id: int
@@ -208,10 +213,10 @@ class ParcelStatsBase(BaseModel):
 #         orm_mode = True
 
 
-class ParcelStatsRequest(BaseModel):
-    """Pydantic model used in establishing the request to create stats."""
-    session_id: str
-    target_parcel_wkt: str
+# class ParcelStatsRequest(BaseModel):
+#     """Pydantic model used in establishing the request to create stats."""
+#     session_id: str
+#     target_parcel_wkt: str
 
 
 class ParcelCreateRequest(BaseModel):
@@ -220,20 +225,19 @@ class ParcelCreateRequest(BaseModel):
     wkt: str
 
 
-# TODO: unused?
 class ParcelStatsUpdate(BaseModel):
     """Pydantic model used for updating stats."""
     lulc_stats: str
 
 
-# TODO: unused?
-class ParcelStatsResponse(BaseModel):
-    """Pydantic model for the response after parcel stats creation request."""
-    job_id: int
-    #stats_id: int
+# # TODO: unused?
+# class ParcelStatsResponse(BaseModel):
+#     """Pydantic model for the response after parcel stats creation request."""
+#     job_id: int
+#     #stats_id: int
 
-    class Config:
-        orm_mode = True
+#     class Config:
+#         orm_mode = True
 
 class WorkerResponse(BaseModel):
     """Pydantic model used for the jobsqueue request from the worker."""

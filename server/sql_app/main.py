@@ -165,9 +165,7 @@ def get_study_area(
     db_session = crud.get_session(db, session_id=session_id)
     if db_session is None:
         raise HTTPException(status_code=404, detail="Session not found")
-    LOGGER.debug(study_area_id)
     db_study_area = crud.get_study_area(db, study_area_id=study_area_id)
-    LOGGER.debug(db_study_area.__dict__)
     return db_study_area
 
 
@@ -178,6 +176,7 @@ def get_study_areas(session_id: str, db: Session = Depends(get_db)):
     if db_session is None:
         raise HTTPException(status_code=404, detail="Session not found")
     db_study_areas = crud.get_study_areas(db=db, session_id=session_id)
+    # LOGGER.debug(db_study_areas[0].__dict__)
     return db_study_areas
 
 

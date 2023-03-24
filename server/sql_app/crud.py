@@ -148,7 +148,7 @@ def delete_scenario(db: Session, scenario_id: int):
     db.commit()
     return STATUS_SUCCESS
 
-def create_parcel_stats(db: Session, parcel_wkt: schemas.ParcelStatsBase, job_id: int):
+def create_parcel_stats(db: Session, parcel_wkt: str, job_id: int):
     """Create a stats entry in parcel stats table."""
     db_parcel_stats = models.ParcelStats(target_parcel_wkt=parcel_wkt, job_id=job_id)
     db.add(db_parcel_stats)
@@ -156,7 +156,7 @@ def create_parcel_stats(db: Session, parcel_wkt: schemas.ParcelStatsBase, job_id
     db.refresh(db_parcel_stats)
     return db_parcel_stats
 
-def create_parcel(db: Session, parcel_wkt: schemas.Parcel, study_area_id: int):
+def create_parcel(db: Session, parcel_wkt: str, study_area_id: int):
     """Create an entry in parcel table."""
     db_parcel = models.Parcel(wkt=parcel_wkt, study_area_id=study_area_id)
     db.add(db_parcel)
