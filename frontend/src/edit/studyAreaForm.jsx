@@ -85,7 +85,7 @@ export default function StudyAreaForm(props) {
         <td>{parcel.id}</td>
         <td>
           <div className="parcel-block">
-            {plot(JSON.parse(parcel.lulc_stats).base)}
+            {plot(JSON.parse(parcel.parcel_stats.lulc_stats).base)}
           </div>
         </td>
       </tr>,

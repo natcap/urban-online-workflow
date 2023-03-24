@@ -98,6 +98,8 @@ class Pattern(Base):
     owner = relationship("Session", back_populates="patterns")
 
 
+# TODO: It may make sense for this table to be global,
+# rather than in context of a Session/User.
 class ParcelStats(Base):
     """SQLAlchemy model for storing lulc stats under parcels."""
     __tablename__ = "parcel_stats"
