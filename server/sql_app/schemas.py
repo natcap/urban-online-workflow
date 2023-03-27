@@ -109,6 +109,7 @@ class Parcel(ParcelBase):
 class StudyArea(BaseModel):
     """Pydantic model used when reading data, when returning it from API."""
     id: int
+    name: str = None
     parcels: list[Parcel] = []
     # scenarios: list[Scenario] = []
     # owner_id: str
@@ -117,12 +118,12 @@ class StudyArea(BaseModel):
         orm_mode = True
 
 
-class StudyAreaCreateResponse(BaseModel):
-    """Pydantic model for the response after study area creation."""
-    id: int
+# class StudyAreaCreateResponse(BaseModel):
+#     """Pydantic model for the response after study area creation."""
+#     id: int
 
-    class Config:
-        orm_mode = True
+#     class Config:
+#         orm_mode = True
 
 
 # TODO: unused

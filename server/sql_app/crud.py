@@ -70,29 +70,26 @@ def create_study_area(
         db: Session, session_id: str):
     """Create a study area entry."""
     LOGGER.debug("Create study area")
-    # study_area_dict = study_area.dict()
-    # LOGGER.debug(study_area_dict)
-    # parcel_list = study_area_dict.pop("parcels", None)
-
     db_study_area = models.StudyArea(owner_id=session_id)
     db.add(db_study_area)
     db.commit()
     db.refresh(db_study_area)
-
-    # TODO: not sure this will ever get called with parcels, they will be added later
-    # for parcel in parcel_list:
-    #     # Get the lulc_stats from ParcelStats table
-    #     db_parcel_stats = get_parcel_stats_by_wkt(db, parcel["wkt"])
-    #     if not db_parcel_stats:
-    #         raise HTTPException(status_code=404, detail="Parcel stats not found")
-    #     db_parcel = models.Parcel(
-    #         **parcel, lulc_stats=db_parcel_stats.lulc_stats,
-    #         study_area_id=db_study_area.id)
-    #     db.add(db_parcel)
-    #     db.commit()
-    #     db.refresh(db_parcel)
-
     return db_study_area
+
+
+def update_study_area(db: Session, study_area: schemas.StudyArea):
+    db_study_area = get_study_area(db, study_area.id)
+    if not db_study_area:
+        raise HTTPException(status_code=404, detail="Scenario not found")
+    scenario_data = study_area.dict(exclude_unset=True)
+    for key, value in scenario_data.items():
+        setattr(db_study_area, key, value)
+
+    db.add(db_study_area)
+    db.commit()
+    db.refresh(db_study_area)
+    return db_study_area
+
 
 def get_study_area(db: Session, study_area_id: int):
     """Read study area from id."""

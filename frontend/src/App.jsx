@@ -8,13 +8,18 @@ import {
   createSession,
   getSession,
   postStudyArea,
+  updateStudyArea,
 } from './requests';
 
 export default function App() {
   const [sessionID, setSessionID] = useState(null);
   const [savedStudyAreas, setSavedStudyAreas] = useState([]);
-  const [parcelSet, setParcelSet] = useState([]);
-  const [activeStudyAreaID, setActiveStudyAreaID] = useState(null);
+  const [studyArea, setStudyArea] = useState({
+    id: null,
+    parcels: [],
+  });
+  // const [parcelSet, setParcelSet] = useState([]);
+  // const [activeStudyAreaID, setActiveStudyAreaID] = useState(null);
 
   const refreshSavedStudyAreas = async () => {
     // studyAreas object returned from backend includes set of parcels
@@ -25,31 +30,43 @@ export default function App() {
   };
 
   const createStudyArea = async () => {
-    const id = await postStudyArea(sessionID);
+    // const id = await postStudyArea(sessionID);
+    const area = await postStudyArea(sessionID);
     // const id = await postStudyArea(sessionID, name, parcelSet);
-    console.log(id)
-    setActiveStudyAreaID(id);
+    console.log(area);
+    // setActiveStudyAreaID(id);
+    setStudyArea(area);
     // refreshSavedStudyAreas();
   };
 
-  const switchStudyArea = (id) => {
-    const activeArea = savedStudyAreas.filter(
-      (area) => area.id === Number(id)
-    )[0];
-    setActiveStudyAreaID(id);
-    if (activeArea) {
-      setParcelSet(activeArea.parcels);
-    } else {
-      setParcelSet([]);
-    }
+  const switchStudyArea = async (id) => {
+    const area = await getStudyArea(sessionID, id);
+    setStudyArea(area);
+    // const activeArea = savedStudyAreas.filter(
+    //   (area) => area.id === Number(id)
+    // )[0];
+    // setActiveStudyAreaID(id);
+    // if (activeArea) {
+    //   setParcelSet(activeArea.parcels);
+    // } else {
+    //   setParcelSet([]);
+    // }
   };
 
-  const updateStudyArea = async () => {
+  const refreshStudyArea = async () => {
     console.log(sessionID)
-    console.log(activeStudyAreaID)
-    const activeArea = await getStudyArea(sessionID, activeStudyAreaID);
-    console.log(activeArea)
-    setParcelSet(activeArea.parcels);
+    console.log(studyArea.id)
+    const area = await getStudyArea(sessionID, studyArea.id);
+    console.log(area)
+    setStudyArea(area);
+    // setParcelSet(activeArea.parcels);
+  };
+
+  const nameStudyArea = async (name) => {
+    const area = JSON.parse(JSON.stringify(studyArea));
+    area.name = name;
+    const updatedArea = await updateStudyArea(sessionID, area);
+    setStudyArea(updatedArea);
   };
 
   useEffect(async () => {
@@ -104,17 +121,18 @@ export default function App() {
           <div className="map-and-menu-container">
             <MapComponent
               sessionID={sessionID}
-              parcelSet={parcelSet}
-              activeStudyAreaID={activeStudyAreaID}
-              updateStudyArea={updateStudyArea}
+              parcelSet={studyArea.parcels}
+              activeStudyAreaID={studyArea.id}
+              refreshStudyArea={refreshStudyArea}
             />
             <EditMenu
               sessionID={sessionID}
-              parcelSet={parcelSet}
+              studyArea={studyArea}
+              // parcelSet={studyArea.parcels}
               // removeParcel={removeParcel}
-              createStudyArea={createStudyArea}
+              nameStudyArea={nameStudyArea}
               refreshSavedStudyAreas={refreshSavedStudyAreas}
-              activeStudyAreaID={activeStudyAreaID}
+              // activeStudyAreaID={studyArea.id}
               switchStudyArea={switchStudyArea}
               savedStudyAreas={savedStudyAreas}
             />

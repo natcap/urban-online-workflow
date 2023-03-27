@@ -21,7 +21,7 @@ import {
 
 export default function ScenarioBuilder(props) {
   const {
-    createStudyArea,
+    // createStudyArea,
     activeStudyAreaID,
     // setActiveStudyAreaID,
     parcelSet,

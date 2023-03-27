@@ -17,8 +17,8 @@ FocusStyleManager.onlyShowFocusOnTabs();
 
 export default function EditMenu(props) {
   const {
-    createStudyArea,
-    parcelSet,
+    nameStudyArea,
+    // parcelSet,
     selectedParcel,
     removeParcel,
     refreshSavedStudyAreas,
@@ -26,7 +26,8 @@ export default function EditMenu(props) {
     togglePatternSamplingMode,
     patternSampleWKT,
     sessionID,
-    activeStudyAreaID,
+    // activeStudyAreaID,
+    studyArea,
     switchStudyArea,
     savedStudyAreas,
   } = props;
@@ -39,23 +40,6 @@ export default function EditMenu(props) {
       const newTable = { ...prev, ...table };
       return newTable;
     });
-  };
-
-  const submitStudyArea = async (name) => {
-    // Instantiate the 'baseline' scenario now.
-    // const baseLulcTable = {};
-    // Object.keys(landuseCodes).forEach((code) => {
-    //   baseLulcTable[code] = 0;
-    //   Object.values(parcelSet).forEach((parcel) => {
-    //     baseLulcTable[code] += parcel.table[code] || 0;
-    //   });
-    // });
-    // addScenarioLULCTable({ baseline: baseLulcTable });
-    // setStudyAreaName(name);
-    createStudyArea(name);
-    // const id = await createStudyArea(sessionID, name, parcelSet);
-    // setActiveStudyAreaID(id);
-    // refreshSavedStudyAreas();
   };
 
   return (
@@ -75,22 +59,22 @@ export default function EditMenu(props) {
                 savedStudyAreas={savedStudyAreas}
               />
               <StudyAreaForm
-                submitStudyArea={submitStudyArea}
-                parcelSet={parcelSet}
+                nameStudyArea={nameStudyArea}
+                parcelSet={studyArea.parcels}
                 removeParcel={removeParcel}
                 // immutableStudyArea={Boolean(activeStudyAreaID)}
                 // activeStudyAreaID={activeStudyAreaID}
               />
               <ScenarioBuilder
-                createStudyArea={createStudyArea}
+                // createStudyArea={createStudyArea}
                 sessionID={sessionID}
-                parcelSet={parcelSet}
+                parcelSet={studyArea.parcels}
                 removeParcel={removeParcel}
                 patternSamplingMode={patternSamplingMode}
                 patternSampleWKT={patternSampleWKT}
                 togglePatternSamplingMode={togglePatternSamplingMode}
                 refreshSavedStudyAreas={refreshSavedStudyAreas}
-                activeStudyAreaID={activeStudyAreaID}
+                activeStudyAreaID={studyArea.id}
                 // setActiveStudyAreaID={setActiveStudyAreaID}
                 addScenarioLULCTable={addScenarioLULCTable}
               />

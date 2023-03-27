@@ -75,7 +75,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    # allow_methods=["*"],
+    allow_methods=['DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT'],
     allow_headers=["*"],
 )
 
@@ -146,7 +147,7 @@ def read_session(session_id: str, db: Session = Depends(get_db)):
 
 ### Study Area and Scenario Endpoints ###
 
-@app.post("/study_area/{session_id}", response_model=schemas.StudyAreaCreateResponse)
+@app.post("/study_area/{session_id}", response_model=schemas.StudyArea)
 def create_study_area(session_id: str, db: Session = Depends(get_db)):
     # check that the session exists
     db_session = crud.get_session(db, session_id=session_id)
@@ -158,7 +159,8 @@ def create_study_area(session_id: str, db: Session = Depends(get_db)):
         db=db, session_id=session_id)
 
 
-@app.get("/study_area/{session_id}/{study_area_id}", response_model=schemas.StudyArea)
+@app.get("/study_area/{session_id}/{study_area_id}",
+         response_model=schemas.StudyArea)
 def get_study_area(
     session_id: str, study_area_id: int, db: Session = Depends(get_db)):
     # check that the session exists
@@ -166,6 +168,19 @@ def get_study_area(
     if db_session is None:
         raise HTTPException(status_code=404, detail="Session not found")
     db_study_area = crud.get_study_area(db, study_area_id=study_area_id)
+    return db_study_area
+
+# TODO: patch method blocked by CORS? fails preflight request with 400
+@app.put("/study_area/{session_id}",
+           response_model=schemas.StudyArea)
+def update_study_area(session_id: str, study_area: schemas.StudyArea,
+                      db: Session = Depends(get_db)):
+    # check that the session exists
+    db_session = crud.get_session(db, session_id=session_id)
+    if db_session is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    del study_area.parcels  # not an attribute of schemas.StudyArea
+    db_study_area = crud.update_study_area(db, study_area)
     return db_study_area
 
 

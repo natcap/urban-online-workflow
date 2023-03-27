@@ -12,7 +12,7 @@ import landuseCodes from '../landuseCodes';
 export default function StudyAreaForm(props) {
   const {
     // activeStudyAreaID,
-    submitStudyArea,
+    nameStudyArea,
     parcelSet,
     removeParcel,
     immutableStudyArea,
@@ -28,7 +28,6 @@ export default function StudyAreaForm(props) {
   // }, [activeStudyAreaID]);
 
   function plot(table) {
-    console.log(table)
     const blocks = [];
     Object.entries(table).forEach(([code, count]) => {
       let n = 0;
@@ -48,7 +47,6 @@ export default function StudyAreaForm(props) {
         n++;
       }
     });
-    console.log(blocks)
     return blocks;
   }
 
@@ -107,7 +105,7 @@ export default function StudyAreaForm(props) {
               onChange={(event) => setStudyAreaName(event.currentTarget.value)}
               rightElement={(
                 <Button
-                  onClick={() => submitStudyArea(studyAreaName)}
+                  onClick={() => nameStudyArea(studyAreaName)}
                 >
                   Save
                 </Button>

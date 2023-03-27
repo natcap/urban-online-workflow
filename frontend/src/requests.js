@@ -103,16 +103,9 @@ export async function getStudyArea(sessionID, studyAreaID) {
 /**
  * Create a new study area
  *
- * @return {integer} id for the new study area
+ * @return {object} schemas.StudyArea
  */
 export async function postStudyArea(sessionID) {
-  // const payload = {
-  //   name: name,
-  //   parcels: Object.values(parcelSet).map((parcel) => (
-  //     { wkt: polygonCoordsToWKT(parcel.coords), address: '123 Main Street' }
-  //   )),
-  // };
-
   return (
     window.fetch(`${apiBaseURL}/study_area/${sessionID}`, {
       method: 'post',
@@ -120,7 +113,26 @@ export async function postStudyArea(sessionID) {
       // body: JSON.stringify(payload),
     })
       .then((response) => response.json())
-      .then((json) => json.id)
+      .then((json) => json)
+      .catch((error) => console.log(error))
+  );
+}
+
+/**
+ * Update a study area.
+ *
+ * @param {integer} sessionID - id of the session to get study areas for
+ * @param {object} studyArea - as defined by schemas.StudyArea
+ * @return {array[object]} array of study area objects
+ */
+export async function updateStudyArea(sessionID, studyArea) {
+  return (
+    window.fetch(`${apiBaseURL}/study_area/${sessionID}`, {
+      method: 'put',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(studyArea),
+    })
+      .then((response) => response.json())
       .catch((error) => console.log(error))
   );
 }

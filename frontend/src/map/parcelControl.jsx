@@ -19,7 +19,7 @@ export default function ParcelControl(props) {
     clearSelection,
     sessionID,
     activeStudyAreaID,
-    updateStudyArea,
+    refreshStudyArea,
   } = props;
 
   const [jobID, setJobID] = useState(null);
@@ -36,7 +36,7 @@ export default function ParcelControl(props) {
       // };
       setJobID(null);
       // addParcel(addition);
-      updateStudyArea();
+      refreshStudyArea();
     }
   }, (jobID) ? 200 : null); // This server operation should be quick
 

@@ -105,7 +105,7 @@ class ParcelStats(Base):
     __tablename__ = "parcel_stats"
 
     stats_id = Column(Integer, index=True, primary_key=True)
-    target_parcel_wkt = Column(String, ForeignKey("parcel.wkt"))
+    target_parcel_wkt = Column(String, ForeignKey("parcel.wkt")) # TODO: should this be primary_key also?
     lulc_stats = Column(String)
     #TODO: I'm not sure if parcel stats not associated with a scenario
     # should be related to another table...

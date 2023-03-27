@@ -147,7 +147,7 @@ export default function MapComponent(props) {
     // addParcel,
     parcelSet,
     activeStudyAreaID,
-    updateStudyArea,
+    refreshStudyArea,
   } = props;
   const [layers, setLayers] = useState([]);
   const [showLayerControl, setShowLayerControl] = useState(false);
@@ -297,7 +297,7 @@ export default function MapComponent(props) {
         activeStudyAreaID={activeStudyAreaID}
         parcel={selectedParcel}
         clearSelection={clearSelection}
-        updateStudyArea={updateStudyArea}
+        refreshStudyArea={refreshStudyArea}
       />
     </div>
   );
