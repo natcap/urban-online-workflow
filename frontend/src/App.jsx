@@ -15,32 +15,23 @@ export default function App() {
   const [sessionID, setSessionID] = useState(null);
   const [savedStudyAreas, setSavedStudyAreas] = useState([]);
   const [studyArea, setStudyArea] = useState({
-    id: null,
+    id: undefined,
     parcels: [],
   });
 
-  const refreshSavedStudyAreas = async () => {
-    const studyAreas = await getStudyAreas(sessionID);
-    console.log(studyAreas);
-    setSavedStudyAreas(studyAreas);
-  };
-
-  const createStudyArea = async () => {
-    const area = await postStudyArea(sessionID);
-    console.log(area);
-    setStudyArea(area);
-  };
-
   const switchStudyArea = async (id) => {
-    const area = await getStudyArea(sessionID, id);
+    let area;
+    if (id !== 'new') {
+      area = await getStudyArea(sessionID, id);
+    } else {
+      area = await postStudyArea(sessionID, 'Untitled');
+      setSavedStudyAreas([...savedStudyAreas, area]);
+    }
     setStudyArea(area);
   };
 
   const refreshStudyArea = async () => {
-    console.log(sessionID)
-    console.log(studyArea.id)
     const area = await getStudyArea(sessionID, studyArea.id);
-    console.log(area)
     setStudyArea(area);
   };
 
@@ -49,6 +40,10 @@ export default function App() {
     area.name = name;
     const updatedArea = await updateStudyArea(sessionID, area);
     setStudyArea(updatedArea);
+    const otherAreas = savedStudyAreas.filter((area) => (
+      area.id !== updatedArea.id
+    ));
+    setSavedStudyAreas(otherAreas.concat(updatedArea));
   };
 
   useEffect(async () => {
@@ -66,10 +61,19 @@ export default function App() {
     localStorage.setItem('sessionID', SID);
   }, []);
 
-  useEffect(() => {
+  useEffect(async () => {
     if (sessionID) {
-      refreshSavedStudyAreas();
-      createStudyArea();
+      const studyAreas = await getStudyAreas(sessionID);
+      console.log(studyAreas);
+      if (studyAreas.length) {
+        const areas = studyAreas.filter((area) => (
+          area.parcels.length > 0
+        ));
+        setSavedStudyAreas(areas);
+        await switchStudyArea(areas[0].id); // TODO: switch to most recently created
+      } else {
+        await switchStudyArea(undefined); // undefined id creates new study area
+      }
     }
   }, [sessionID]);
 
@@ -89,7 +93,6 @@ export default function App() {
               studyArea={studyArea}
               refreshStudyArea={refreshStudyArea}
               nameStudyArea={nameStudyArea}
-              refreshSavedStudyAreas={refreshSavedStudyAreas}
               switchStudyArea={switchStudyArea}
               savedStudyAreas={savedStudyAreas}
             />

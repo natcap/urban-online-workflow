@@ -67,10 +67,10 @@ def create_session(db: Session):
     return db_session
 
 def create_study_area(
-        db: Session, session_id: str):
+        db: Session, session_id: str, name: str):
     """Create a study area entry."""
     LOGGER.debug("Create study area")
-    db_study_area = models.StudyArea(owner_id=session_id)
+    db_study_area = models.StudyArea(owner_id=session_id, name=name)
     db.add(db_study_area)
     db.commit()
     db.refresh(db_study_area)

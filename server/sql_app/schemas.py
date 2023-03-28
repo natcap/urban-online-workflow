@@ -126,14 +126,12 @@ class StudyArea(BaseModel):
 #         orm_mode = True
 
 
-# TODO: unused
-# class StudyAreaRequest(BaseModel):
-#     """Pydantic model for the response after study area creation."""
-#     id: int
-#     name: str
+class StudyAreaCreateRequest(BaseModel):
+    """Pydantic model for the body of the create study area request."""
+    name: str
 
-#     class Config:
-#         orm_mode = True
+    # class Config:
+    #     orm_mode = True
 
 
 class ScenarioResponse(BaseModel):

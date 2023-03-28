@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 
 import {
-  InputGroup,
   Button,
   HTMLTable,
 } from '@blueprintjs/core';
@@ -9,17 +8,14 @@ import {
 import { removeParcel } from '../requests';
 import landuseCodes from '../landuseCodes';
 
-export default function StudyAreaForm(props) {
+export default function StudyAreaTable(props) {
   const {
-    nameStudyArea,
     parcelSet,
-    immutableStudyArea,
     refreshStudyArea,
   } = props;
   console.log(parcelSet)
-  const [studyAreaName, setStudyAreaName] = useState('');
   const [highlightedCode, setHighlightedCode] = useState(null);
-   
+
   const deleteParcel = async (id) => {
     await removeParcel(id);
     refreshStudyArea();
@@ -63,7 +59,6 @@ export default function StudyAreaForm(props) {
           <Button
             icon="remove"
             onClick={() => deleteParcel(parcel.id)}
-            disabled={immutableStudyArea}
           />
         </td>
         <td>{parcel.id}</td>
@@ -78,27 +73,6 @@ export default function StudyAreaForm(props) {
 
   return (
     <div>
-      <p className="sidebar-subheading">
-        <span>Parcels in study area </span>
-      </p>
-      {
-        (!immutableStudyArea)
-          ? (
-            <InputGroup
-              placeholder="name this study area"
-              value={studyAreaName}
-              onChange={(event) => setStudyAreaName(event.currentTarget.value)}
-              rightElement={(
-                <Button
-                  onClick={() => nameStudyArea(studyAreaName)}
-                >
-                  Save
-                </Button>
-              )}
-            />
-          )
-          : <div />
-      }
       <HTMLTable
         className="study-area-table bp4-html-table-condensed"
       >

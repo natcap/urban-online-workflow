@@ -9,18 +9,16 @@ import {
 import ScenarioBuilder from './scenarioBuilder';
 import ScenarioTable from './scenarioTable';
 import SelectStudyArea from './selectStudyArea';
-import StudyAreaForm from './studyAreaForm';
+import StudyAreaTable from './studyAreaTable';
+import InputStudyAreaName from './inputStudyAreaName';
 import landuseCodes from '../landuseCodes';
-
 
 FocusStyleManager.onlyShowFocusOnTabs();
 
 export default function EditMenu(props) {
   const {
     nameStudyArea,
-    selectedParcel,
     refreshStudyArea,
-    refreshSavedStudyAreas,
     patternSamplingMode,
     togglePatternSamplingMode,
     patternSampleWKT,
@@ -53,21 +51,35 @@ export default function EditMenu(props) {
           panel={(
             <div>
               <SelectStudyArea
+                activeStudyAreaID={studyArea.id}
                 switchStudyArea={switchStudyArea}
                 savedStudyAreas={savedStudyAreas}
               />
-              <StudyAreaForm
+              <InputStudyAreaName
                 nameStudyArea={nameStudyArea}
-                parcelSet={studyArea.parcels}
-                refreshStudyArea={refreshStudyArea}
+                name={studyArea.name}
               />
+              {
+                (studyArea.parcels.length)
+                  ? (
+                    <StudyAreaTable
+                      parcelSet={studyArea.parcels}
+                      refreshStudyArea={refreshStudyArea}
+                    />
+                  )
+                  : (
+                    <p className="sidebar-subheading">
+                      <span>Click on the map to add parcels</span>
+                    </p>
+                  )
+              }
               <ScenarioBuilder
                 sessionID={sessionID}
                 parcelSet={studyArea.parcels}
                 patternSamplingMode={patternSamplingMode}
                 patternSampleWKT={patternSampleWKT}
                 togglePatternSamplingMode={togglePatternSamplingMode}
-                refreshSavedStudyAreas={refreshSavedStudyAreas}
+                // refreshSavedStudyAreas={refreshSavedStudyAreas}
                 activeStudyAreaID={studyArea.id}
                 addScenarioLULCTable={addScenarioLULCTable}
               />

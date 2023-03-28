@@ -148,15 +148,16 @@ def read_session(session_id: str, db: Session = Depends(get_db)):
 ### Study Area and Scenario Endpoints ###
 
 @app.post("/study_area/{session_id}", response_model=schemas.StudyArea)
-def create_study_area(session_id: str, db: Session = Depends(get_db)):
+def create_study_area(
+        session_id: str, new_area: schemas.StudyAreaCreateRequest,
+        db: Session = Depends(get_db)):
+    LOGGER.debug(new_area)
     # check that the session exists
     db_session = crud.get_session(db, session_id=session_id)
     if db_session is None:
         raise HTTPException(status_code=404, detail="Session not found")
-    # return crud.create_study_area(
-    #     db=db, study_area=study_area, session_id=session_id)
     return crud.create_study_area(
-        db=db, session_id=session_id)
+        db=db, **new_area.dict(), session_id=session_id)
 
 
 @app.get("/study_area/{session_id}/{study_area_id}",

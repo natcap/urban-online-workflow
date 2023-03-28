@@ -105,12 +105,13 @@ export async function getStudyArea(sessionID, studyAreaID) {
  *
  * @return {object} schemas.StudyArea
  */
-export async function postStudyArea(sessionID) {
+export async function postStudyArea(sessionID, name) {
+  console.log(name)
   return (
     window.fetch(`${apiBaseURL}/study_area/${sessionID}`, {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
-      // body: JSON.stringify(payload),
+      body: JSON.stringify({ name: name }),
     })
       .then((response) => response.json())
       .then((json) => json)

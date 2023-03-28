@@ -7,15 +7,15 @@ import {
 
 export default function SelectStudyArea(props) {
   const {
+    activeStudyAreaID,
     savedStudyAreas,
     switchStudyArea
   } = props;
-  console.log(savedStudyAreas);
 
   const optionArray = savedStudyAreas.map(
     (area) => <option key={area.id} value={area.id}>{area.name}</option>
   );
-  optionArray.push(<option key="new" value={undefined}>Create new study area</option>);
+  optionArray.push(<option key="new" value="new">Create new study area</option>);
 
   return (
     <FormGroup
@@ -25,6 +25,7 @@ export default function SelectStudyArea(props) {
     >
       <HTMLSelect
         id="select-study-area"
+        value={activeStudyAreaID}
         onChange={(event) => switchStudyArea(event.target.value)}
       >
         {optionArray}

@@ -29,7 +29,7 @@ export default function ScenarioBuilder(props) {
     patternSamplingMode,
     togglePatternSamplingMode,
     patternSampleWKT,
-    refreshSavedStudyAreas,
+    // refreshSavedStudyAreas,
     addScenarioLULCTable,
   } = props;
 
@@ -47,7 +47,7 @@ export default function ScenarioBuilder(props) {
       const results = await getScenarioResult(jobID, scenarioID);
       console.log(results);
       addScenarioLULCTable({ [scenarioName]: results.lulc_stats.result });
-      refreshSavedStudyAreas();
+      // refreshSavedStudyAreas();
       setJobID(null);
     }
   }, (jobID && scenarioID) ? 1000 : null);
