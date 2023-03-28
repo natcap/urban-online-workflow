@@ -700,23 +700,6 @@ def get_scenario_results(
         return job_db.status
 
 
-# @app.get("/stats_under_parcel/result/{job_id}")
-# def get_parcel_stats_results(job_id: int, db: Session = Depends(get_db)):
-#     """Return the stats under parcel if the job was successful."""
-#     # Check job status and return URL and Stats from table
-#     LOGGER.info(f'Job ID: {job_id}')
-#     job_db = crud.get_job(db, job_id=job_id)
-#     if job_db is None:
-#         raise HTTPException(status_code=404, detail="Job not found")
-#     if job_db.status == STATUS_SUCCESS:
-#         stats_db = crud.get_parcel_stats_by_job(db, job_id=job_id)
-#         if stats_db is None:
-#             raise HTTPException(status_code=404, detail="Stats result not found")
-#         stats_results = stats_db.lulc_stats
-#         return stats_results
-#     else:
-#         return job_db.status
-
 @app.post("/invest/{scenario_id}")
 def run_invest(scenario_id: int, db: Session = Depends(get_db)):
     """Add invest job to the queue. This runs all InVEST models."""

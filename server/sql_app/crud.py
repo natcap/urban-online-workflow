@@ -66,6 +66,7 @@ def create_session(db: Session):
     db.refresh(db_session)
     return db_session
 
+
 def create_study_area(
         db: Session, session_id: str, name: str):
     """Create a study area entry."""
@@ -78,6 +79,7 @@ def create_study_area(
 
 
 def update_study_area(db: Session, study_area: schemas.StudyArea):
+    """Update a study area entry."""
     db_study_area = get_study_area(db, study_area.id)
     if not db_study_area:
         raise HTTPException(status_code=404, detail="Scenario not found")
@@ -96,10 +98,12 @@ def get_study_area(db: Session, study_area_id: int):
     return db.query(models.StudyArea).filter(
             models.StudyArea.id == study_area_id).first()
 
+
 def get_study_areas(db: Session, session_id: str):
     """Read all study areas for session id."""
     return db.query(models.StudyArea).filter(
             models.StudyArea.owner_id == session_id).all()
+
 
 def create_scenario(db: Session, scenario: schemas.Scenario, study_area_id: int):
     """Create scenario linking with ``study_area_id``."""
@@ -177,15 +181,12 @@ def get_parcel_stats(db: Session, stats_id: int):
     return db.query(models.ParcelStats).filter(
             models.ParcelStats.stats_id == stats_id).first()
 
-def get_parcel_stats_by_job(db: Session, job_id: int):
-    """Read a single stats entry by job ID."""
-    return db.query(models.ParcelStats).filter(
-            models.ParcelStats.job_id == job_id).first()
 
 def get_parcel_stats_by_wkt(db: Session, wkt: str):
     """Read a single stats entry by wkt."""
     return db.query(models.ParcelStats).filter(
             models.ParcelStats.target_parcel_wkt == wkt).first()
+
 
 def update_parcel_stats(
         db: Session, parcel_stats: schemas.ParcelStatsUpdate, stats_id: int):
