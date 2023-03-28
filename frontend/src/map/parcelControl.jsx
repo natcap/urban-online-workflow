@@ -7,7 +7,6 @@ import {
 
 import useInterval from '../hooks/useInterval';
 import {
-  // getLulcTableForParcel,
   getJobStatus,
   addParcel,
 } from '../requests';
@@ -24,23 +23,14 @@ export default function ParcelControl(props) {
   const [jobID, setJobID] = useState(null);
 
   useInterval(async () => {
-    // const results = await getLulcTableForParcel(jobID);
     const status = await getJobStatus(jobID);
     if (!['pending', 'running'].includes(status)) {
-      // const addition = {
-      //   [parcel.parcelID]: {
-      //     coords: parcel.coords,
-      //     table: JSON.parse(results).base, // TODO: do we need the scenario identifier in these results?
-      //   },
-      // };
       setJobID(null);
-      // addParcel(addition);
       refreshStudyArea();
     }
   }, (jobID) ? 200 : null); // This server operation should be quick
 
   const handleClick = async (parcel) => {
-    console.log(activeStudyAreaID)
     const jid = await addParcel(sessionID, activeStudyAreaID, parcel.coords);
     setJobID(jid.job_id);
   };
