@@ -618,6 +618,12 @@ def parcel_fill(parcel_fill: schemas.ParcelFill,
     return job_db
 
 
+@app.post("/remove_parcel/")
+def remove_parcel(parcel_id, db: Session = Depends(get_db)):
+    status = crud.delete_parcel(parcel_id)
+    return status
+
+
 @app.post("/add_parcel/", response_model=schemas.JobResponse)
 def add_parcel(create_parcel_request: schemas.ParcelCreateRequest,
                db: Session = Depends(get_db)):

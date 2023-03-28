@@ -153,6 +153,7 @@ def create_parcel_stats(db: Session, parcel_wkt: str, job_id: int):
     db.refresh(db_parcel_stats)
     return db_parcel_stats
 
+
 def create_parcel(db: Session, parcel_wkt: str, study_area_id: int):
     """Create an entry in parcel table."""
     db_parcel = models.Parcel(wkt=parcel_wkt, study_area_id=study_area_id)
@@ -160,6 +161,16 @@ def create_parcel(db: Session, parcel_wkt: str, study_area_id: int):
     db.commit()
     db.refresh(db_parcel)
     return db_parcel
+
+
+def delete_parcel(db: Session, parcel_id: int):
+    """Delete an entry in parcel table."""
+    db_parcel = models.Parcel(id=parcel_id)
+    db.delete(db_parcel)
+    db.commit()
+    db.refresh(db_parcel)
+    return STATUS_SUCCESS
+
 
 def get_parcel_stats(db: Session, stats_id: int):
     """Read a single stats entry by ID."""

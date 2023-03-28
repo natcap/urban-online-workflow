@@ -264,7 +264,7 @@ export async function convertToSingleLULC(lulcCode, scenarioID) {
 }
 
 /**
- * Get stats about the baseline LULC on a given parcel.
+ * Add parcel to a study area.
  *
  * @param  {array[array[number]]} targetCoords - an array of two-element arrays
  *  representing [lon, lat] coordinate pairs outlining the parcel to query
@@ -288,16 +288,20 @@ export async function addParcel(sessionID, studyAreaID, parcelCoords) {
 }
 
 /**
- * Get stats about the baseline LULC on a given parcel.
+ * Add parcel to a study area.
  *
- * @param  {number} jobID - unique identifier for the job
+ * @param  {array[array[number]]} targetCoords - an array of two-element arrays
+ *  representing [lon, lat] coordinate pairs outlining the parcel to query
  * @return {[object]} ? - fill in when this endpoint is working
  */
-export async function getLulcTableForParcel(jobID) {
+export async function removeParcel(sessionID, parcelID) {
   return (
-    window.fetch(`${apiBaseURL}/stats_under_parcel/result/${jobID}`, {
-      method: 'get',
+    window.fetch(`${apiBaseURL}/remove_parcel`, {
+      method: 'post',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        parcel_id: parcelID
+      }),
     })
       .then((response) => response.json())
       .catch((error) => console.log(error))

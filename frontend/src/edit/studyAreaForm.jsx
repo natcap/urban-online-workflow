@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 import {
   InputGroup,
@@ -6,26 +6,24 @@ import {
   HTMLTable,
 } from '@blueprintjs/core';
 
-// import { getParcels } from '../requests';
+import { removeParcel } from '../requests';
 import landuseCodes from '../landuseCodes';
 
 export default function StudyAreaForm(props) {
   const {
-    // activeStudyAreaID,
     nameStudyArea,
     parcelSet,
-    removeParcel,
     immutableStudyArea,
+    refreshStudyArea,
   } = props;
   console.log(parcelSet)
   const [studyAreaName, setStudyAreaName] = useState('');
   const [highlightedCode, setHighlightedCode] = useState(null);
-  // const [parcelSet, setParcelSet] = useState(null);
-
-  // useEffect(async () => {
-  //   const parcels = await getParcels(activeStudyAreaID);
-  //   setParcelSet(parcels);
-  // }, [activeStudyAreaID]);
+   
+  const deleteParcel = async (id) => {
+    await removeParcel(id);
+    refreshStudyArea();
+  };
 
   function plot(table) {
     const blocks = [];
@@ -64,22 +62,10 @@ export default function StudyAreaForm(props) {
         <td>
           <Button
             icon="remove"
-            onClick={() => removeParcel(parcel.id)}
+            onClick={() => deleteParcel(parcel.id)}
             disabled={immutableStudyArea}
           />
         </td>
-        {/*{
-          (!immutableStudyArea) // study area not yet submitted; allow changes
-            ? (
-              <td>
-                <Button
-                  icon="remove"
-                  onClick={() => removeParcel(id)}
-                />
-              </td>
-            )
-            : null
-        }*/}
         <td>{parcel.id}</td>
         <td>
           <div className="parcel-block">
@@ -94,7 +80,6 @@ export default function StudyAreaForm(props) {
     <div>
       <p className="sidebar-subheading">
         <span>Parcels in study area </span>
-        {/*<em>{studyArea}</em>*/}
       </p>
       {
         (!immutableStudyArea)

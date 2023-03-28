@@ -26,7 +26,6 @@ export default function ScenarioBuilder(props) {
     // setActiveStudyAreaID,
     parcelSet,
     sessionID,
-    removeParcel,
     patternSamplingMode,
     togglePatternSamplingMode,
     patternSampleWKT,

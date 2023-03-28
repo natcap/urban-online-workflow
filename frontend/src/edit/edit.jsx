@@ -18,15 +18,13 @@ FocusStyleManager.onlyShowFocusOnTabs();
 export default function EditMenu(props) {
   const {
     nameStudyArea,
-    // parcelSet,
     selectedParcel,
-    removeParcel,
+    refreshStudyArea,
     refreshSavedStudyAreas,
     patternSamplingMode,
     togglePatternSamplingMode,
     patternSampleWKT,
     sessionID,
-    // activeStudyAreaID,
     studyArea,
     switchStudyArea,
     savedStudyAreas,
@@ -61,21 +59,16 @@ export default function EditMenu(props) {
               <StudyAreaForm
                 nameStudyArea={nameStudyArea}
                 parcelSet={studyArea.parcels}
-                removeParcel={removeParcel}
-                // immutableStudyArea={Boolean(activeStudyAreaID)}
-                // activeStudyAreaID={activeStudyAreaID}
+                refreshStudyArea={refreshStudyArea}
               />
               <ScenarioBuilder
-                // createStudyArea={createStudyArea}
                 sessionID={sessionID}
                 parcelSet={studyArea.parcels}
-                removeParcel={removeParcel}
                 patternSamplingMode={patternSamplingMode}
                 patternSampleWKT={patternSampleWKT}
                 togglePatternSamplingMode={togglePatternSamplingMode}
                 refreshSavedStudyAreas={refreshSavedStudyAreas}
                 activeStudyAreaID={studyArea.id}
-                // setActiveStudyAreaID={setActiveStudyAreaID}
                 addScenarioLULCTable={addScenarioLULCTable}
               />
             </div>

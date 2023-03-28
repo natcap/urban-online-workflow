@@ -18,39 +18,22 @@ export default function App() {
     id: null,
     parcels: [],
   });
-  // const [parcelSet, setParcelSet] = useState([]);
-  // const [activeStudyAreaID, setActiveStudyAreaID] = useState(null);
 
   const refreshSavedStudyAreas = async () => {
-    // studyAreas object returned from backend includes set of parcels
-    // in that study area.
     const studyAreas = await getStudyAreas(sessionID);
     console.log(studyAreas);
     setSavedStudyAreas(studyAreas);
   };
 
   const createStudyArea = async () => {
-    // const id = await postStudyArea(sessionID);
     const area = await postStudyArea(sessionID);
-    // const id = await postStudyArea(sessionID, name, parcelSet);
     console.log(area);
-    // setActiveStudyAreaID(id);
     setStudyArea(area);
-    // refreshSavedStudyAreas();
   };
 
   const switchStudyArea = async (id) => {
     const area = await getStudyArea(sessionID, id);
     setStudyArea(area);
-    // const activeArea = savedStudyAreas.filter(
-    //   (area) => area.id === Number(id)
-    // )[0];
-    // setActiveStudyAreaID(id);
-    // if (activeArea) {
-    //   setParcelSet(activeArea.parcels);
-    // } else {
-    //   setParcelSet([]);
-    // }
   };
 
   const refreshStudyArea = async () => {
@@ -59,7 +42,6 @@ export default function App() {
     const area = await getStudyArea(sessionID, studyArea.id);
     console.log(area)
     setStudyArea(area);
-    // setParcelSet(activeArea.parcels);
   };
 
   const nameStudyArea = async (name) => {
@@ -91,29 +73,6 @@ export default function App() {
     }
   }, [sessionID]);
 
-  // const addParcel = async (parcelCoords) => {
-    // console.log(parcel)
-    // setParcelSet((prev) => {
-    //   const match = prev.filter((p) => p.id === parcel.id);
-    //   console.log(match)
-    //   if (match.length === 0) { return prev; }
-    //   const newSet = prev.concat(parcel);
-    //   return newSet;
-      // const newSet = { ...prev, ...parcel };
-      // return newSet;
-    // });
-  // };
-
-  // const removeParcel = (parcelID) => {
-  //   setParcelSet((prev) => {
-  //     const match = prev.filter((p) => p.id !== parcelID);
-  //     return match;
-  //     // const newSet = { ...prev };
-  //     // delete newSet[parcelID];
-  //     // return newSet;
-  //   });
-  // };
-
   return (
     (sessionID)
       ? (
@@ -128,11 +87,9 @@ export default function App() {
             <EditMenu
               sessionID={sessionID}
               studyArea={studyArea}
-              // parcelSet={studyArea.parcels}
-              // removeParcel={removeParcel}
+              refreshStudyArea={refreshStudyArea}
               nameStudyArea={nameStudyArea}
               refreshSavedStudyAreas={refreshSavedStudyAreas}
-              // activeStudyAreaID={studyArea.id}
               switchStudyArea={switchStudyArea}
               savedStudyAreas={savedStudyAreas}
             />
