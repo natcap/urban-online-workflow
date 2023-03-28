@@ -289,13 +289,13 @@ export async function addParcel(sessionID, studyAreaID, parcelCoords) {
 }
 
 /**
- * Add parcel to a study area.
+ * Remove parcel from a study area.
  *
  * @param  {array[array[number]]} targetCoords - an array of two-element arrays
  *  representing [lon, lat] coordinate pairs outlining the parcel to query
  * @return {[object]} ? - fill in when this endpoint is working
  */
-export async function removeParcel(sessionID, parcelID) {
+export async function removeParcel(parcelID) {
   return (
     window.fetch(`${apiBaseURL}/remove_parcel`, {
       method: 'post',

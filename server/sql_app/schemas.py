@@ -224,6 +224,10 @@ class ParcelCreateRequest(BaseModel):
     wkt: str
 
 
+class ParcelDeleteRequest(BaseModel):
+    parcel_id: str
+
+
 class ParcelStatsUpdate(BaseModel):
     """Pydantic model used for updating stats."""
     lulc_stats: str

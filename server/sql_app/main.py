@@ -620,8 +620,9 @@ def parcel_fill(parcel_fill: schemas.ParcelFill,
 
 
 @app.post("/remove_parcel/")
-def remove_parcel(parcel_id, db: Session = Depends(get_db)):
-    status = crud.delete_parcel(parcel_id)
+def remove_parcel(delete_parcel_request: schemas.ParcelDeleteRequest,
+                  db: Session = Depends(get_db)):
+    status = crud.delete_parcel(db=db, **delete_parcel_request.dict())
     return status
 
 

@@ -21,7 +21,7 @@ export default function App() {
 
   const switchStudyArea = async (id) => {
     let area;
-    if (id !== 'new') {
+    if (id && id !== 'new') {
       area = await getStudyArea(sessionID, id);
     } else {
       area = await postStudyArea(sessionID, 'Untitled');

@@ -15,7 +15,6 @@ import {
 export default function ParcelControl(props) {
   const {
     parcel,
-    // addParcel,
     clearSelection,
     sessionID,
     activeStudyAreaID,

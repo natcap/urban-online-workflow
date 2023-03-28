@@ -144,7 +144,6 @@ const map = new Map({
 export default function MapComponent(props) {
   const {
     sessionID,
-    // addParcel,
     parcelSet,
     activeStudyAreaID,
     refreshStudyArea,

@@ -165,10 +165,10 @@ def create_parcel(db: Session, parcel_wkt: str, study_area_id: int):
 
 def delete_parcel(db: Session, parcel_id: int):
     """Delete an entry in parcel table."""
-    db_parcel = models.Parcel(id=parcel_id)
-    db.delete(db_parcel)
+    row = db.query(models.Parcel).filter(
+            models.Parcel.id == parcel_id).first()
+    db.delete(row)
     db.commit()
-    db.refresh(db_parcel)
     return STATUS_SUCCESS
 
 
