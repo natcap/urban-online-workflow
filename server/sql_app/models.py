@@ -110,7 +110,6 @@ class ParcelStats(Base):
     job_id = Column(Integer, ForeignKey("jobs.job_id"))
 
     parcel = relationship("Parcel", back_populates="parcel_stats")
-    #owner = relationship("Job", back_populates="parcel_stats")
 
 
 class Parcel(Base):

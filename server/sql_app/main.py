@@ -75,8 +75,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    # allow_methods=["*"],
-    allow_methods=['DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT'],
+    allow_methods=["*"],  # despite this *, I could not get PATCH to pass CORS
     allow_headers=["*"],
 )
 
@@ -151,7 +150,6 @@ def read_session(session_id: str, db: Session = Depends(get_db)):
 def create_study_area(
         session_id: str, new_area: schemas.StudyAreaCreateRequest,
         db: Session = Depends(get_db)):
-    LOGGER.debug(new_area)
     # check that the session exists
     db_session = crud.get_session(db, session_id=session_id)
     if db_session is None:
@@ -192,7 +190,6 @@ def get_study_areas(session_id: str, db: Session = Depends(get_db)):
     if db_session is None:
         raise HTTPException(status_code=404, detail="Session not found")
     db_study_areas = crud.get_study_areas(db=db, session_id=session_id)
-    # LOGGER.debug(db_study_areas[0].__dict__)
     return db_study_areas
 
 
