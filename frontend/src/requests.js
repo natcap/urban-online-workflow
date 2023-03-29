@@ -271,7 +271,7 @@ export async function convertToSingleLULC(lulcCode, scenarioID) {
  *  representing [lon, lat] coordinate pairs outlining the parcel to query
  * @return {[object]} ? - fill in when this endpoint is working
  */
-export async function addParcel(sessionID, studyAreaID, parcelCoords) {
+export async function addParcel(sessionID, studyAreaID, parcelID, parcelCoords) {
   console.log(polygonCoordsToWKT(parcelCoords))
   return (
     window.fetch(`${apiBaseURL}/add_parcel`, {
@@ -280,6 +280,7 @@ export async function addParcel(sessionID, studyAreaID, parcelCoords) {
       body: JSON.stringify({
         session_id: sessionID,
         study_area_id: studyAreaID,
+        parcel_id: parcelID,
         wkt: polygonCoordsToWKT(parcelCoords),
       }),
     })

@@ -8,6 +8,7 @@ import uuid
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import exc
 
 from . import models
 from . import schemas
@@ -149,28 +150,36 @@ def delete_scenario(db: Session, scenario_id: int):
     db.commit()
     return STATUS_SUCCESS
 
-def create_parcel_stats(db: Session, parcel_wkt: str, job_id: int):
+
+def create_parcel_stats(db: Session, parcel_id: int, parcel_wkt: str, job_id: int):
     """Create a stats entry in parcel stats table."""
-    db_parcel_stats = models.ParcelStats(target_parcel_wkt=parcel_wkt, job_id=job_id)
+    db_parcel_stats = models.ParcelStats(
+        parcel_id=parcel_id, target_parcel_wkt=parcel_wkt, job_id=job_id)
     db.add(db_parcel_stats)
     db.commit()
     db.refresh(db_parcel_stats)
     return db_parcel_stats
 
 
-def create_parcel(db: Session, parcel_wkt: str, study_area_id: int):
+def create_parcel(db: Session, study_area_id: int,
+                  parcel_id: int, parcel_wkt: str):
     """Create an entry in parcel table."""
-    db_parcel = models.Parcel(wkt=parcel_wkt, study_area_id=study_area_id)
-    db.add(db_parcel)
-    db.commit()
-    db.refresh(db_parcel)
-    return db_parcel
+    db_parcel = models.Parcel(
+        study_area_id=study_area_id, parcel_id=parcel_id, wkt=parcel_wkt)
+    try:
+        db.add(db_parcel)
+        db.commit()
+        db.refresh(db_parcel)
+        return STATUS_SUCCESS
+    except exc.IntegrityError:
+        db.rollback()
+        return STATUS_FAIL
 
 
 def delete_parcel(db: Session, parcel_id: int):
     """Delete an entry in parcel table."""
     row = db.query(models.Parcel).filter(
-            models.Parcel.id == parcel_id).first()
+            models.Parcel.parcel_id == parcel_id).first()
     db.delete(row)
     db.commit()
     return STATUS_SUCCESS
@@ -182,10 +191,10 @@ def get_parcel_stats(db: Session, stats_id: int):
             models.ParcelStats.stats_id == stats_id).first()
 
 
-def get_parcel_stats_by_wkt(db: Session, wkt: str):
+def get_parcel_stats_by_id(db: Session, id: int):
     """Read a single stats entry by wkt."""
     return db.query(models.ParcelStats).filter(
-            models.ParcelStats.target_parcel_wkt == wkt).first()
+            models.ParcelStats.parcel_id == id).first()
 
 
 def update_parcel_stats(

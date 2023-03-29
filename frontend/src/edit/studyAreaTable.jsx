@@ -54,14 +54,14 @@ export default function StudyAreaTable(props) {
   );
   parcelSet.forEach((parcel) => {
     rows.push(
-      <tr key={parcel.id}>
+      <tr key={parcel.parcel_id}>
         <td>
           <Button
             icon="remove"
-            onClick={() => deleteParcel(parcel.id)}
+            onClick={() => deleteParcel(parcel.parcel_id)}
           />
         </td>
-        <td>{parcel.id}</td>
+        <td>{parcel.parcel_id}</td>
         <td>
           <div className="parcel-block">
             {plot(JSON.parse(parcel.parcel_stats.lulc_stats).base)}

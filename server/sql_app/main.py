@@ -360,9 +360,6 @@ def worker_parcel_stats_response(
     LOGGER.debug(parcel_stats_job)
     # Update job in db based on status
     job_db = crud.get_job(db, job_id=parcel_stats_job.server_attrs['job_id'])
-    # Update Stats in db with the result
-    stats_db = crud.get_parcel_stats(
-        db, stats_id=parcel_stats_job.server_attrs['stats_id'])
 
     job_status = parcel_stats_job.status
     if job_status == "success":
@@ -626,14 +623,15 @@ def remove_parcel(delete_parcel_request: schemas.ParcelDeleteRequest,
 @app.post("/add_parcel/", response_model=schemas.JobResponse)
 def add_parcel(create_parcel_request: schemas.ParcelCreateRequest,
                db: Session = Depends(get_db)):
-
-    parcel_db = crud.create_parcel(
+    
+    status = crud.create_parcel(
         db=db,
         parcel_wkt=create_parcel_request.wkt,
+        parcel_id=create_parcel_request.parcel_id,
         study_area_id=create_parcel_request.study_area_id)
 
     # Check if this parcel has already been computed.
-    stats_db = crud.get_parcel_stats_by_wkt(db, create_parcel_request.wkt)
+    stats_db = crud.get_parcel_stats_by_id(db, create_parcel_request.parcel_id)
     if stats_db:
         # This is what the frontend is expecting.
         # even though we don't need to submit a new job,
@@ -654,8 +652,8 @@ def add_parcel(create_parcel_request: schemas.ParcelCreateRequest,
         db=db, session_id=create_parcel_request.session_id, job=job_schema)
 
     parcel_stats_db = crud.create_parcel_stats(
-        db=db, parcel_wkt=create_parcel_request.wkt,
-        job_id=job_db.job_id)
+        db=db, parcel_id=create_parcel_request.parcel_id,
+        parcel_wkt=create_parcel_request.wkt, job_id=job_db.job_id)
 
     # Construct worker job and add to the queue
     worker_task = {

@@ -60,10 +60,10 @@ class Scenario(ScenarioBase):
         orm_mode = True
 
 
-class ParcelBase(BaseModel):
-    """Pydantic model base for Parcels."""
-    wkt: str
-    address: str = None
+# class ParcelBase(BaseModel):
+#     """Pydantic model base for Parcels."""
+#     wkt: str
+#     address: str = None
 
 
 class ParcelStats(BaseModel):
@@ -74,9 +74,11 @@ class ParcelStats(BaseModel):
         orm_mode = True
 
 
-class Parcel(ParcelBase):
-    """Pydantic model used when reading data, when returning it from API."""
-    id: int
+class Parcel(BaseModel):
+    """Pydantic model used by other Pydantic models."""
+    parcel_id: int
+    wkt: str
+    address: str = None
     parcel_stats: Union[ParcelStats, None] = None
 
     class Config:
@@ -170,6 +172,7 @@ class ParcelCreateRequest(BaseModel):
     """Pydantic model for payload of request to create parcel."""
     session_id: str
     study_area_id: int
+    parcel_id: int
     wkt: str
 
 

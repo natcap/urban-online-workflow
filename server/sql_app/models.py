@@ -104,19 +104,21 @@ class ParcelStats(Base):
     """SQLAlchemy model for storing lulc stats under parcels."""
     __tablename__ = "parcel_stats"
 
-    stats_id = Column(Integer, index=True)
-    target_parcel_wkt = Column(String, ForeignKey("parcel.wkt"), primary_key=True)
+    stats_id = Column(Integer, index=True, primary_key=True)
+    parcel_id = Column(Integer, ForeignKey("parcel.parcel_id"))
+    target_parcel_wkt = Column(String)
     lulc_stats = Column(String)
     job_id = Column(Integer, ForeignKey("jobs.job_id"))
 
     parcel = relationship("Parcel", back_populates="parcel_stats")
+    #owner = relationship("Job", back_populates="parcel_stats")
 
 
 class Parcel(Base):
     """SQLAlchemy model for parcels."""
     __tablename__ = "parcel"
 
-    id = Column(Integer, primary_key=True, index=True)
+    parcel_id = Column(Integer, primary_key=True)
     wkt = Column(String)
     address = Column(String)
 
