@@ -105,8 +105,7 @@ export async function getStudyArea(sessionID, studyAreaID) {
  *
  * @return {object} schemas.StudyArea
  */
-export async function postStudyArea(sessionID, name) {
-  console.log(name)
+export async function createStudyArea(sessionID, name) {
   return (
     window.fetch(`${apiBaseURL}/study_area/${sessionID}`, {
       method: 'post',
@@ -296,13 +295,14 @@ export async function addParcel(sessionID, studyAreaID, parcelID, parcelCoords) 
  *  representing [lon, lat] coordinate pairs outlining the parcel to query
  * @return {[object]} ? - fill in when this endpoint is working
  */
-export async function removeParcel(parcelID) {
+export async function removeParcel(parcelID, studyAreaID) {
   return (
     window.fetch(`${apiBaseURL}/remove_parcel`, {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        parcel_id: parcelID
+        parcel_id: parcelID,
+        study_area_id: studyAreaID
       }),
     })
       .then((response) => response.json())

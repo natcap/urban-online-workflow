@@ -172,7 +172,8 @@ class ParcelCreateRequest(BaseModel):
 
 class ParcelDeleteRequest(BaseModel):
     """Pydantic model for payload of request to delete parcel."""
-    parcel_id: str
+    parcel_id: int
+    study_area_id: int
 
 
 class ParcelStatsUpdate(BaseModel):

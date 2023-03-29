@@ -83,9 +83,9 @@ def update_study_area(db: Session, study_area: schemas.StudyArea):
     """Update a study area entry."""
     db_study_area = get_study_area(db, study_area.id)
     if not db_study_area:
-        raise HTTPException(status_code=404, detail="Scenario not found")
-    scenario_data = study_area.dict(exclude_unset=True)
-    for key, value in scenario_data.items():
+        raise HTTPException(status_code=404, detail="Study area not found")
+    data = study_area.dict(exclude_unset=True)
+    for key, value in data.items():
         setattr(db_study_area, key, value)
 
     db.add(db_study_area)
@@ -176,10 +176,15 @@ def create_parcel(db: Session, study_area_id: int,
         return STATUS_FAIL
 
 
-def delete_parcel(db: Session, parcel_id: int):
+def delete_parcel(db: Session, parcel_id: int, study_area_id: int):
     """Delete an entry in parcel table."""
     row = db.query(models.Parcel).filter(
-            models.Parcel.parcel_id == parcel_id).first()
+            models.Parcel.parcel_id == parcel_id,
+            models.Parcel.study_area_id == study_area_id).first()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Parcel not found")
+
     db.delete(row)
     db.commit()
     return STATUS_SUCCESS

@@ -7,7 +7,7 @@ import {
   getStudyAreas,
   createSession,
   getSession,
-  postStudyArea,
+  createStudyArea,
   updateStudyArea,
 } from './requests';
 
@@ -24,7 +24,7 @@ export default function App() {
     if (id && id !== 'new') {
       area = await getStudyArea(sessionID, id);
     } else {
-      area = await postStudyArea(sessionID, 'Untitled');
+      area = await createStudyArea(sessionID, 'Untitled');
       setSavedStudyAreas([...savedStudyAreas, area]);
     }
     setStudyArea(area);

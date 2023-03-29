@@ -12,12 +12,13 @@ export default function StudyAreaTable(props) {
   const {
     parcelSet,
     refreshStudyArea,
+    studyAreaID,
   } = props;
   console.log(parcelSet)
   const [highlightedCode, setHighlightedCode] = useState(null);
 
-  const deleteParcel = async (id) => {
-    await removeParcel(id);
+  const deleteParcel = async (parcelID) => {
+    await removeParcel(parcelID, studyAreaID);
     refreshStudyArea();
   };
 

@@ -8,10 +8,11 @@ import shapely.geometry
 import shapely.wkt
 
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.testclient import TestClient
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
 from sqlalchemy.orm import Session
 
 from . import crud, models, schemas
@@ -88,7 +89,7 @@ async def validation_exception_handler(
     logging.error(f"{request}: {exc_str}")
     content = {'status_code': 10422, 'message': exc_str, 'data': None}
     return JSONResponse(
-        content=content, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        content=content, status_code=HTTP_422_UNPROCESSABLE_ENTITY)
 
 # We need to have an independent db session / connection (SessionLocal) per
 # request, use the same session through all the request and then close it after

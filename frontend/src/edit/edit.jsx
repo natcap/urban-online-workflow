@@ -51,7 +51,7 @@ export default function EditMenu(props) {
           panel={(
             <div>
               <SelectStudyArea
-                activeStudyAreaID={studyArea.id}
+                studyAreaID={studyArea.id}
                 switchStudyArea={switchStudyArea}
                 savedStudyAreas={savedStudyAreas}
               />
@@ -64,6 +64,7 @@ export default function EditMenu(props) {
                   ? (
                     <StudyAreaTable
                       parcelSet={studyArea.parcels}
+                      studyAreaID={studyArea.id}
                       refreshStudyArea={refreshStudyArea}
                     />
                   )

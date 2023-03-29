@@ -7,7 +7,7 @@ import {
 
 export default function SelectStudyArea(props) {
   const {
-    activeStudyAreaID,
+    studyAreaID,
     savedStudyAreas,
     switchStudyArea
   } = props;
@@ -25,7 +25,7 @@ export default function SelectStudyArea(props) {
     >
       <HTMLSelect
         id="select-study-area"
-        value={activeStudyAreaID}
+        value={studyAreaID}
         onChange={(event) => switchStudyArea(event.target.value)}
       >
         {optionArray}
