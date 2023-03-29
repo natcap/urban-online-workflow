@@ -14,10 +14,18 @@ import pygeoprocessing
 import requests
 import shapely.geometry
 import shapely.wkt
+import taskgraph
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
 from PIL import Image
+
+from natcap.invest import carbon
+from natcap.invest import pollination
+from natcap.invest import stormwater
+from natcap.invest import urban_cooling_model
+from natcap.invest import urban_flood_risk_mitigation
+#from natcap.invest import urban_nature_access
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
@@ -94,6 +102,14 @@ ENDPOINTS = {
     JOBTYPE_INVEST: 'invest',
 }
 
+INVEST_MODEL = {
+    "pollination": pollination.execute,
+    "stormwater": stormwater.execute,
+    "urban_cooling_model": urban_cooling_model.execute,
+    "carbon": carbon.execute,
+    "urban_flood_risk_mitigation": urban_flood_risk_mitigation.execute,
+    #"urban_nature_access": urban_nature_access
+}
 
 class Tests(unittest.TestCase):
     def setUp(self):
@@ -673,6 +689,12 @@ def do_work(host, port, outputs_location):
     job_queue_url = f'http://{host}:{port}/jobsqueue/'
     LOGGER.info(f'Starting worker, queueing {job_queue_url}')
     LOGGER.info(f'Polling the queue every {POLLING_INTERVAL_S}s if no work')
+
+    n_workers = 2
+    work_token_dir = os.path.join(outputs_location, 'taskgraph')
+    graph = taskgraph.TaskGraph(work_token_dir, n_workers)
+    invest_task_keys = {}
+
     while True:
         response = requests.get(job_queue_url)
         # if there is no work on the queue, expecting response.json()==None
@@ -689,6 +711,7 @@ def do_work(host, port, outputs_location):
         job_type = response_json['job_type']
         job_args = response_json['job_args']
 
+        #TODO: could this be moved outside of while loop?
         # Make sure the appropriate directory is created
         scenarios_dir = os.path.join(outputs_location, 'scenarios')
         model_outputs_dir = os.path.join(outputs_location, 'model_outputs')
@@ -784,12 +807,31 @@ def do_work(host, port, outputs_location):
                 }
             elif job_type == JOBTYPE_INVEST:
                 # TODO: run invest models!
-                LOGGER.info(f"TODO: Run InVEST model: {job_args['invest_model']}")
+                invest_model = job_args['invest_model']
+                LOGGER.info(f"Run InVEST model: {job_args['invest_model']}")
+
+                model_args_path = os.path.join(
+                        outputs_location, 'invest-sample-data', 'carbon',
+                        'carbon_willamette_args.json')
+                with open(model_args_path) as json_file:
+                    invest_args = json.load(json_file)
+
+                model_args = invest_args['args']
+                model_args['workspace_dir'] = os.path.join(outputs_location, 'carbon-test')
+                LOGGER.info(f'Carbon model arguments: {model_args}')
+                #TODO: update lulc input scenario
+                # job_id should be unique
+                invest_task_keys[job_id] = graph.add_task(
+                    INVEST_MODEL[invest_model],
+                    kwargs={'args':model_args},
+                    task_name='Run carbon model'
+                )
                 data = {
                     'result': {
                         'output_path': "return-something",
-                        'model': jobs_args['invest_model'],
+                        'model': job_args['invest_model'],
                     }
+                }
             else:
                 raise ValueError(f"Invalid job type: {job_type}")
             status = STATUS_SUCCESS
@@ -816,6 +858,7 @@ def main():
     parser.add_argument('output_dir')
 
     args = parser.parse_args()
+    LOGGER.info(f'parser args: {args}')
     do_work(
         host=args.queue_host,
         port=args.queue_port,

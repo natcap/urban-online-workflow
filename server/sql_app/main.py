@@ -45,8 +45,9 @@ LOW_PRIORITY = 3
 MEDIUM_PRIORITY = 2
 HIGH_PRIORITY = 1
 # InVEST model list
-INVEST_MODELS = ["pollination", "stormwater", "urban_cooling_model", "carbon",
-                 "urban_flood_risk_mitigation", "urban_nature_access"]
+#INVEST_MODELS = ["pollination", "stormwater", "urban_cooling_model", "carbon",
+#                 "urban_flood_risk_mitigation", "urban_nature_access"]
+INVEST_MODELS = ["carbon"]
 JOB_TYPES = {
     "invest": "invest",
     "pattern_thumbnail": "pattern_thumbnail",
@@ -218,12 +219,12 @@ def worker_invest_response(
                 }
     """
     # Update job in db based on status
-    job_db = crud.get_job(db, job_id=scenario_job.server_attrs['job_id'])
+    job_db = crud.get_job(db, job_id=invest_job.server_attrs['job_id'])
     # Update Scenario in db with the result
     scenario_db = crud.get_scenario(
-        db, scenario_id=scenario_job.server_attrs['scenario_id'])
+        db, scenario_id=invest_job.server_attrs['scenario_id'])
 
-    job_status = scenario_job.status
+    job_status = invest_job.status
     if job_status == STATUS_SUCCESS:
         # Update the job status in the DB to "success"
         job_update = schemas.JobBase(
@@ -232,8 +233,8 @@ def worker_invest_response(
         # TODO: how will we store InVEST model results? In Scenario table or in
         # a separate InVEST table? Should each model have a table? Issue #70
         #scenario_update = schemas.ScenarioUpdate(
-        #    lulc_url_result=scenario_job.result['lulc_path'],
-        #    lulc_stats=json.dumps(scenario_job.result['lulc_stats']))
+        #    lulc_url_result=invest_job.result['lulc_path'],
+        #    lulc_stats=json.dumps(invest_job.result['lulc_stats']))
     else:
         # Update the job status in the DB to "failed"
         job_update = schemas.JobBase(
@@ -245,11 +246,11 @@ def worker_invest_response(
 
     LOGGER.debug('Update job status')
     _ = crud.update_job(
-        db=db, job=job_update, job_id=scenario_job.server_attrs['job_id'])
+        db=db, job=job_update, job_id=invest_job.server_attrs['job_id'])
     LOGGER.debug('Update scenario result')
     #_ = crud.update_scenario(
     #    db=db, scenario=scenario_update,
-    #    scenario_id=scenario_job.server_attrs['scenario_id'])
+    #    scenario_id=invest_job.server_attrs['scenario_id'])
 
 
 @app.post("/jobsqueue/scenario")
