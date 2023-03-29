@@ -60,12 +60,6 @@ class Scenario(ScenarioBase):
         orm_mode = True
 
 
-# class ParcelBase(BaseModel):
-#     """Pydantic model base for Parcels."""
-#     wkt: str
-#     address: str = None
-
-
 class ParcelStats(BaseModel):
     """Pydantic model base for ParcelStats."""
     lulc_stats: Union[str, None] = None
