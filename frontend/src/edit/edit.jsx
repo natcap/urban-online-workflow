@@ -50,15 +50,23 @@ export default function EditMenu(props) {
           title="Create"
           panel={(
             <div>
-              <SelectStudyArea
-                studyAreaID={studyArea.id}
-                switchStudyArea={switchStudyArea}
-                savedStudyAreas={savedStudyAreas}
-              />
-              <InputStudyAreaName
-                nameStudyArea={nameStudyArea}
-                name={studyArea.name}
-              />
+              {
+                (studyArea.id)
+                  ? (
+                    <>
+                      <SelectStudyArea
+                        studyAreaID={studyArea.id}
+                        switchStudyArea={switchStudyArea}
+                        savedStudyAreas={savedStudyAreas}
+                      />
+                      <InputStudyAreaName
+                        nameStudyArea={nameStudyArea}
+                        name={studyArea.name}
+                      />
+                    </>
+                  )
+                  : <div />
+              }
               {
                 (studyArea.parcels.length)
                   ? (

@@ -64,11 +64,11 @@ export default function App() {
   useEffect(async () => {
     if (sessionID) {
       const studyAreas = await getStudyAreas(sessionID);
-      console.log(studyAreas);
-      if (studyAreas.length) {
-        const areas = studyAreas.filter((area) => (
-          area.parcels.length > 0
-        ));
+      const areas = studyAreas.filter((area) => (
+        area.parcels.length > 0
+      ));
+      if (areas.length) {
+        console.log(areas)
         setSavedStudyAreas(areas);
         await switchStudyArea(areas[0].id); // TODO: switch to most recently created
       } else {

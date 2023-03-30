@@ -15,6 +15,7 @@ export default function InputStudyAreaName(props) {
   useEffect(() => {
     setStudyAreaName(name);
   }, [name]);
+  console.log(studyAreaName)
 
   return (
     <div>
