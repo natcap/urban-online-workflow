@@ -1,14 +1,9 @@
 """Pydantic models which define more or less a "schema" (valid data shape)."""
-#TODO: I suspect there are ways to condense the number of pydantic models.
-# There are so many listed as a convenience for working with FastAPI and SQLA.
 from datetime import datetime
 from typing import Optional, Union, Literal
 
 from pydantic import BaseModel
 
-
-# Pydantic models declare the types using ":", the new type annotation
-# syntax/type hints
 
 class PatternBase(BaseModel):
     """Pydantic model base for Patterns."""
@@ -65,60 +60,38 @@ class Scenario(ScenarioBase):
         orm_mode = True
 
 
-class ParcelBase(BaseModel):
-    """Pydantic model base for Parcels."""
-    wkt: str
-    address: str
-
-
-class Parcel(ParcelBase):
-    """Pydantic model used when reading data, when returning it from API."""
-    id: int
+class ParcelStats(BaseModel):
+    """Pydantic model base for ParcelStats."""
     lulc_stats: Union[str, None] = None
 
     class Config:
         orm_mode = True
 
 
-class StudyAreaParcel(BaseModel):
-    """Pydantic model base for Study Areas."""
-    name: str
-    parcels: list[ParcelBase] = []
+class Parcel(BaseModel):
+    """Pydantic model used by other Pydantic models."""
+    parcel_id: int
+    wkt: str
+    address: str = None
+    parcel_stats: Union[ParcelStats, None] = None
+
+    class Config:
+        orm_mode = True
 
 
-class StudyAreaBase(BaseModel):
-    """Pydantic model base for Study Areas."""
-    name: str
-    parcels: list[Parcel] = []
-    #parcel_wkts: str
-    #parcel_wkts: list[str]
-
-
-class StudyArea(StudyAreaBase):
+class StudyArea(BaseModel):
     """Pydantic model used when reading data, when returning it from API."""
     id: int
-    scenarios: list[Scenario] = []
-    owner_id: str
+    name: str = None
+    parcels: list[Parcel] = []
 
     class Config:
         orm_mode = True
 
 
-class StudyAreaResponse(BaseModel):
-    """Pydantic model for the response after study area creation."""
-    id: int
-
-    class Config:
-        orm_mode = True
-
-
-class StudyAreaRequest(BaseModel):
-    """Pydantic model for the response after study area creation."""
-    id: int
+class StudyAreaCreateRequest(BaseModel):
+    """Pydantic model for the body of the create study area request."""
     name: str
-
-    class Config:
-        orm_mode = True
 
 
 class ScenarioResponse(BaseModel):
@@ -189,40 +162,24 @@ class JobResponse(BaseModel):
         orm_mode = True
 
 
-
-class ParcelStatsBase(BaseModel):
-    """Pydantic model base for ParcelStats."""
-    target_parcel_wkt: str
-
-
-class ParcelStats(ParcelStatsBase):
-    """Pydantic model used when reading data, when returning it from API."""
-    stats_id: int
-    job_id: int
-    #owner_id: str
-
-    class Config:
-        orm_mode = True
-
-
-class ParcelStatsRequest(BaseModel):
-    """Pydantic model used in establishing the request to create stats."""
+class ParcelCreateRequest(BaseModel):
+    """Pydantic model for payload of request to create parcel."""
     session_id: str
-    target_parcel_wkt: str
+    study_area_id: int
+    parcel_id: int
+    wkt: str
+
+
+class ParcelDeleteRequest(BaseModel):
+    """Pydantic model for payload of request to delete parcel."""
+    parcel_id: int
+    study_area_id: int
 
 
 class ParcelStatsUpdate(BaseModel):
     """Pydantic model used for updating stats."""
     lulc_stats: str
 
-
-class ParcelStatsResponse(BaseModel):
-    """Pydantic model for the response after parcel stats creation request."""
-    job_id: int
-    #stats_id: int
-
-    class Config:
-        orm_mode = True
 
 class WorkerResponse(BaseModel):
     """Pydantic model used for the jobsqueue request from the worker."""

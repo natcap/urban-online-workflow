@@ -1,85 +1,100 @@
 import React, { useState, useEffect } from 'react';
-import MapComponent from './map';
-import EditMenu from './edit';
+import MapComponent from './map/map';
+import EditMenu from './edit/edit';
 
-import { getStudyAreas, createSession } from './requests';
+import {
+  getStudyArea,
+  getStudyAreas,
+  createSession,
+  getSession,
+  createStudyArea,
+  updateStudyArea,
+} from './requests';
 
 export default function App() {
-  const [savedStudyAreas, setSavedStudyAreas] = useState([]);
-  const [patternSamplingMode, setPatternSamplingMode] = useState(false);
-  const [patternSampleWKT, setPatternSampleWKT] = useState(null);
   const [sessionID, setSessionID] = useState(null);
-  const [parcelSet, setParcelSet] = useState({});
-  const [activeStudyAreaID, setActiveStudyAreaID] = useState(null);
-  const [scenarioLulcRasters, setScenarioLulcRasters] = useState(null);
+  const [savedStudyAreas, setSavedStudyAreas] = useState([]);
+  const [studyArea, setStudyArea] = useState({
+    id: undefined,
+    parcels: [],
+  });
 
-  const refreshSavedStudyAreas = async () => {
-    const studyAreas = await getStudyAreas(sessionID);
-    // setSavedStudyAreas(studyAreas); // TODO: not using this just yet
-    const aoi = studyAreas.filter((area) => area.id === activeStudyAreaID)[0];
-    const rasters = {};
-    if (aoi && aoi.scenarios) {
-      const rasterPaths = aoi.scenarios.forEach((scene) => {
-        rasters[scene.name] = scene.lulc_url_result
-      });
-      setScenarioLulcRasters(rasters);
+  const switchStudyArea = async (id) => {
+    let area;
+    if (id && id !== 'new') {
+      area = await getStudyArea(sessionID, id);
+    } else {
+      area = await createStudyArea(sessionID, 'Untitled');
+      setSavedStudyAreas([...savedStudyAreas, area]);
     }
-    
+    setStudyArea(area);
+  };
+
+  const refreshStudyArea = async () => {
+    const area = await getStudyArea(sessionID, studyArea.id);
+    setStudyArea(area);
+  };
+
+  const nameStudyArea = async (name) => {
+    const area = JSON.parse(JSON.stringify(studyArea));
+    area.name = name;
+    const updatedArea = await updateStudyArea(sessionID, area);
+    setStudyArea(updatedArea);
+    const otherAreas = savedStudyAreas.filter((area) => (
+      area.id !== updatedArea.id
+    ));
+    setSavedStudyAreas(otherAreas.concat(updatedArea));
   };
 
   useEffect(async () => {
-    setSessionID(await createSession());
+    let SID = localStorage.getItem('sessionID');
+    if (SID) {
+      const session = await getSession(SID);
+      console.log(session)
+      if (session && session.id) {
+        setSessionID(SID);
+        return;
+      }
+    }
+    SID = await createSession();
+    setSessionID(SID);
+    localStorage.setItem('sessionID', SID);
   }, []);
 
-  useEffect(() => {
+  useEffect(async () => {
     if (sessionID) {
-      refreshSavedStudyAreas();
+      const studyAreas = await getStudyAreas(sessionID);
+      console.log(studyAreas);
+      if (studyAreas.length) {
+        const areas = studyAreas.filter((area) => (
+          area.parcels.length > 0
+        ));
+        setSavedStudyAreas(areas);
+        await switchStudyArea(areas[0].id); // TODO: switch to most recently created
+      } else {
+        await switchStudyArea(undefined); // undefined id creates new study area
+      }
     }
   }, [sessionID]);
 
-  const addParcel = async (parcel) => {
-    setParcelSet((prev) => {
-      const newSet = { ...prev, ...parcel };
-      return newSet;
-    });
-  };
-
-  const removeParcel = (parcelID) => {
-    setParcelSet((prev) => {
-      const newSet = { ...prev };
-      delete newSet[parcelID];
-      return newSet;
-    });
-  };
-
-  const togglePatternSamplingMode = () => {
-    setPatternSamplingMode((mode) => !mode);
-  };
-
-  console.log(scenarioLulcRasters)
   return (
     (sessionID)
       ? (
         <div className="App">
           <div className="map-and-menu-container">
             <MapComponent
-              addParcel={addParcel}
-              patternSamplingMode={patternSamplingMode}
-              setPatternSampleWKT={setPatternSampleWKT}
               sessionID={sessionID}
-              scenarioLulcRasters={scenarioLulcRasters}
+              parcelSet={studyArea.parcels}
+              activeStudyAreaID={studyArea.id}
+              refreshStudyArea={refreshStudyArea}
             />
             <EditMenu
-              parcelSet={parcelSet}
-              removeParcel={removeParcel}
-              refreshSavedStudyAreas={refreshSavedStudyAreas}
-              patternSamplingMode={patternSamplingMode}
-              togglePatternSamplingMode={togglePatternSamplingMode}
-              patternSampleWKT={patternSampleWKT}
               sessionID={sessionID}
-              setScenarioLulcRasters={setScenarioLulcRasters}
-              activeStudyAreaID={activeStudyAreaID}
-              setActiveStudyAreaID={setActiveStudyAreaID}
+              studyArea={studyArea}
+              refreshStudyArea={refreshStudyArea}
+              nameStudyArea={nameStudyArea}
+              switchStudyArea={switchStudyArea}
+              savedStudyAreas={savedStudyAreas}
             />
           </div>
         </div>

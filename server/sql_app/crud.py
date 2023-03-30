@@ -8,6 +8,7 @@ import uuid
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import exc
 
 from . import models
 from . import schemas
@@ -66,41 +67,44 @@ def create_session(db: Session):
     db.refresh(db_session)
     return db_session
 
+
 def create_study_area(
-        db: Session, session_id: str, study_area: schemas.StudyAreaParcel):
+        db: Session, session_id: str, name: str):
     """Create a study area entry."""
     LOGGER.debug("Create study area")
-    study_area_dict = study_area.dict()
-    parcel_list = study_area_dict.pop("parcels", None)
-
-    db_study_area = models.StudyArea(**study_area_dict, owner_id=session_id)
+    db_study_area = models.StudyArea(owner_id=session_id, name=name)
     db.add(db_study_area)
     db.commit()
     db.refresh(db_study_area)
-
-    for parcel in parcel_list:
-        # Get the lulc_stats from ParcelStats table
-        db_parcel_stats = get_parcel_stats_by_wkt(db, parcel["wkt"])
-        if not db_parcel_stats:
-            raise HTTPException(status_code=404, detail="Parcel stats not found")
-        db_parcel = models.Parcel(
-            **parcel, lulc_stats=db_parcel_stats.lulc_stats,
-            study_area_id=db_study_area.id)
-        db.add(db_parcel)
-        db.commit()
-        db.refresh(db_parcel)
-
     return db_study_area
+
+
+def update_study_area(db: Session, study_area: schemas.StudyArea):
+    """Update a study area entry."""
+    db_study_area = get_study_area(db, study_area.id)
+    if not db_study_area:
+        raise HTTPException(status_code=404, detail="Study area not found")
+    data = study_area.dict(exclude_unset=True)
+    for key, value in data.items():
+        setattr(db_study_area, key, value)
+
+    db.add(db_study_area)
+    db.commit()
+    db.refresh(db_study_area)
+    return db_study_area
+
 
 def get_study_area(db: Session, study_area_id: int):
     """Read study area from id."""
     return db.query(models.StudyArea).filter(
             models.StudyArea.id == study_area_id).first()
 
+
 def get_study_areas(db: Session, session_id: str):
     """Read all study areas for session id."""
     return db.query(models.StudyArea).filter(
             models.StudyArea.owner_id == session_id).all()
+
 
 def create_scenario(db: Session, scenario: schemas.Scenario, study_area_id: int):
     """Create scenario linking with ``study_area_id``."""
@@ -146,28 +150,57 @@ def delete_scenario(db: Session, scenario_id: int):
     db.commit()
     return STATUS_SUCCESS
 
-def create_parcel_stats(db: Session, parcel_wkt: schemas.ParcelStatsBase, job_id: int):
+
+def create_parcel_stats(db: Session, parcel_id: int, parcel_wkt: str, job_id: int):
     """Create a stats entry in parcel stats table."""
-    db_parcel_stats = models.ParcelStats(target_parcel_wkt=parcel_wkt, job_id=job_id)
+    db_parcel_stats = models.ParcelStats(
+        parcel_id=parcel_id, target_parcel_wkt=parcel_wkt, job_id=job_id)
     db.add(db_parcel_stats)
     db.commit()
     db.refresh(db_parcel_stats)
     return db_parcel_stats
+
+
+def create_parcel(db: Session, study_area_id: int,
+                  parcel_id: int, parcel_wkt: str):
+    """Create an entry in parcel table."""
+    db_parcel = models.Parcel(
+        study_area_id=study_area_id, parcel_id=parcel_id, wkt=parcel_wkt)
+    try:
+        db.add(db_parcel)
+        db.commit()
+        db.refresh(db_parcel)
+        return STATUS_SUCCESS
+    except exc.IntegrityError:
+        db.rollback()
+        return STATUS_FAIL
+
+
+def delete_parcel(db: Session, parcel_id: int, study_area_id: int):
+    """Delete an entry in parcel table."""
+    row = db.query(models.Parcel).filter(
+            models.Parcel.parcel_id == parcel_id,
+            models.Parcel.study_area_id == study_area_id).first()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Parcel not found")
+
+    db.delete(row)
+    db.commit()
+    return STATUS_SUCCESS
+
 
 def get_parcel_stats(db: Session, stats_id: int):
     """Read a single stats entry by ID."""
     return db.query(models.ParcelStats).filter(
             models.ParcelStats.stats_id == stats_id).first()
 
-def get_parcel_stats_by_job(db: Session, job_id: int):
-    """Read a single stats entry by job ID."""
-    return db.query(models.ParcelStats).filter(
-            models.ParcelStats.job_id == job_id).first()
 
-def get_parcel_stats_by_wkt(db: Session, wkt: str):
+def get_parcel_stats_by_id(db: Session, id: int):
     """Read a single stats entry by wkt."""
     return db.query(models.ParcelStats).filter(
-            models.ParcelStats.target_parcel_wkt == wkt).first()
+            models.ParcelStats.parcel_id == id).first()
+
 
 def update_parcel_stats(
         db: Session, parcel_stats: schemas.ParcelStatsUpdate, stats_id: int):

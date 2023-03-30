@@ -790,6 +790,7 @@ def do_work(host, port, outputs_location):
                         'output_path': "return-something",
                         'model': jobs_args['invest_model'],
                     }
+                }
             else:
                 raise ValueError(f"Invalid job type: {job_type}")
             status = STATUS_SUCCESS

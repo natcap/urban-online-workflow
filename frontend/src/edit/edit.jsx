@@ -8,21 +8,24 @@ import {
 
 import ScenarioBuilder from './scenarioBuilder';
 import ScenarioTable from './scenarioTable';
+import SelectStudyArea from './selectStudyArea';
+import StudyAreaTable from './studyAreaTable';
+import InputStudyAreaName from './inputStudyAreaName';
+import landuseCodes from '../landuseCodes';
 
 FocusStyleManager.onlyShowFocusOnTabs();
 
 export default function EditMenu(props) {
   const {
-    parcelSet,
-    selectedParcel,
-    removeParcel,
-    refreshSavedStudyAreas,
+    nameStudyArea,
+    refreshStudyArea,
     patternSamplingMode,
     togglePatternSamplingMode,
     patternSampleWKT,
     sessionID,
-    activeStudyAreaID,
-    setActiveStudyAreaID,
+    studyArea,
+    switchStudyArea,
+    savedStudyAreas,
   } = props;
 
   const [activeTab, setActiveTab] = useState('create');
@@ -47,16 +50,38 @@ export default function EditMenu(props) {
           title="Create"
           panel={(
             <div>
+              <SelectStudyArea
+                studyAreaID={studyArea.id}
+                switchStudyArea={switchStudyArea}
+                savedStudyAreas={savedStudyAreas}
+              />
+              <InputStudyAreaName
+                nameStudyArea={nameStudyArea}
+                name={studyArea.name}
+              />
+              {
+                (studyArea.parcels.length)
+                  ? (
+                    <StudyAreaTable
+                      parcelSet={studyArea.parcels}
+                      studyAreaID={studyArea.id}
+                      refreshStudyArea={refreshStudyArea}
+                    />
+                  )
+                  : (
+                    <p className="sidebar-subheading">
+                      <span>Click on the map to add parcels</span>
+                    </p>
+                  )
+              }
               <ScenarioBuilder
                 sessionID={sessionID}
-                parcelSet={parcelSet}
-                removeParcel={removeParcel}
+                parcelSet={studyArea.parcels}
                 patternSamplingMode={patternSamplingMode}
                 patternSampleWKT={patternSampleWKT}
                 togglePatternSamplingMode={togglePatternSamplingMode}
-                refreshSavedStudyAreas={refreshSavedStudyAreas}
-                activeStudyAreaID={activeStudyAreaID}
-                setActiveStudyAreaID={setActiveStudyAreaID}
+                // refreshSavedStudyAreas={refreshSavedStudyAreas}
+                activeStudyAreaID={studyArea.id}
                 addScenarioLULCTable={addScenarioLULCTable}
               />
             </div>

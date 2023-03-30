@@ -1,4 +1,4 @@
-import patternsTable from './patternsTable'; // TODO: this is temp
+import patternsTable from './edit/patternsTable'; // TODO: this is temp
 
 const apiBaseURL = 'http://127.0.0.1:8000';
 
@@ -53,6 +53,22 @@ export async function createSession() {
 }
 
 /**
+ * Get an existing session.
+ *
+ * @return {object}
+ */
+export async function getSession(sessionID) {
+  return (
+    window.fetch(`${apiBaseURL}/session/${sessionID}`, {
+      method: 'get',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
+}
+
+/**
  * Get all study areas associated with a given session.
  *
  * @param  {integer} sessionID - id of the session to get study areas for
@@ -69,26 +85,54 @@ export async function getStudyAreas(sessionID) {
 }
 
 /**
+ * Get a study area.
+ *
+ * @param  {integer} sessionID - id of the session to get study areas for
+ * @return {array[object]} array of study area objects
+ */
+export async function getStudyArea(sessionID, studyAreaID) {
+  return (
+    window.fetch(`${apiBaseURL}/study_area/${sessionID}/${studyAreaID}`, {
+      method: 'get',
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
+}
+
+/**
  * Create a new study area
  *
- * @return {integer} id for the new study area
+ * @return {object} schemas.StudyArea
  */
-export async function createStudyArea(sessionID, name, parcelSet) {
-  const payload = {
-    name: name,
-    parcels: Object.values(parcelSet).map((parcel) => (
-      { wkt: polygonCoordsToWKT(parcel.coords), address: '123 Main Street' }
-    )),
-  };
-
+export async function createStudyArea(sessionID, name) {
   return (
     window.fetch(`${apiBaseURL}/study_area/${sessionID}`, {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ name: name }),
     })
       .then((response) => response.json())
-      .then((json) => json.id)
+      .then((json) => json)
+      .catch((error) => console.log(error))
+  );
+}
+
+/**
+ * Update a study area.
+ *
+ * @param {integer} sessionID - id of the session to get study areas for
+ * @param {object} studyArea - as defined by schemas.StudyArea
+ * @return {array[object]} array of study area objects
+ */
+export async function updateStudyArea(sessionID, studyArea) {
+  return (
+    window.fetch(`${apiBaseURL}/study_area/${sessionID}`, {
+      method: 'put',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(studyArea),
+    })
+      .then((response) => response.json())
       .catch((error) => console.log(error))
   );
 }
@@ -161,7 +205,7 @@ export async function getJobStatus(jobID) {
  * @return {object} results object if job has succeeded, otherwise an object
  *  with a 'status' attribute (one of 'pending', 'running', 'failed')
  */
-export async function getJobResults(jobID, scenarioID) {
+export async function getScenarioResult(jobID, scenarioID) {
   return (
     window.fetch(`${apiBaseURL}/scenario/result/${jobID}/${scenarioID}`, {
       method: 'get',
@@ -220,21 +264,23 @@ export async function convertToSingleLULC(lulcCode, scenarioID) {
 }
 
 /**
- * Get stats about the baseline LULC on a given parcel.
+ * Add parcel to a study area.
  *
  * @param  {array[array[number]]} targetCoords - an array of two-element arrays
  *  representing [lon, lat] coordinate pairs outlining the parcel to query
  * @return {[object]} ? - fill in when this endpoint is working
  */
-export async function postLulcTableForParcel(sessionID, parcelCoords) {
+export async function addParcel(sessionID, studyAreaID, parcelID, parcelCoords) {
   console.log(polygonCoordsToWKT(parcelCoords))
   return (
-    window.fetch(`${apiBaseURL}/stats_under_parcel`, {
+    window.fetch(`${apiBaseURL}/add_parcel`, {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         session_id: sessionID,
-        target_parcel_wkt: polygonCoordsToWKT(parcelCoords),
+        study_area_id: studyAreaID,
+        parcel_id: parcelID,
+        wkt: polygonCoordsToWKT(parcelCoords),
       }),
     })
       .then((response) => response.json())
@@ -243,16 +289,21 @@ export async function postLulcTableForParcel(sessionID, parcelCoords) {
 }
 
 /**
- * Get stats about the baseline LULC on a given parcel.
+ * Remove parcel from a study area.
  *
- * @param  {number} jobID - unique identifier for the job
+ * @param  {array[array[number]]} targetCoords - an array of two-element arrays
+ *  representing [lon, lat] coordinate pairs outlining the parcel to query
  * @return {[object]} ? - fill in when this endpoint is working
  */
-export async function getLulcTableForParcel(jobID) {
+export async function removeParcel(parcelID, studyAreaID) {
   return (
-    window.fetch(`${apiBaseURL}/stats_under_parcel/result/${jobID}`, {
-      method: 'get',
+    window.fetch(`${apiBaseURL}/remove_parcel`, {
+      method: 'post',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        parcel_id: parcelID,
+        study_area_id: studyAreaID
+      }),
     })
       .then((response) => response.json())
       .catch((error) => console.log(error))

@@ -18,18 +18,18 @@ import { defaults } from 'ol/control';
 import { Button, Icon } from '@blueprintjs/core';
 
 import ParcelControl from './parcelControl';
-import { lulcTileLayer, lulcImageLayer } from './map/lulcLayer';
-import LayerPanel from './map/LayerPanel';
+import { lulcTileLayer } from './lulcLayer';
+import LayerPanel from './LayerPanel';
 import {
   satelliteLayer,
   streetMapLayer,
   labelLayer,
-} from './map/baseLayers';
+} from './baseLayers';
 import {
   selectedFeatureStyle,
   patternSamplerBoxStyle,
   styleParcel,
-} from './map/styles';
+} from './styles';
 
 const BASE_LULC_URL = 'https://storage.googleapis.com/natcap-urban-online-datasets-public/NLCD_2016_epsg3857.tif'
 const GEOTIFF_SOURCE_OPTIONS = {
@@ -78,8 +78,9 @@ const patternSamplerLayer = new VectorLayer({
   style: patternSamplerBoxStyle,
   visible: false,
 });
+patternSamplerLayer.setZIndex(5);
 
-const wkt = new WKT();
+const wktFormat = new WKT();
 const translate = new Translate({
   layers: [patternSamplerLayer],
 });
@@ -95,6 +96,7 @@ const parcelLayer = new VectorTileLayer({
   minZoom: 15, // don't display this layer below zoom level 14
 });
 parcelLayer.set('title', 'Parcels');
+parcelLayer.setZIndex(1);
 
 let selectedFeature = null;
 const selectionLayer = new VectorTileLayer({
@@ -109,8 +111,15 @@ const selectionLayer = new VectorTileLayer({
   },
 });
 selectionLayer.set('title', 'Selected Parcels');
+selectionLayer.setZIndex(2);
 
-// define the map
+const studyAreaSource = new VectorSource({});
+const studyAreaLayer = new VectorLayer({
+  source: studyAreaSource
+});
+studyAreaLayer.set('title', 'Study Area');
+studyAreaLayer.setZIndex(3);
+
 const map = new Map({
   layers: [
     satelliteLayer,
@@ -135,12 +144,10 @@ const map = new Map({
 export default function MapComponent(props) {
   const {
     sessionID,
-    addParcel,
-    patternSamplingMode,
-    setPatternSampleWKT,
-    scenarioLulcRasters,
+    parcelSet,
+    activeStudyAreaID,
+    refreshStudyArea,
   } = props;
-  console.log(scenarioLulcRasters)
   const [layers, setLayers] = useState([]);
   const [showLayerControl, setShowLayerControl] = useState(false);
   const [basemap, setBasemap] = useState('Satellite');
@@ -187,11 +194,11 @@ export default function MapComponent(props) {
     // update state with its new location
     translate.on(
       'translateend',
-      () => setPatternSampleWKT(wkt.writeFeature(patternSamplerFeature)),
+      () => setPatternSampleWKT(wktFormat.writeFeature(patternSamplerFeature)),
     );
     patternSamplerLayer.on(
       'change:visible',
-      () => setPatternSampleWKT(wkt.writeFeature(patternSamplerFeature)),
+      () => setPatternSampleWKT(wktFormat.writeFeature(patternSamplerFeature)),
     );
 
     map.on(['click'], async (event) => {
@@ -225,30 +232,47 @@ export default function MapComponent(props) {
     });
   }, []);
 
-  useEffect(() => {
-    if (scenarioLulcRasters) {
-      console.log(scenarioLulcRasters)
-      Object.entries(scenarioLulcRasters).forEach(([name, url]) => {
-        map.addLayer(lulcTileLayer(url, name));
-      });
-    }
-  }, [scenarioLulcRasters])
+  // useEffect(() => {
+  //   if (parcelSet.length) {
+  //     const features = parcelSet.forEach(parcel => {
+  //       const feature = wktFormat.readFeature(parcel.wkt, {
+  //         dataProjection: 'EPSG:3857',
+  //         featureProjection: 'EPSG:3857',
+  //       });
+  //       return feature;
+  //     });
+  //     studyAreaSource.addFeatures()
+  //   }
+  // })
+
+  // useEffect(() => {
+  //   if (scenarioLulcRasters) {
+  //     console.log(scenarioLulcRasters);
+  //     const mapLayerTitles = map.getLayers().getArray().map(lyr => lyr.get('title'));
+  //     console.log(mapLayerTitles);
+  //     Object.entries(scenarioLulcRasters).forEach(([name, url]) => {
+  //       if (!mapLayerTitles.includes(name)) {
+  //         map.addLayer(lulcTileLayer(url, name));
+  //       }
+  //     });
+  //   }
+  // }, [scenarioLulcRasters]);
 
   // toggle pattern sampler visibility according to the pattern sampling mode
-  useEffect(() => {
-    if (patternSamplerLayer) {
-      if (patternSamplingMode) {
-        switchBasemap('Landcover');
-        // when pattern sampling mode is turned on,
-        // recenter the sampler box in the current view
-        const [mapCenterX, mapCenterY] = map.getView().getCenter();
-        patternSamplerFeature.setGeometry(
-          centeredPatternSamplerGeom(mapCenterX, mapCenterY)
-        );
-      }
-      patternSamplerLayer.setVisible(patternSamplingMode);
-    }
-  }, [patternSamplingMode]);
+  // useEffect(() => {
+  //   if (patternSamplerLayer) {
+  //     if (patternSamplingMode) {
+  //       switchBasemap('Landcover');
+  //       // when pattern sampling mode is turned on,
+  //       // recenter the sampler box in the current view
+  //       const [mapCenterX, mapCenterY] = map.getView().getCenter();
+  //       patternSamplerFeature.setGeometry(
+  //         centeredPatternSamplerGeom(mapCenterX, mapCenterY)
+  //       );
+  //     }
+  //     patternSamplerLayer.setVisible(patternSamplingMode);
+  //   }
+  // }, [patternSamplingMode]);
 
   return (
     <div className="map-container">
@@ -269,9 +293,10 @@ export default function MapComponent(props) {
       </div>
       <ParcelControl
         sessionID={sessionID}
+        activeStudyAreaID={activeStudyAreaID}
         parcel={selectedParcel}
-        addParcel={addParcel}
         clearSelection={clearSelection}
+        refreshStudyArea={refreshStudyArea}
       />
     </div>
   );
