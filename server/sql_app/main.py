@@ -187,6 +187,7 @@ def update_study_area(session_id: str, study_area: schemas.StudyArea,
 @app.get("/study_areas/{session_id}", response_model=list[schemas.StudyArea])
 def get_study_areas(session_id: str, db: Session = Depends(get_db)):
     # check that the session exists
+    # TODO: when & why do we need to get the session?
     db_session = crud.get_session(db, session_id=session_id)
     if db_session is None:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -194,7 +195,19 @@ def get_study_areas(session_id: str, db: Session = Depends(get_db)):
     return db_study_areas
 
 
-@app.post("/scenario/{study_area_id}", response_model=schemas.ScenarioResponse)
+@app.get("/scenario/{study_area_id}", response_model=list[schemas.Scenario])
+def get_scenarios(study_area_id: int, db: Session = Depends(get_db)):
+    db_scenarios = crud.get_scenarios(db=db, study_area_id=study_area_id)
+    return db_scenarios
+
+
+@app.get("/scenario/{scenario_id}", response_model=schemas.Scenario)
+def get_scenario(scenario_id: int, db: Session = Depends(get_db)):
+    db_scenarios = crud.get_scenario(db=db, scenario_id=scenario_id)
+    return db_scenarios
+
+
+@app.post("/scenario/{study_area_id}", response_model=schemas.ScenarioCreateResponse)
 def create_scenario(
     study_area_id: int, scenario: schemas.ScenarioBase,
     db: Session = Depends(get_db)
@@ -674,26 +687,26 @@ def add_parcel(create_parcel_request: schemas.ParcelCreateRequest,
     return worker_task['server_attrs']
 
 
-@app.get("/scenario/result/{job_id}/{scenario_id}")
-def get_scenario_results(
-        job_id: int, scenario_id: int, db: Session = Depends(get_db)):
-    """Return the wallpapering or fill results if the job was successful."""
-    # Check job status and return URL and Stats from table
-    LOGGER.info(f'{job_id}, {scenario_id}')
-    job_db = crud.get_job(db, job_id=job_id)
-    if job_db is None:
-        raise HTTPException(status_code=404, detail="Job not found")
-    if job_db.status == STATUS_SUCCESS:
-        scenario_db = crud.get_scenario(db, scenario_id=scenario_id)
-        if scenario_db is None:
-            raise HTTPException(status_code=404, detail="Scenario not found")
-        scenario_results = {
-            "lulc_url_result": scenario_db.lulc_url_result,
-            "lulc_stats": json.loads(scenario_db.lulc_stats),
-            }
-        return scenario_results
-    else:
-        return job_db.status
+# @app.get("/scenario/result/{job_id}/{scenario_id}")
+# def get_scenario_results(
+#         job_id: int, scenario_id: int, db: Session = Depends(get_db)):
+#     """Return the wallpapering or fill results if the job was successful."""
+#     # Check job status and return URL and Stats from table
+#     LOGGER.info(f'{job_id}, {scenario_id}')
+#     job_db = crud.get_job(db, job_id=job_id)
+#     if job_db is None:
+#         raise HTTPException(status_code=404, detail="Job not found")
+#     if job_db.status == STATUS_SUCCESS:
+#         scenario_db = crud.get_scenario(db, scenario_id=scenario_id)
+#         if scenario_db is None:
+#             raise HTTPException(status_code=404, detail="Scenario not found")
+#         scenario_results = {
+#             "lulc_url_result": scenario_db.lulc_url_result,
+#             "lulc_stats": json.loads(scenario_db.lulc_stats),
+#             }
+#         return scenario_results
+#     else:
+#         return job_db.status
 
 
 @app.post("/invest/{scenario_id}")

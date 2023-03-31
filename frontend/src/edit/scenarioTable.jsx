@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 import landuseCodes from '../landuseCodes';
+import { getScenario } from '../requests';
 
 import {
   HTMLTable,
@@ -16,10 +17,20 @@ function sqkm(count) {
 }
 
 export default function ScenarioTable(props) {
-  const { scenarioTable } = props;
-  console.log(scenarioTable)
+  const { scenarioIDs } = props;
+  console.log(scenarioIDs)
 
-  const [lulcNames, setLulcNames] = useState([]);
+  // const [lulcNames, setLulcNames] = useState([]);
+  const [scenarioTable, setScenarioTable] = useState(null);
+
+  useEffect(async () => {
+    const table = {};
+    const scenarios = await Promise.all(scenarioIDs.forEach((id) => getScenario(id)));
+    scenarios.forEach((scene) => {
+      table[scene.name] = scene.lulc_stats.result;
+    });
+    setScenarioTable(table);
+  }, [scenarioIDs]);
 
   const scenarioHeader = (
     <tr key="header">
@@ -38,24 +49,24 @@ export default function ScenarioTable(props) {
     Object.entries(scenarioTable).forEach(([name, table]) => {
       const count = scenarioTable[name][code] || '';
       counts.push(count);
-    })
+    });
     if (counts.reduce((x, y) => (x || 0) + (y || 0), 0)) { // skip rows of all 0s
       const cells = [];
       cells.push(
         <td key={code} className="row-name" style={{
-          borderLeftColor: landuseCodes[code].color
-        }}>
+          borderLeftColor: landuseCodes[code].color,
+        }}
+        >
           {landuseCodes[code].name}
-        </td>)
+        </td>
+      );
       cells.push(...counts.map((c, idx) => {
-        let content = <span>{sqkm(c)}</span>
+        let content = <span>{sqkm(c)}</span>;
         if (c && firstRow) {
-          content = <span>{sqkm(c)} km<sup>2</sup></span>
+          content = <span>{sqkm(c)} km<sup>2</sup></span>;
         }
-        return <td key={idx}>{content}</td>
-      }
-      
-      ))
+        return <td key={idx}>{content}</td>;
+      }));
       rows.push(<tr key={code}>{cells}</tr>);
       firstRow = false;
     }
@@ -63,15 +74,15 @@ export default function ScenarioTable(props) {
 
   return (
     <>
-    <HTMLTable bordered striped className="scenario-table">
-      <tbody>
-        {rows}
-      </tbody>
-    </HTMLTable>
-    <br />
-    <Button>
-      Run InVEST Models
-    </Button>
+      <HTMLTable bordered striped className="scenario-table">
+        <tbody>
+          {rows}
+        </tbody>
+      </HTMLTable>
+      <br />
+      <Button>
+        Run InVEST Models
+      </Button>
     </>
   );
 }

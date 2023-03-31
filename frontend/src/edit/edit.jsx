@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import {
   FocusStyleManager,
@@ -12,6 +12,7 @@ import SelectStudyArea from './selectStudyArea';
 import StudyAreaTable from './studyAreaTable';
 import InputStudyAreaName from './inputStudyAreaName';
 import landuseCodes from '../landuseCodes';
+import { getScenarios } from '../requests';
 
 FocusStyleManager.onlyShowFocusOnTabs();
 
@@ -29,14 +30,27 @@ export default function EditMenu(props) {
   } = props;
 
   const [activeTab, setActiveTab] = useState('create');
-  const [scenarioTable, setScenarioTable] = useState(null);
+  const [scenarioIDs, setScenarioIDs] = useState([]);
+  // const [scenarioTable, setScenarioTable] = useState(null);
 
-  const addScenarioLULCTable = (table) => {
-    setScenarioTable((prev) => {
-      const newTable = { ...prev, ...table };
-      return newTable;
-    });
+  // const addScenarioLULCTable = (table) => {
+  //   setScenarioTable((prev) => {
+  //     const newTable = { ...prev, ...table };
+  //     return newTable;
+  //   });
+  // };
+
+
+  const refreshScenarios = async () => {
+    if (studyArea.id) {
+      const scenarios = await getScenarios(studyArea.id);
+      setScenarioIDs(scenarios);
+    }
   };
+
+  useEffect(async () => {
+    refreshScenarios();
+  }, [studyArea.id]);
 
   return (
     <div className="menu-container">
@@ -71,7 +85,7 @@ export default function EditMenu(props) {
                 (studyArea.parcels.length)
                   ? (
                     <StudyAreaTable
-                      parcelSet={studyArea.parcels}
+                      parcelArray={studyArea.parcels}
                       studyAreaID={studyArea.id}
                       refreshStudyArea={refreshStudyArea}
                     />
@@ -84,24 +98,28 @@ export default function EditMenu(props) {
               }
               <ScenarioBuilder
                 sessionID={sessionID}
-                parcelSet={studyArea.parcels}
+                parcelArray={studyArea.parcels}
                 patternSamplingMode={patternSamplingMode}
                 patternSampleWKT={patternSampleWKT}
                 togglePatternSamplingMode={togglePatternSamplingMode}
-                // refreshSavedStudyAreas={refreshSavedStudyAreas}
                 activeStudyAreaID={studyArea.id}
-                addScenarioLULCTable={addScenarioLULCTable}
+                // addScenarioLULCTable={addScenarioLULCTable}
+                refreshScenarios={refreshScenarios}
               />
             </div>
           )}
         />
         {
-          (scenarioTable)
+          (scenarioIDs.length)
             ? (
               <Tab
                 id="explore"
                 title="Analyze"
-                panel={<ScenarioTable scenarioTable={scenarioTable} />}
+                panel={
+                  <ScenarioTable
+                    scenarioIDs={scenarioIDs}
+                  />
+                }
               />
             )
             : <div />

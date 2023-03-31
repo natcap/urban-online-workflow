@@ -154,6 +154,22 @@ export async function getScenario(id) {
 }
 
 /**
+ * Get all scenario ids for a study area.
+ *
+ * @param  {integer} studyAreaID - id of the study area
+ * @return {array} of scenario IDs
+ */
+export async function getScenarios(studyAreaID) {
+  return (
+    window.fetch(`${apiBaseURL}/scenario/${studyAreaID}`, {
+      method: 'get',
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
+}
+
+/**
  * Create a new scenario.
  *
  * @param  {integer} studyAreaID - id of the active study area
@@ -197,23 +213,23 @@ export async function getJobStatus(jobID) {
   );
 }
 
-/**
- * Get results of a job if it's succeeded, or its status otherwise.
- *
- * @param  {integer} jobID - id of the job to check
- * @param  {integer} scenarioID - id of the scenario associated with the job
- * @return {object} results object if job has succeeded, otherwise an object
- *  with a 'status' attribute (one of 'pending', 'running', 'failed')
- */
-export async function getScenarioResult(jobID, scenarioID) {
-  return (
-    window.fetch(`${apiBaseURL}/scenario/result/${jobID}/${scenarioID}`, {
-      method: 'get',
-    })
-      .then((response) => response.json())
-      .catch((error) => console.log(error))
-  );
-}
+// /**
+//  * Get results of a job if it's succeeded, or its status otherwise.
+//  *
+//  * @param  {integer} jobID - id of the job to check
+//  * @param  {integer} scenarioID - id of the scenario associated with the job
+//  * @return {object} results object if job has succeeded, otherwise an object
+//  *  with a 'status' attribute (one of 'pending', 'running', 'failed')
+//  */
+// export async function getScenarioResult(jobID, scenarioID) {
+//   return (
+//     window.fetch(`${apiBaseURL}/scenario/result/${jobID}/${scenarioID}`, {
+//       method: 'get',
+//     })
+//       .then((response) => response.json())
+//       .catch((error) => console.log(error))
+//   );
+// }
 
 /**
  * Apply a wallpaper pattern to a given polygon.

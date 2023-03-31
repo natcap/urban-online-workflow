@@ -38,14 +38,7 @@ class PatternUpdate(BaseModel):
 class ScenarioBase(BaseModel):
     """Pydantic model base for Scenarios."""
     name: str
-    description: Optional[str] = None
     operation: Literal["wallpaper", "paint"]
-
-
-class ScenarioUpdate(BaseModel):
-    """Pydantic model for updating Scenarios in the DB."""
-    lulc_url_result: str
-    lulc_stats: str
 
 
 class Scenario(ScenarioBase):
@@ -58,6 +51,20 @@ class Scenario(ScenarioBase):
 
     class Config:
         orm_mode = True
+
+
+class ScenarioCreateResponse(BaseModel):
+    """Pydantic model for the response after scenario creation."""
+    scenario_id: int
+
+    class Config:
+        orm_mode = True
+
+
+class ScenarioUpdate(BaseModel):
+    """Pydantic model for updating Scenarios in the DB."""
+    lulc_url_result: str
+    lulc_stats: str
 
 
 class ParcelStats(BaseModel):
@@ -92,14 +99,6 @@ class StudyArea(BaseModel):
 class StudyAreaCreateRequest(BaseModel):
     """Pydantic model for the body of the create study area request."""
     name: str
-
-
-class ScenarioResponse(BaseModel):
-    """Pydantic model for the response after scenario creation."""
-    scenario_id: int
-
-    class Config:
-        orm_mode = True
 
 
 class Session(BaseModel):
