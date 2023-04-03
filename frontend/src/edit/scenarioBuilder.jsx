@@ -14,7 +14,6 @@ import WallpaperingMenu from './wallpaperingMenu';
 import {
   doWallpaper,
   createScenario,
-  // getScenarioResult,
   getJobStatus,
   convertToSingleLULC,
 } from '../requests';
@@ -27,7 +26,6 @@ export default function ScenarioBuilder(props) {
     patternSamplingMode,
     togglePatternSamplingMode,
     patternSampleWKT,
-    // addScenarioLULCTable,
     refreshScenarios,
   } = props;
 
@@ -42,9 +40,6 @@ export default function ScenarioBuilder(props) {
     console.log('checking status for job', jobID);
     const status = await getJobStatus(jobID);
     if (status === 'success') {
-      // const results = await getScenarioResult(jobID, scenarioID);
-      // console.log(results);
-      // addScenarioLULCTable({ [scenarioName]: results.lulc_stats.result });
       refreshScenarios();
       setJobID(null);
     }
@@ -56,14 +51,10 @@ export default function ScenarioBuilder(props) {
       alert('no scenario was selected');
       return;
     }
-    // let currentScenarioID = scenarioID;
     // TODO: add validation to check that scenarioName is not already taken
     // for this study area. If it is, maybe give option to overwrite?
-    // TODO: It might be more orthogonal to have the wallpapering/parcel_fill
-    // endpoint create the scenario on the backend, rather than creating it up-front.
     const currentScenarioID = await createScenario(
       activeStudyAreaID, scenarioName, 'description', conversionOption);
-    console.log(currentScenarioID)
     setScenarioID(currentScenarioID);
     let jid;
     if (conversionOption === 'wallpaper' && selectedPattern) {

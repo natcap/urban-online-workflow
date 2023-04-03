@@ -112,7 +112,8 @@ export default function WallpaperingMenu(props) {
             />
           )}
       </div>
-      {(patternSamplingMode)
+      {
+        (patternSamplingMode)
         ? (
           <>
             <p>1. Drag the box over the map to sample a pattern</p>

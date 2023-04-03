@@ -147,6 +147,8 @@ export default function MapComponent(props) {
     parcelSet,
     activeStudyAreaID,
     refreshStudyArea,
+    patternSamplingMode,
+    setPatternSampleWKT,
   } = props;
   const [layers, setLayers] = useState([]);
   const [showLayerControl, setShowLayerControl] = useState(false);
@@ -259,20 +261,20 @@ export default function MapComponent(props) {
   // }, [scenarioLulcRasters]);
 
   // toggle pattern sampler visibility according to the pattern sampling mode
-  // useEffect(() => {
-  //   if (patternSamplerLayer) {
-  //     if (patternSamplingMode) {
-  //       switchBasemap('Landcover');
-  //       // when pattern sampling mode is turned on,
-  //       // recenter the sampler box in the current view
-  //       const [mapCenterX, mapCenterY] = map.getView().getCenter();
-  //       patternSamplerFeature.setGeometry(
-  //         centeredPatternSamplerGeom(mapCenterX, mapCenterY)
-  //       );
-  //     }
-  //     patternSamplerLayer.setVisible(patternSamplingMode);
-  //   }
-  // }, [patternSamplingMode]);
+  useEffect(() => {
+    if (patternSamplerLayer) {
+      if (patternSamplingMode) {
+        switchBasemap('Landcover');
+        // when pattern sampling mode is turned on,
+        // recenter the sampler box in the current view
+        const [mapCenterX, mapCenterY] = map.getView().getCenter();
+        patternSamplerFeature.setGeometry(
+          centeredPatternSamplerGeom(mapCenterX, mapCenterY)
+        );
+      }
+      patternSamplerLayer.setVisible(patternSamplingMode);
+    }
+  }, [patternSamplingMode]);
 
   return (
     <div className="map-container">
