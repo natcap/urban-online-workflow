@@ -1,36 +1,34 @@
 import React, { useState, useEffect } from 'react';
 
-import landuseCodes from '../landuseCodes';
-import { getScenario } from '../requests';
-
 import {
   HTMLTable,
-  Button
+  Button,
 } from '@blueprintjs/core';
+
+import landuseCodes from '../landuseCodes';
 
 function sqkm(count) {
   if (!parseInt(count)) {
-    return ''
+    return '';
   }
   const num = count * 0.030 * 0.030;
-  return num.toFixed(2)
+  return num.toFixed(2);
 }
 
 export default function ScenarioTable(props) {
-  const { scenarioIDs } = props;
-  console.log(scenarioIDs)
+  const { scenarios } = props;
 
-  // const [lulcNames, setLulcNames] = useState([]);
   const [scenarioTable, setScenarioTable] = useState(null);
 
   useEffect(async () => {
     const table = {};
-    const scenarios = await Promise.all(scenarioIDs.forEach((id) => getScenario(id)));
     scenarios.forEach((scene) => {
-      table[scene.name] = scene.lulc_stats.result;
+      table[scene.name] = JSON.parse(scene.lulc_stats).result;
     });
     setScenarioTable(table);
-  }, [scenarioIDs]);
+  }, [scenarios]);
+
+  if (!scenarioTable) { return <div />; }
 
   const scenarioHeader = (
     <tr key="header">

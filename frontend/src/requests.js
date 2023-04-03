@@ -138,26 +138,10 @@ export async function updateStudyArea(sessionID, studyArea) {
 }
 
 /**
- * Get a scenario from its id.
- *
- * @param  {integer} id - id of the scenario to retrieve
- * @return {object} scenario object
- */
-export async function getScenario(id) {
-  return (
-    window.fetch(`${apiBaseURL}/scenario/${id}`, {
-      method: 'get',
-    })
-      .then((response) => response.json())
-      .catch((error) => console.log(error))
-  );
-}
-
-/**
- * Get all scenario ids for a study area.
+ * Get all scenarios for a study area.
  *
  * @param  {integer} studyAreaID - id of the study area
- * @return {array} of scenario IDs
+ * @return {array} of scenario objects
  */
 export async function getScenarios(studyAreaID) {
   return (

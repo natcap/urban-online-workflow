@@ -11,7 +11,6 @@ import ScenarioTable from './scenarioTable';
 import SelectStudyArea from './selectStudyArea';
 import StudyAreaTable from './studyAreaTable';
 import InputStudyAreaName from './inputStudyAreaName';
-import landuseCodes from '../landuseCodes';
 import { getScenarios } from '../requests';
 
 FocusStyleManager.onlyShowFocusOnTabs();
@@ -30,21 +29,12 @@ export default function EditMenu(props) {
   } = props;
 
   const [activeTab, setActiveTab] = useState('create');
-  const [scenarioIDs, setScenarioIDs] = useState([]);
-  // const [scenarioTable, setScenarioTable] = useState(null);
-
-  // const addScenarioLULCTable = (table) => {
-  //   setScenarioTable((prev) => {
-  //     const newTable = { ...prev, ...table };
-  //     return newTable;
-  //   });
-  // };
-
+  const [scenarios, setScenarios] = useState([]);
 
   const refreshScenarios = async () => {
     if (studyArea.id) {
-      const scenarios = await getScenarios(studyArea.id);
-      setScenarioIDs(scenarios);
+      const scenes = await getScenarios(studyArea.id);
+      setScenarios(scenes);
     }
   };
 
@@ -103,21 +93,20 @@ export default function EditMenu(props) {
                 patternSampleWKT={patternSampleWKT}
                 togglePatternSamplingMode={togglePatternSamplingMode}
                 activeStudyAreaID={studyArea.id}
-                // addScenarioLULCTable={addScenarioLULCTable}
                 refreshScenarios={refreshScenarios}
               />
             </div>
           )}
         />
         {
-          (scenarioIDs.length)
+          (scenarios.length)
             ? (
               <Tab
                 id="explore"
                 title="Analyze"
                 panel={
                   <ScenarioTable
-                    scenarioIDs={scenarioIDs}
+                    scenarios={scenarios}
                   />
                 }
               />
