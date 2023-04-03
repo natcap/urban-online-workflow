@@ -172,6 +172,10 @@ html, body, #root, .App {
   height: 1rem;
 }
 
+.scenario-table {
+  padding-top: 1rem;
+}
+
 .scenario-table .col-name {
   transform: rotate(310deg);
 }

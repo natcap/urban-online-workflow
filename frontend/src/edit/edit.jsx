@@ -95,24 +95,18 @@ export default function EditMenu(props) {
                 activeStudyAreaID={studyArea.id}
                 refreshScenarios={refreshScenarios}
               />
+              {
+                (scenarios.length)
+                  ? (
+                    <ScenarioTable
+                      scenarios={scenarios}
+                    />
+                  )
+                  : <div />
+              }
             </div>
           )}
         />
-        {
-          (scenarios.length)
-            ? (
-              <Tab
-                id="explore"
-                title="Analyze"
-                panel={
-                  <ScenarioTable
-                    scenarios={scenarios}
-                  />
-                }
-              />
-            )
-            : <div />
-        }
       </Tabs>
     </div>
   );
