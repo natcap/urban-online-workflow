@@ -9,6 +9,7 @@ import {
   getSession,
   createStudyArea,
   updateStudyArea,
+  getScenarios,
 } from './requests';
 
 export default function App() {
@@ -18,6 +19,7 @@ export default function App() {
     id: undefined,
     parcels: [],
   });
+  const [scenarios, setScenarios] = useState([]);
   const [patternSamplingMode, setPatternSamplingMode] = useState(false);
   const [patternSampleWKT, setPatternSampleWKT] = useState(null);
 
@@ -46,6 +48,13 @@ export default function App() {
       area.id !== updatedArea.id
     ));
     setSavedStudyAreas(otherAreas.concat(updatedArea));
+  };
+
+  const refreshScenarios = async () => {
+    if (studyArea.id) {
+      const scenes = await getScenarios(studyArea.id);
+      setScenarios(scenes);
+    }
   };
 
   const togglePatternSamplingMode = () => {
@@ -77,11 +86,18 @@ export default function App() {
         console.log(areas)
         setSavedStudyAreas(areas);
         await switchStudyArea(areas[0].id); // TODO: switch to most recently created
+        // refreshScenarios();
       } else {
         await switchStudyArea(undefined); // undefined id creates new study area
       }
     }
   }, [sessionID]);
+
+  useEffect(() => {
+    refreshScenarios();
+  }, [studyArea.id]);
+
+  console.log(scenarios)
 
   return (
     (sessionID)
@@ -95,6 +111,7 @@ export default function App() {
               refreshStudyArea={refreshStudyArea}
               patternSamplingMode={patternSamplingMode}
               setPatternSampleWKT={setPatternSampleWKT}
+              scenarios={scenarios}
             />
             <EditMenu
               sessionID={sessionID}
@@ -103,6 +120,8 @@ export default function App() {
               nameStudyArea={nameStudyArea}
               switchStudyArea={switchStudyArea}
               savedStudyAreas={savedStudyAreas}
+              refreshScenarios={refreshScenarios}
+              scenarios={scenarios}
               patternSamplingMode={patternSamplingMode}
               togglePatternSamplingMode={togglePatternSamplingMode}
               patternSampleWKT={patternSampleWKT}

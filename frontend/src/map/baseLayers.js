@@ -8,7 +8,7 @@ const satelliteLayer = new TileLayer({
   source: new XYZ({
     url: 'https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.jpg90?access_token=' + import.meta.env.VITE_DAVES_MAPBOX_TOKEN,
   }),
-  visible: true,
+  visible: false,
 });
 satelliteLayer.set('title', 'Satellite');
 satelliteLayer.set('type', 'base');

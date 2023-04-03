@@ -11,7 +11,7 @@ import ScenarioTable from './scenarioTable';
 import SelectStudyArea from './selectStudyArea';
 import StudyAreaTable from './studyAreaTable';
 import InputStudyAreaName from './inputStudyAreaName';
-import { getScenarios } from '../requests';
+// import { getScenarios } from '../requests';
 
 FocusStyleManager.onlyShowFocusOnTabs();
 
@@ -19,6 +19,8 @@ export default function EditMenu(props) {
   const {
     nameStudyArea,
     refreshStudyArea,
+    refreshScenarios,
+    scenarios,
     patternSamplingMode,
     togglePatternSamplingMode,
     patternSampleWKT,
@@ -29,18 +31,18 @@ export default function EditMenu(props) {
   } = props;
 
   const [activeTab, setActiveTab] = useState('create');
-  const [scenarios, setScenarios] = useState([]);
+  // const [scenarios, setScenarios] = useState([]);
 
-  const refreshScenarios = async () => {
-    if (studyArea.id) {
-      const scenes = await getScenarios(studyArea.id);
-      setScenarios(scenes);
-    }
-  };
+  // const refreshScenarios = async () => {
+  //   if (studyArea.id) {
+  //     const scenes = await getScenarios(studyArea.id);
+  //     setScenarios(scenes);
+  //   }
+  // };
 
-  useEffect(async () => {
-    refreshScenarios();
-  }, [studyArea.id]);
+  // useEffect(async () => {
+  //   refreshScenarios();
+  // }, [studyArea.id]);
 
   return (
     <div className="menu-container">

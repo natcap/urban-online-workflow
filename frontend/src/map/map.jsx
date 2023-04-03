@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 import { Map, View } from 'ol';
-import MVT from 'ol/format/MVT';
+import Collection from 'ol/Collection';
+import LayerGroup from 'ol/layer/Group';
+import { Vector as VectorLayer } from 'ol/layer';
 import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
 import { Vector as VectorSource } from 'ol/source';
-import { Vector as VectorLayer } from 'ol/layer';
+import MVT from 'ol/format/MVT';
 import WKT from 'ol/format/WKT';
 import Feature from 'ol/Feature';
 import { Polygon } from 'ol/geom';
@@ -96,7 +98,7 @@ const parcelLayer = new VectorTileLayer({
   minZoom: 15, // don't display this layer below zoom level 14
 });
 parcelLayer.set('title', 'Parcels');
-parcelLayer.setZIndex(1);
+parcelLayer.setZIndex(2);
 
 let selectedFeature = null;
 const selectionLayer = new VectorTileLayer({
@@ -111,7 +113,7 @@ const selectionLayer = new VectorTileLayer({
   },
 });
 selectionLayer.set('title', 'Selected Parcels');
-selectionLayer.setZIndex(2);
+selectionLayer.setZIndex(3);
 
 const studyAreaSource = new VectorSource({});
 const studyAreaLayer = new VectorLayer({
@@ -120,15 +122,21 @@ const studyAreaLayer = new VectorLayer({
 studyAreaLayer.set('title', 'Study Area');
 studyAreaLayer.setZIndex(3);
 
+const scenarioLayerGroup = new LayerGroup({
+  properties: { group: 'scenarios' }
+});
+scenarioLayerGroup.setZIndex(1);
+
 const map = new Map({
   layers: [
     satelliteLayer,
     streetMapLayer,
-    lulcTileLayer(BASE_LULC_URL, 'Landcover'),
+    lulcTileLayer(BASE_LULC_URL, 'Landcover', 'base'),
     parcelLayer,
     selectionLayer,
     patternSamplerLayer,
     labelLayer,
+    scenarioLayerGroup,
   ],
   view: new View({
     center: [-10984368.72, 3427876.58], // W. San Antonio, EPSG:3857
@@ -149,10 +157,11 @@ export default function MapComponent(props) {
     refreshStudyArea,
     patternSamplingMode,
     setPatternSampleWKT,
+    scenarios,
   } = props;
   const [layers, setLayers] = useState([]);
   const [showLayerControl, setShowLayerControl] = useState(false);
-  const [basemap, setBasemap] = useState('Satellite');
+  const [selectedBasemap, setSelectedBasemap] = useState('Satellite');
   const [selectedParcel, setSelectedParcel] = useState(null);
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
@@ -175,7 +184,17 @@ export default function MapComponent(props) {
         setVisibility(layer, layer.get('title') === title);
       }
     });
-    setBasemap(title);
+    setSelectedBasemap(title);
+  };
+
+  const switchScenario = (title) => {
+    layers.forEach((layer) => {
+      if (layer.get('group') === 'scenarios') {
+        layer.getLayers().forEach(lyr => {
+          setVisibility(lyr, lyr.get('title') === title);
+        });
+      }
+    });
   };
 
   const clearSelection = () => {
@@ -190,6 +209,7 @@ export default function MapComponent(props) {
   useEffect(() => {
     map.setTarget(mapElementRef.current);
     setLayers(map.getLayers().getArray());
+    switchBasemap('Satellite');
     parcelLayer.setStyle(styleParcel(map.getView().getZoom()));
 
     // when the box appears, or when the user finishes dragging the box,
@@ -247,18 +267,22 @@ export default function MapComponent(props) {
   //   }
   // })
 
-  // useEffect(() => {
-  //   if (scenarioLulcRasters) {
-  //     console.log(scenarioLulcRasters);
-  //     const mapLayerTitles = map.getLayers().getArray().map(lyr => lyr.get('title'));
-  //     console.log(mapLayerTitles);
-  //     Object.entries(scenarioLulcRasters).forEach(([name, url]) => {
-  //       if (!mapLayerTitles.includes(name)) {
-  //         map.addLayer(lulcTileLayer(url, name));
-  //       }
-  //     });
-  //   }
-  // }, [scenarioLulcRasters]);
+  useEffect(() => {
+    // A naive approach where we don't need to know if scenarios changed
+    // because a new one was created, or because the study area was switched.
+    map.removeLayer(scenarioLayerGroup);
+    if (scenarios.length) {
+      const scenarioLayers = [];
+      scenarios.forEach((scene) => {
+        scenarioLayers.push(
+          lulcTileLayer(scene.lulc_url_result, scene.name, 'scenario')
+        );
+      });
+      scenarioLayerGroup.setLayers(new Collection(scenarioLayers));
+      map.addLayer(scenarioLayerGroup);
+      setLayers(map.getLayers().getArray());
+    }
+  }, [scenarios]);
 
   // toggle pattern sampler visibility according to the pattern sampling mode
   useEffect(() => {
@@ -290,7 +314,8 @@ export default function MapComponent(props) {
           layers={[...layers].reverse()} // copy array & reverse it
           setVisibility={setVisibility}
           switchBasemap={switchBasemap}
-          basemap={basemap}
+          switchScenario={switchScenario}
+          basemap={selectedBasemap}
         />
       </div>
       <ParcelControl

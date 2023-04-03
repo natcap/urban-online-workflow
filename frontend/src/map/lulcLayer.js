@@ -10,7 +10,7 @@ Object.entries(landuseCodes).forEach(([code, data]) => {
   colors[code] = data.color;
 });
 
-export function lulcTileLayer(url, title, sourceOptions) {
+export function lulcTileLayer(url, title, type, sourceOptions) {
   console.log(sourceOptions)
   const source = new GeoTIFF({
     sources: [{
@@ -24,7 +24,7 @@ export function lulcTileLayer(url, title, sourceOptions) {
   return new TileLayer({
     source: source,
     title: title,
-    type: 'base',
+    type: type,
     visible: false,
     style: {
       // https://openlayers.org/en/latest/apidoc/module-ol_style_expressions.html#~ExpressionValue
@@ -41,6 +41,7 @@ export function lulcTileLayer(url, title, sourceOptions) {
   });
 }
 
+// TODO: unused
 export function lulcImageLayer(url, title) {
   const source = new GeoTIFF({
     sources: [{
