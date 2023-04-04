@@ -112,7 +112,6 @@ const selectionLayer = new VectorTileLayer({
     }
   },
 });
-selectionLayer.set('title', 'Selected Parcels');
 selectionLayer.setZIndex(3);
 
 const studyAreaSource = new VectorSource({});
