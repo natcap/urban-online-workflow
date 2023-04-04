@@ -39,6 +39,7 @@ export default function LayerPanel(props) {
   // default basemap to display. No scenario layers are displayed
   // by default, so that Radio can be controlled here.
   const [selectedScenario, setSelectedScenario] = useState(null);
+  // const [scenarioLayerGroup, setScenarioLayerGroup] = useState(null);
 
   if (!show) {
     return null;
@@ -58,8 +59,10 @@ export default function LayerPanel(props) {
   const checkboxes = [];
   const basemaps = [];
   const scenarios = [];
+  let scenarioLayerGroup;
   layers.forEach((layer) => {
     if (layer.get('group') === 'scenarios') {
+      scenarioLayerGroup = layer;
       layer.getLayers().forEach(lyr => {
         const title = lyr.get('title');
         scenarios.push(
@@ -95,6 +98,7 @@ export default function LayerPanel(props) {
       }
     }
   });
+
   return (
     <div className="layers-panel">
       {checkboxes}
@@ -108,13 +112,20 @@ export default function LayerPanel(props) {
       {
         (scenarios.length)
           ? (
-            <RadioGroup
-              label="Scenarios:"
-              onChange={handleChangeScenario}
-              selectedValue={selectedScenario}
-            >
-              {scenarios}
-            </RadioGroup>
+            <>
+              <LayerCheckbox
+                key="scenario-group"
+                layer={scenarioLayerGroup}
+                label="Scenarios:"
+                setVisibility={setVisibility}
+              />
+              <RadioGroup
+                onChange={handleChangeScenario}
+                selectedValue={selectedScenario}
+              >
+                {scenarios}
+              </RadioGroup>
+            </>
           )
           : <div />
       }

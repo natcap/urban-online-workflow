@@ -106,7 +106,7 @@ export default function App() {
           <div className="map-and-menu-container">
             <MapComponent
               sessionID={sessionID}
-              parcelSet={studyArea.parcels}
+              studyAreaParcels={studyArea.parcels}
               activeStudyAreaID={studyArea.id}
               refreshStudyArea={refreshStudyArea}
               patternSamplingMode={patternSamplingMode}

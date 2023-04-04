@@ -117,15 +117,18 @@ selectionLayer.setZIndex(3);
 
 const studyAreaSource = new VectorSource({});
 const studyAreaLayer = new VectorLayer({
-  source: studyAreaSource
+  source: studyAreaSource,
 });
 studyAreaLayer.set('title', 'Study Area');
 studyAreaLayer.setZIndex(3);
 
 const scenarioLayerGroup = new LayerGroup({
-  properties: { group: 'scenarios' }
+  properties: { group: 'scenarios' },
 });
 scenarioLayerGroup.setZIndex(1);
+
+// Set a default basemap to be visible
+satelliteLayer.setVisible(true);
 
 const map = new Map({
   layers: [
@@ -134,6 +137,7 @@ const map = new Map({
     lulcTileLayer(BASE_LULC_URL, 'Landcover', 'base'),
     parcelLayer,
     selectionLayer,
+    studyAreaLayer,
     patternSamplerLayer,
     labelLayer,
     scenarioLayerGroup,
@@ -152,13 +156,14 @@ const map = new Map({
 export default function MapComponent(props) {
   const {
     sessionID,
-    parcelSet,
+    studyAreaParcels,
     activeStudyAreaID,
     refreshStudyArea,
     patternSamplingMode,
     setPatternSampleWKT,
     scenarios,
   } = props;
+  console.log(scenarios)
   const [layers, setLayers] = useState([]);
   const [showLayerControl, setShowLayerControl] = useState(false);
   const [selectedBasemap, setSelectedBasemap] = useState('Satellite');
@@ -209,7 +214,6 @@ export default function MapComponent(props) {
   useEffect(() => {
     map.setTarget(mapElementRef.current);
     setLayers(map.getLayers().getArray());
-    switchBasemap('Satellite');
     parcelLayer.setStyle(styleParcel(map.getView().getZoom()));
 
     // when the box appears, or when the user finishes dragging the box,
@@ -254,18 +258,21 @@ export default function MapComponent(props) {
     });
   }, []);
 
-  // useEffect(() => {
-  //   if (parcelSet.length) {
-  //     const features = parcelSet.forEach(parcel => {
-  //       const feature = wktFormat.readFeature(parcel.wkt, {
-  //         dataProjection: 'EPSG:3857',
-  //         featureProjection: 'EPSG:3857',
-  //       });
-  //       return feature;
-  //     });
-  //     studyAreaSource.addFeatures()
-  //   }
-  // })
+  useEffect(() => {
+    // A naive approach where we don't need to know if studyAreaParcels changed
+    // because a study area was modified, or because the study area was switched.
+    studyAreaSource.clear();
+    if (studyAreaParcels.length) {
+      const features = studyAreaParcels.map((parcel) => {
+        const feature = wktFormat.readFeature(parcel.wkt, {
+          dataProjection: 'EPSG:3857',
+          featureProjection: 'EPSG:3857',
+        });
+        return feature;
+      });
+      studyAreaSource.addFeatures(features);
+    }
+  }, [studyAreaParcels]);
 
   useEffect(() => {
     // A naive approach where we don't need to know if scenarios changed
