@@ -717,28 +717,6 @@ def add_parcel(create_parcel_request: schemas.ParcelCreateRequest,
     return worker_task['server_attrs']
 
 
-# @app.get("/scenario/result/{job_id}/{scenario_id}")
-# def get_scenario_results(
-#         job_id: int, scenario_id: int, db: Session = Depends(get_db)):
-#     """Return the wallpapering or fill results if the job was successful."""
-#     # Check job status and return URL and Stats from table
-#     LOGGER.info(f'{job_id}, {scenario_id}')
-#     job_db = crud.get_job(db, job_id=job_id)
-#     if job_db is None:
-#         raise HTTPException(status_code=404, detail="Job not found")
-#     if job_db.status == STATUS_SUCCESS:
-#         scenario_db = crud.get_scenario(db, scenario_id=scenario_id)
-#         if scenario_db is None:
-#             raise HTTPException(status_code=404, detail="Scenario not found")
-#         scenario_results = {
-#             "lulc_url_result": scenario_db.lulc_url_result,
-#             "lulc_stats": json.loads(scenario_db.lulc_stats),
-#             }
-#         return scenario_results
-#     else:
-#         return job_db.status
-
-
 @app.post("/invest/{scenario_id}")
 def run_invest(scenario_id: int, db: Session = Depends(get_db)):
     """Add invest job to the queue. This runs all InVEST models."""
