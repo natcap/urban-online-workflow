@@ -178,7 +178,6 @@ export default function MapComponent(props) {
     setPatternSampleWKT,
     scenarios,
   } = props;
-  console.log(scenarios)
   const [layers, setLayers] = useState([]);
   const [showLayerControl, setShowLayerControl] = useState(false);
   const [selectedBasemap, setSelectedBasemap] = useState('Satellite');

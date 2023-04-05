@@ -27,6 +27,7 @@ export default function ScenarioBuilder(props) {
     togglePatternSamplingMode,
     patternSampleWKT,
     refreshScenarios,
+    scenarioNames,
   } = props;
 
   const [singleLULC, setSingleLULC] = useState(Object.keys(landuseCodes)[0]);
@@ -111,7 +112,7 @@ export default function ScenarioBuilder(props) {
         }
       </div>
       <p className="sidebar-subheading">
-        <span>Save as a new scenario for study area </span>
+        <span>Add scenario for this study area </span>
       </p>
       <InputGroup
         placeholder="name this scenario"
@@ -120,8 +121,9 @@ export default function ScenarioBuilder(props) {
         rightElement={(
           <Button
             onClick={submitScenario}
+            disabled={scenarioNames.includes(scenarioName) || !scenarioName}
           >
-            Save
+            Add
           </Button>
         )}
       />

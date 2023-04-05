@@ -65,7 +65,6 @@ export default function App() {
     let SID = localStorage.getItem('sessionID');
     if (SID) {
       const session = await getSession(SID);
-      console.log(session)
       if (session && session.id) {
         setSessionID(SID);
         return;
@@ -83,7 +82,6 @@ export default function App() {
         area.parcels.length > 0
       ));
       if (areas.length) {
-        console.log(areas)
         setSavedStudyAreas(areas);
         await switchStudyArea(areas[0].id); // TODO: switch to most recently created
         // refreshScenarios();
@@ -96,8 +94,6 @@ export default function App() {
   useEffect(() => {
     refreshScenarios();
   }, [studyArea.id]);
-
-  console.log(scenarios)
 
   return (
     (sessionID)

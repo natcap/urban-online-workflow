@@ -29,6 +29,7 @@ export default function EditMenu(props) {
     switchStudyArea,
     savedStudyAreas,
   } = props;
+  console.log(scenarios)
 
   const [activeTab, setActiveTab] = useState('create');
 
@@ -85,6 +86,7 @@ export default function EditMenu(props) {
                 togglePatternSamplingMode={togglePatternSamplingMode}
                 activeStudyAreaID={studyArea.id}
                 refreshScenarios={refreshScenarios}
+                scenarioNames={scenarios.map((scene) => scene.name)}
               />
               {
                 (scenarios.length)
