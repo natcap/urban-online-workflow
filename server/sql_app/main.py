@@ -156,13 +156,8 @@ def create_study_area(
     db_session = crud.get_session(db, session_id=session_id)
     if db_session is None:
         raise HTTPException(status_code=404, detail="Session not found")
-    db_study_area = crud.create_study_area(
+    return crud.create_study_area(
         db=db, **new_area.dict(), session_id=session_id)
-    # scenario = schemas.ScenarioBase
-    # scenario.name = 'baseline'
-    # _ = crud.create_scenario(
-    #     db=db, scenario=scenario, study_area_id=db_study_area.id)
-    return db_study_area
 
 
 @app.get("/study_area/{session_id}/{study_area_id}",

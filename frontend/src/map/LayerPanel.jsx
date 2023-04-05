@@ -39,7 +39,6 @@ export default function LayerPanel(props) {
   // default basemap to display. No scenario layers are displayed
   // by default, so that Radio can be controlled here.
   const [selectedScenario, setSelectedScenario] = useState(null);
-  // const [scenarioLayerGroup, setScenarioLayerGroup] = useState(null);
 
   if (!show) {
     return null;

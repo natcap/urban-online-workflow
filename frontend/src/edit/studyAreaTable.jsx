@@ -15,7 +15,6 @@ export default function StudyAreaTable(props) {
     studyAreaID,
     immutableStudyArea,
   } = props;
-  console.log(parcelArray)
   const [highlightedCode, setHighlightedCode] = useState(null);
 
   const deleteParcel = async (parcelID) => {

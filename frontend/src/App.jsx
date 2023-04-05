@@ -84,7 +84,6 @@ export default function App() {
       if (areas.length) {
         setSavedStudyAreas(areas);
         await switchStudyArea(areas[0].id); // TODO: switch to most recently created
-        // refreshScenarios();
       } else {
         await switchStudyArea(undefined); // undefined id creates new study area
       }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 import {
   FocusStyleManager,
@@ -11,7 +11,6 @@ import ScenarioTable from './scenarioTable';
 import SelectStudyArea from './selectStudyArea';
 import StudyAreaTable from './studyAreaTable';
 import InputStudyAreaName from './inputStudyAreaName';
-// import { getScenarios } from '../requests';
 
 FocusStyleManager.onlyShowFocusOnTabs();
 
@@ -29,7 +28,6 @@ export default function EditMenu(props) {
     switchStudyArea,
     savedStudyAreas,
   } = props;
-  console.log(scenarios)
 
   const [activeTab, setActiveTab] = useState('create');
 

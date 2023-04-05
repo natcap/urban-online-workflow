@@ -2,38 +2,6 @@ import patternsTable from './edit/patternsTable'; // TODO: this is temp
 
 const apiBaseURL = 'http://127.0.0.1:8000';
 
-/**
- * Convert an array of coordinate pairs to WKT representation.
- *
- * @param  {array[array[number]]} coords - an array of two-element arrays
- *  representing [lon, lat] coordinate pairs that outline a polygon
- * @return {string} Well-Known Text representation of the polygon
- */
-export function polygonCoordsToWKT(coords) {
-  return `POLYGON((${
-    coords.map(
-      (lonLat) => `${lonLat[0]} ${lonLat[1]}`,
-    ).join(', ')
-  }))`;
-}
-
-/**
- * Convert an array of polygons to WKT representation.
- *
- * @param  {array[array[array[number]]]} polygons - an array of arrays
- *  of two-element arrays representing [lon, lat] coordinate pairs
- *  that outline a polygon
- * @return {string} Well-Known Text representation of the polygon
- */
-export function mulitPolygonCoordsToWKT(polygons) {
-  return `MULTIPOLYGON(${
-    polygons.map(
-      (polygon) => `((${polygon.map(
-        ([lon, lat]) => `${lon} ${lat}`,
-      ).join(', ')}))`,
-    )
-  })`;
-}
 
 /**
  * Create a new session and return its id.
