@@ -10,12 +10,26 @@ import { Vector as VectorSource } from 'ol/source';
 import MVT from 'ol/format/MVT';
 import WKT from 'ol/format/WKT';
 import Feature from 'ol/Feature';
-import { Polygon } from 'ol/geom';
+import { 
+  Point,
+  LineString,
+  LinearRing,
+  Polygon,
+  MultiPoint,
+  MultiLineString,
+  MultiPolygon
+} from 'ol/geom';
+import GeometryCollection from 'ol/geom/GeometryCollection';
+import { inflateCoordinatesArray } from "ol/geom/flat/inflate"
 import {
   Translate,
   defaults as defaultInteractions,
 } from 'ol/interaction';
 import { defaults } from 'ol/control';
+
+import OL3Parser from 'jsts/org/locationtech/jts/io/OL3Parser';
+import WKTWriter from 'jsts/org/locationtech/jts/io/WKTWriter';
+import OverlayOp from 'jsts/org/locationtech/jts/operation/overlay/OverlayOp';
 
 import { Button, Icon } from '@blueprintjs/core';
 
@@ -45,17 +59,19 @@ const GEOTIFF_SOURCE_OPTIONS = {
   }
 }
 
-function getCoords(geometry) {
-  const flatCoords = geometry.getFlatCoordinates();
-  const pairedCoords = flatCoords.reduce(
-    (result, value, index, array) => {
-      if (index % 2 === 0) {
-        result.push(array.slice(index, index + 2));
-      }
-      return result;
-    }, []);
-  return pairedCoords;
-}
+// JSTS utilities
+const ol3parser = new OL3Parser();
+ol3parser.inject(
+  // Order of these matters even though we don't use them all
+  Point,
+  LineString,
+  LinearRing,
+  Polygon,
+  MultiPoint,
+  MultiLineString,
+  MultiPolygon,
+);
+const wktWriter = new WKTWriter();
 
 function centeredPatternSamplerGeom(centerX, centerY) {
   const width = 200; // box dimensions in map CRS units
@@ -211,6 +227,7 @@ export default function MapComponent(props) {
 
   // useEffect with no dependencies: only runs after first render
   useEffect(() => {
+    window.onresize = () => setTimeout(map.updateSize(), 200); // update *after* resize
     map.setTarget(mapElementRef.current);
     setLayers(map.getLayers().getArray());
     parcelLayer.setStyle(styleParcel(map.getView().getZoom()));
@@ -227,22 +244,35 @@ export default function MapComponent(props) {
     );
 
     map.on(['click'], async (event) => {
+      // NOTE that a feature's geometry can change with the tile/zoom level and view position
+      // and so its coordinates will change slightly.
       parcelLayer.getFeatures(event.pixel).then(async (features) => {
-        let coords;
+        const geoms = [];
         const feature = features.length ? features[0] : undefined;
         if (feature) {
-          // NOTE that a feature's geometry can change with the tile/zoom level and view position
-          // and so its coordinates will change slightly.
-          // for best precision, maybe don't get the coordinates on the client side
-          coords = getCoords(feature);
+          // Find all the pieces of a feature in case they are split across tiles
+          const fid = feature.getId();
+          const extent = feature.getExtent();
+          const feats = parcelLayer.getSource().getFeaturesInExtent(extent);
+          feats.forEach((feat) => {
+            if (feat.getId() === fid) {
+              geoms.push(ol3parser.read((new Polygon(
+                feat.getFlatCoordinates(),
+                'XY',
+                feat.getEnds()
+              ))));
+            }
+          });
+          const geom = geoms.reduce((partial, a) => OverlayOp.union(partial, a));
+          const wkt = wktWriter.write(geom);
+          selectedFeature = feature;
+          selectionLayer.changed();
+          setSelectedParcel({
+            parcelID: feature.properties_.OBJECTID,
+            address: feature.properties_.address,
+            coords: wkt,
+          });
         }
-        selectedFeature = feature;
-        selectionLayer.changed();
-        setSelectedParcel({
-          parcelID: feature.properties_.OBJECTID,
-          address: feature.properties_.address,
-          coords: coords,
-        });
       });
     });
 
@@ -255,6 +285,7 @@ export default function MapComponent(props) {
         parcelLayer.setStyle(styleParcel(newZoom));
       }
     });
+    map.updateSize();
   }, []);
 
   useEffect(() => {
@@ -330,6 +361,7 @@ export default function MapComponent(props) {
         parcel={selectedParcel}
         clearSelection={clearSelection}
         refreshStudyArea={refreshStudyArea}
+        immutableStudyArea={Boolean(scenarios.length)}
       />
     </div>
   );

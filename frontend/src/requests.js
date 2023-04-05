@@ -29,7 +29,7 @@ export function mulitPolygonCoordsToWKT(polygons) {
   return `MULTIPOLYGON(${
     polygons.map(
       (polygon) => `((${polygon.map(
-        (lonLat) => `${lonLat[0]} ${lonLat[1]}`,
+        ([lon, lat]) => `${lon} ${lat}`,
       ).join(', ')}))`,
     )
   })`;
@@ -265,13 +265,8 @@ export async function convertToSingleLULC(lulcCode, scenarioID) {
 
 /**
  * Add parcel to a study area.
- *
- * @param  {array[array[number]]} targetCoords - an array of two-element arrays
- *  representing [lon, lat] coordinate pairs outlining the parcel to query
- * @return {[object]} ? - fill in when this endpoint is working
  */
-export async function addParcel(sessionID, studyAreaID, parcelID, parcelCoords) {
-  console.log(polygonCoordsToWKT(parcelCoords))
+export async function addParcel(sessionID, studyAreaID, parcelID, wkt) {
   return (
     window.fetch(`${apiBaseURL}/add_parcel`, {
       method: 'post',
@@ -280,7 +275,7 @@ export async function addParcel(sessionID, studyAreaID, parcelID, parcelCoords) 
         session_id: sessionID,
         study_area_id: studyAreaID,
         parcel_id: parcelID,
-        wkt: polygonCoordsToWKT(parcelCoords),
+        wkt: wkt,
       }),
     })
       .then((response) => response.json())
@@ -290,10 +285,6 @@ export async function addParcel(sessionID, studyAreaID, parcelID, parcelCoords) 
 
 /**
  * Remove parcel from a study area.
- *
- * @param  {array[array[number]]} targetCoords - an array of two-element arrays
- *  representing [lon, lat] coordinate pairs outlining the parcel to query
- * @return {[object]} ? - fill in when this endpoint is working
  */
 export async function removeParcel(parcelID, studyAreaID) {
   return (

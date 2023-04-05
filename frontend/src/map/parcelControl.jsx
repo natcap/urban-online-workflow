@@ -18,6 +18,7 @@ export default function ParcelControl(props) {
     sessionID,
     activeStudyAreaID,
     refreshStudyArea,
+    immutableStudyArea,
   } = props;
 
   const [jobID, setJobID] = useState(null);
@@ -52,6 +53,7 @@ export default function ParcelControl(props) {
             <Button
               onClick={() => handleClick(parcel)}
               icon="Add"
+              disabled={immutableStudyArea}
             >
               Add to study area
             </Button>

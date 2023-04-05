@@ -13,6 +13,7 @@ export default function StudyAreaTable(props) {
     parcelArray,
     refreshStudyArea,
     studyAreaID,
+    immutableStudyArea,
   } = props;
   console.log(parcelArray)
   const [highlightedCode, setHighlightedCode] = useState(null);
@@ -60,6 +61,7 @@ export default function StudyAreaTable(props) {
           <Button
             icon="remove"
             onClick={() => deleteParcel(parcel.parcel_id)}
+            disabled={immutableStudyArea}
           />
         </td>
         <td>{parcel.parcel_id}</td>

@@ -31,18 +31,6 @@ export default function EditMenu(props) {
   } = props;
 
   const [activeTab, setActiveTab] = useState('create');
-  // const [scenarios, setScenarios] = useState([]);
-
-  // const refreshScenarios = async () => {
-  //   if (studyArea.id) {
-  //     const scenes = await getScenarios(studyArea.id);
-  //     setScenarios(scenes);
-  //   }
-  // };
-
-  // useEffect(async () => {
-  //   refreshScenarios();
-  // }, [studyArea.id]);
 
   return (
     <div className="menu-container">
@@ -80,6 +68,7 @@ export default function EditMenu(props) {
                       parcelArray={studyArea.parcels}
                       studyAreaID={studyArea.id}
                       refreshStudyArea={refreshStudyArea}
+                      immutableStudyArea={Boolean(scenarios.length)}
                     />
                   )
                   : (
