@@ -12,10 +12,11 @@ import useInterval from '../hooks/useInterval';
 import landuseCodes from '../landuseCodes';
 import WallpaperingMenu from './wallpaperingMenu';
 import {
-  doWallpaper,
   createScenario,
   getJobStatus,
-  convertToSingleLULC,
+  lulcFill,
+  lulcCrop,
+  lulcWallpaper,
 } from '../requests';
 
 export default function ScenarioBuilder(props) {
@@ -38,6 +39,8 @@ export default function ScenarioBuilder(props) {
   const [jobID, setJobID] = useState(null);
 
   useInterval(async () => {
+    // There are sometimes two jobs submitted concurrently.
+    // They are in a priority queue, so for now monitor the lower priority one.
     console.log('checking status for job', jobID);
     const status = await getJobStatus(jobID);
     if (status === 'success') {
@@ -47,25 +50,22 @@ export default function ScenarioBuilder(props) {
   }, (jobID && scenarioID) ? 1000 : null);
 
   const submitScenario = async (event) => {
-    // event.preventDefault();
-    if (!scenarioName) {
-      alert('no scenario was selected');
-      return;
+    if (!scenarioNames.includes('baseline')) {
+      const sid = await createScenario(activeStudyAreaID, 'baseline', 'crop');
+      await lulcCrop(sid);
     }
-    // TODO: add validation to check that scenarioName is not already taken
-    // for this study area. If it is, maybe give option to overwrite?
     const currentScenarioID = await createScenario(
-      activeStudyAreaID, scenarioName, 'description', conversionOption);
+      activeStudyAreaID, scenarioName, conversionOption);
     setScenarioID(currentScenarioID);
     let jid;
     if (conversionOption === 'wallpaper' && selectedPattern) {
-      jid = await doWallpaper(
+      jid = await lulcWallpaper(
         selectedPattern.pattern_id,
         currentScenarioID
       );
     }
     if (conversionOption === 'paint' && singleLULC) {
-      jid = await convertToSingleLULC(singleLULC, currentScenarioID);
+      jid = await lulcFill(singleLULC, currentScenarioID);
     }
     setJobID(jid);
   };

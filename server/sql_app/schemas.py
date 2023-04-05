@@ -38,7 +38,7 @@ class PatternUpdate(BaseModel):
 class ScenarioBase(BaseModel):
     """Pydantic model base for Scenarios."""
     name: str
-    operation: Literal["wallpaper", "paint"]
+    operation: Literal["wallpaper", "paint", "crop"]
 
 
 class Scenario(ScenarioBase):

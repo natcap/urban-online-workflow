@@ -23,7 +23,7 @@ export default function ScenarioTable(props) {
   useEffect(async () => {
     const table = {};
     scenarios.forEach((scene) => {
-      table[scene.name] = JSON.parse(scene.lulc_stats).result;
+      table[scene.name] = JSON.parse(scene.lulc_stats);
     });
     setScenarioTable(table);
   }, [scenarios]);

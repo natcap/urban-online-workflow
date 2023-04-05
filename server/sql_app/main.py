@@ -54,7 +54,8 @@ JOB_TYPES = {
     "invest": "invest",
     "pattern_thumbnail": "pattern_thumbnail",
     "wallpaper": "wallpaper",
-    "parcel_fill": "parcel_fill",
+    "lulc_fill": "lulc_fill",
+    "lulc_crop": "lulc_crop",
     "stats_under_parcel": "stats_under_parcel",
 }
 
@@ -155,8 +156,13 @@ def create_study_area(
     db_session = crud.get_session(db, session_id=session_id)
     if db_session is None:
         raise HTTPException(status_code=404, detail="Session not found")
-    return crud.create_study_area(
+    db_study_area = crud.create_study_area(
         db=db, **new_area.dict(), session_id=session_id)
+    # scenario = schemas.ScenarioBase
+    # scenario.name = 'baseline'
+    # _ = crud.create_scenario(
+    #     db=db, scenario=scenario, study_area_id=db_study_area.id)
+    return db_study_area
 
 
 @app.get("/study_area/{session_id}/{study_area_id}",
@@ -317,14 +323,8 @@ def worker_scenario_response(
             "result": {
                 lulc_path: "relative path to file location",
                 lulc_stats: {
-                    base: {
-                        lulc-int: lulc-perc,
-                        11: 53,
-                    },
-                    result: {
-                        lulc-int: lulc-perc,
-                        11: 53,
-                    },
+                    lulc-int: lulc-count,
+                    11: 53,
                   },
                 }
              "status": "success | failed",
@@ -532,13 +532,7 @@ def get_patterns(db: Session = Depends(get_db)):
     return pattern_db
 
 
-@app.post("/wallpaper/", response_model=schemas.JobResponse)
-def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
-    # Get Scenario details from scenario_id
-    scenario_db = crud.get_scenario(db, wallpaper.scenario_id)
-    study_area_id = scenario_db.study_area_id
-
-    study_area_db = crud.get_study_area(db, study_area_id)
+def _get_study_area_geometry(study_area_db):
     parcel_wkt_list = []
     for parcel in study_area_db.parcels:
         parcel_wkt_list.append(parcel.wkt)
@@ -549,7 +543,16 @@ def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
     parcels_combined_wkt = parcels_combined.wkt
 
     LOGGER.debug(parcels_combined_wkt)
+    return parcels_combined_wkt
 
+
+@app.post("/wallpaper/", response_model=schemas.JobResponse)
+def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
+    # Get Scenario details from scenario_id
+    scenario_db = crud.get_scenario(db, wallpaper.scenario_id)
+    study_area_id = scenario_db.study_area_id
+    study_area_db = crud.get_study_area(db, study_area_id)
+    study_area_wkt = _get_study_area_geometry(study_area_db)
     session_id = study_area_db.owner_id
 
     # Create job entry for wallpapering task
@@ -568,7 +571,7 @@ def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
             "job_id": job_db.job_id, "scenario_id": scenario_db.scenario_id
         },
         "job_args": {
-            "target_parcel_wkt": parcels_combined_wkt,
+            "target_parcel_wkt": study_area_wkt,
             "pattern_bbox_wkt": pattern_db.wkt, #TODO: make sure this is a WKT string and no just a bounding box
             "lulc_source_url": f'{WORKING_ENV}/{scenario_db.lulc_url_base}',
             }
@@ -580,48 +583,75 @@ def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
     return job_db
 
 
-@app.post("/parcel_fill/", response_model=schemas.JobResponse)
-def parcel_fill(parcel_fill: schemas.ParcelFill,
+@app.post("/lulc_fill/", response_model=schemas.JobResponse)
+def lulc_fill(lulc_fill: schemas.ParcelFill,
                 db: Session = Depends(get_db)):
     # Get Scenario details from scenario_id
-    scenario_db = crud.get_scenario(db, parcel_fill.scenario_id)
+    scenario_db = crud.get_scenario(db, lulc_fill.scenario_id)
     study_area_id = scenario_db.study_area_id
-
     study_area_db = crud.get_study_area(db, study_area_id)
-    parcel_wkt_list = []
-    for parcel in study_area_db.parcels:
-        parcel_wkt_list.append(parcel.wkt)
-
-    parcel_geoms = [shapely.wkt.loads(wkt) for wkt in parcel_wkt_list]
-
-    parcels_combined = shapely.geometry.MultiPolygon(parcel_geoms)
-    parcels_combined_wkt = parcels_combined.wkt
-
-    LOGGER.debug(parcels_combined_wkt)
-
+    study_area_wkt = _get_study_area_geometry(study_area_db)
     session_id = study_area_db.owner_id
 
     # Create job entry for wallpapering task
     job_schema = schemas.JobBase(
-        **{"name": "parcel_fill", "description": "parcel filling",
+        **{"name": "lulc_fill", "description": "parcel filling",
            "status": STATUS_PENDING})
     job_db = crud.create_job(
         db=db, session_id=session_id, job=job_schema)
 
     # Construct worker job and add to the queue
     worker_task = {
-        "job_type": JOB_TYPES["parcel_fill"],
+        "job_type": JOB_TYPES["lulc_fill"],
         "server_attrs": {
             "job_id": job_db.job_id, "scenario_id": scenario_db.scenario_id
         },
         "job_args": {
-            "target_parcel_wkt": parcels_combined_wkt,
-            "lulc_class": parcel_fill.lulc_class, #TODO: make sure this is a WKT string and no just a bounding box
+            "target_parcel_wkt": study_area_wkt,
+            "lulc_class": lulc_fill.lulc_class, #TODO: make sure this is a WKT string and no just a bounding box
             "lulc_source_url": f'{WORKING_ENV}/{scenario_db.lulc_url_base}',
             }
         }
 
     QUEUE.put_nowait((MEDIUM_PRIORITY, worker_task))
+
+    # Return job_id for response
+    return job_db
+
+
+@app.post("/lulc_crop/{scenario_id}", response_model=schemas.JobResponse)
+def lulc_crop(scenario_id: int, db: Session = Depends(get_db)):
+    # Get Scenario details from scenario_id
+    LOGGER.debug(scenario_id)
+    scenario_db = crud.get_scenario(db, scenario_id)
+    study_area_id = scenario_db.study_area_id
+    study_area_db = crud.get_study_area(db, study_area_id)
+    study_area_wkt = _get_study_area_geometry(study_area_db)
+    session_id = study_area_db.owner_id
+
+    # Create job entry for wallpapering task
+    job_schema = schemas.JobBase(
+        **{"name": "lulc_crop", "description": "crop lulc",
+           "status": STATUS_PENDING})
+    job_db = crud.create_job(
+        db=db, session_id=session_id, job=job_schema)
+
+    # Construct worker job and add to the queue
+    worker_task = {
+        "job_type": JOB_TYPES["lulc_crop"],
+        "server_attrs": {
+            "job_id": job_db.job_id, "scenario_id": scenario_id
+        },
+        "job_args": {
+            "target_parcel_wkt": study_area_wkt,
+            "lulc_source_url": f'{WORKING_ENV}/{scenario_db.lulc_url_base}',
+            }
+        }
+
+    # In practice, this job is queue'd concurrently with
+    # a lulc_fill or wallpaper job, so this one should be
+    # prioritized.
+    QUEUE.put_nowait((HIGH_PRIORITY, worker_task))
 
     # Return job_id for response
     return job_db

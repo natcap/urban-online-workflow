@@ -162,10 +162,9 @@ export async function getScenarios(studyAreaID) {
  * @param  {string} operation - 'wallpaper' or 'parcel_fill'
  * @return {integer} scenario id
  */
-export async function createScenario(studyAreaID, name, description, operation) {
+export async function createScenario(studyAreaID, name, operation) {
   const payload = JSON.stringify({
     name: name,
-    description: description,
     operation: operation,
   });
   return (
@@ -197,24 +196,6 @@ export async function getJobStatus(jobID) {
   );
 }
 
-// /**
-//  * Get results of a job if it's succeeded, or its status otherwise.
-//  *
-//  * @param  {integer} jobID - id of the job to check
-//  * @param  {integer} scenarioID - id of the scenario associated with the job
-//  * @return {object} results object if job has succeeded, otherwise an object
-//  *  with a 'status' attribute (one of 'pending', 'running', 'failed')
-//  */
-// export async function getScenarioResult(jobID, scenarioID) {
-//   return (
-//     window.fetch(`${apiBaseURL}/scenario/result/${jobID}/${scenarioID}`, {
-//       method: 'get',
-//     })
-//       .then((response) => response.json())
-//       .catch((error) => console.log(error))
-//   );
-// }
-
 /**
  * Apply a wallpaper pattern to a given polygon.
  *
@@ -223,7 +204,7 @@ export async function getJobStatus(jobID) {
  *  lulc modification
  * @return {integer} id of the job that will create the modified LULC raster
  */
-export async function doWallpaper(patternID, scenarioID) {
+export async function lulcWallpaper(patternID, scenarioID) {
   return (
     window.fetch(`${apiBaseURL}/wallpaper`, {
       method: 'post',
@@ -247,15 +228,34 @@ export async function doWallpaper(patternID, scenarioID) {
  *  lulc modification
  * @return {integer} id of the job that will create the modified LULC raster
  */
-export async function convertToSingleLULC(lulcCode, scenarioID) {
+export async function lulcFill(lulcCode, scenarioID) {
   return (
-    window.fetch(`${apiBaseURL}/parcel_fill`, {
+    window.fetch(`${apiBaseURL}/lulc_fill`, {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         scenario_id: scenarioID,
         lulc_class: lulcCode,
       }),
+    })
+      .then((response) => response.json())
+      .then((json) => json.job_id)
+      .catch((error) => console.log(error))
+  );
+}
+
+/**
+ * Crop the LULC to create a 'baseline' scenario
+ *
+ * @param  {integer} scenarioID - id of the scenario to associate with this
+ *  lulc modification
+ * @return {integer} id of the job that will create the modified LULC raster
+ */
+export async function lulcCrop(scenarioID) {
+  return (
+    window.fetch(`${apiBaseURL}/lulc_crop/${scenarioID}`, {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
     })
       .then((response) => response.json())
       .then((json) => json.job_id)
