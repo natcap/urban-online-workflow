@@ -8,8 +8,11 @@ import shapely.geometry
 import shapely.wkt
 
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.testclient import TestClient
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
 from sqlalchemy.orm import Session
 
 from . import crud, models, schemas
@@ -74,11 +77,21 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["*"],  # despite this *, I could not get PATCH to pass CORS
     allow_headers=["*"],
 )
 
-###
+# Get feedback on 422 errors. Taken wholesale from
+# https://github.com/tiangolo/fastapi/issues/3361
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+        request: Request, exc: RequestValidationError):
+    exc_str = f'{exc}'.replace('\n', ' ').replace('   ', ' ')
+    logging.error(f"{request}: {exc_str}")
+    content = {'status_code': 10422, 'message': exc_str, 'data': None}
+    return JSONResponse(
+        content=content, status_code=HTTP_422_UNPROCESSABLE_ENTITY)
+
 # We need to have an independent db session / connection (SessionLocal) per
 # request, use the same session through all the request and then close it after
 # the request is finished.
@@ -135,17 +148,41 @@ def read_session(session_id: str, db: Session = Depends(get_db)):
 
 ### Study Area and Scenario Endpoints ###
 
-@app.post("/study_area/{session_id}", response_model=schemas.StudyAreaResponse)
+@app.post("/study_area/{session_id}", response_model=schemas.StudyArea)
 def create_study_area(
-        session_id: str, study_area: schemas.StudyAreaParcel,
-        db: Session = Depends(get_db)
-):
+        session_id: str, new_area: schemas.StudyAreaCreateRequest,
+        db: Session = Depends(get_db)):
     # check that the session exists
     db_session = crud.get_session(db, session_id=session_id)
     if db_session is None:
         raise HTTPException(status_code=404, detail="Session not found")
     return crud.create_study_area(
-        db=db, study_area=study_area, session_id=session_id)
+        db=db, **new_area.dict(), session_id=session_id)
+
+
+@app.get("/study_area/{session_id}/{study_area_id}",
+         response_model=schemas.StudyArea)
+def get_study_area(
+    session_id: str, study_area_id: int, db: Session = Depends(get_db)):
+    # check that the session exists
+    db_session = crud.get_session(db, session_id=session_id)
+    if db_session is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    db_study_area = crud.get_study_area(db, study_area_id=study_area_id)
+    return db_study_area
+
+# TODO: patch method blocked by CORS? fails preflight request with 400
+@app.put("/study_area/{session_id}",
+           response_model=schemas.StudyArea)
+def update_study_area(session_id: str, study_area: schemas.StudyArea,
+                      db: Session = Depends(get_db)):
+    # check that the session exists
+    db_session = crud.get_session(db, session_id=session_id)
+    if db_session is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    del study_area.parcels  # not an attribute of schemas.StudyArea
+    db_study_area = crud.update_study_area(db, study_area)
+    return db_study_area
 
 
 @app.get("/study_areas/{session_id}", response_model=list[schemas.StudyArea])
@@ -325,9 +362,6 @@ def worker_parcel_stats_response(
     LOGGER.debug(parcel_stats_job)
     # Update job in db based on status
     job_db = crud.get_job(db, job_id=parcel_stats_job.server_attrs['job_id'])
-    # Update Stats in db with the result
-    stats_db = crud.get_parcel_stats(
-        db, stats_id=parcel_stats_job.server_attrs['stats_id'])
 
     job_status = parcel_stats_job.status
     if job_status == "success":
@@ -581,23 +615,47 @@ def parcel_fill(parcel_fill: schemas.ParcelFill,
     return job_db
 
 
-@app.post("/stats_under_parcel/", response_model=schemas.JobResponse)
-def get_lulc_stats_under_parcel(parcel_stats_req: schemas.ParcelStatsRequest,
-                                db: Session = Depends(get_db)):
-    # TODO: Check if this parcel has already been computed.
-    # NOTE this assumes we're always using baseline LULC
+@app.post("/remove_parcel/")
+def remove_parcel(delete_parcel_request: schemas.ParcelDeleteRequest,
+                  db: Session = Depends(get_db)):
+    status = crud.delete_parcel(db=db, **delete_parcel_request.dict())
+    return status
 
+
+@app.post("/add_parcel/", response_model=schemas.JobResponse)
+def add_parcel(create_parcel_request: schemas.ParcelCreateRequest,
+               db: Session = Depends(get_db)):
+    
+    status = crud.create_parcel(
+        db=db,
+        parcel_wkt=create_parcel_request.wkt,
+        parcel_id=create_parcel_request.parcel_id,
+        study_area_id=create_parcel_request.study_area_id)
+
+    # Check if this parcel has already been computed.
+    stats_db = crud.get_parcel_stats_by_id(db, create_parcel_request.parcel_id)
+    if stats_db:
+        # This is what the frontend is expecting.
+        # even though we don't need to submit a new job,
+        # the frontend is expecting to need to poll
+        # for the status before requesting the results.
+        return {
+            "job_id": stats_db.job_id,
+            "stats_id": stats_db.stats_id
+        }
+
+    # NOTE this assumes we're always using baseline LULC
     # Create job entry for wallpapering task
     job_schema = schemas.JobBase(
         **{"name": "stats_under_parcel",
            "description": "get lulc base stats under parcel",
            "status": STATUS_PENDING})
     job_db = crud.create_job(
-        db=db, session_id=parcel_stats_req.session_id, job=job_schema)
+        db=db, session_id=create_parcel_request.session_id, job=job_schema)
 
     parcel_stats_db = crud.create_parcel_stats(
-        db=db, parcel_wkt=parcel_stats_req.target_parcel_wkt,
-        job_id=job_db.job_id)
+        db=db, parcel_id=create_parcel_request.parcel_id,
+        parcel_wkt=create_parcel_request.wkt, job_id=job_db.job_id)
 
     # Construct worker job and add to the queue
     worker_task = {
@@ -606,7 +664,7 @@ def get_lulc_stats_under_parcel(parcel_stats_req: schemas.ParcelStatsRequest,
             "job_id": job_db.job_id, "stats_id": parcel_stats_db.stats_id
         },
         "job_args": {
-            "target_parcel_wkt": parcel_stats_req.target_parcel_wkt,
+            "target_parcel_wkt": create_parcel_request.wkt,
             "lulc_source_url": f'{WORKING_ENV}/{BASE_LULC}',
             }
         }
@@ -635,25 +693,6 @@ def get_scenario_results(
             "lulc_stats": json.loads(scenario_db.lulc_stats),
             }
         return scenario_results
-    else:
-        return job_db.status
-
-
-@app.get("/stats_under_parcel/result/{job_id}")
-def get_parcel_stats_results(job_id: int, db: Session = Depends(get_db)):
-    """Return the stats under parcel if the job was successful."""
-    # Check job status and return URL and Stats from table
-    LOGGER.info(f'Job ID: {job_id}')
-    job_db = crud.get_job(db, job_id=job_id)
-    if job_db is None:
-        raise HTTPException(status_code=404, detail="Job not found")
-    if job_db.status == STATUS_SUCCESS:
-        stats_db = crud.get_parcel_stats_by_job(db, job_id=job_id)
-        if stats_db is None:
-            raise HTTPException(
-                status_code=404, detail="Stats result not found")
-        stats_results = stats_db.lulc_stats
-        return stats_results
     else:
         return job_db.status
 

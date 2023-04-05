@@ -1,22 +1,26 @@
 import React, { useState } from 'react';
 
 import {
-  InputGroup,
   Button,
   HTMLTable,
 } from '@blueprintjs/core';
 
-import landuseCodes from './landuseCodes';
+import { removeParcel } from '../requests';
+import landuseCodes from '../landuseCodes';
 
-export default function StudyAreaForm(props) {
+export default function StudyAreaTable(props) {
   const {
-    submitStudyArea,
     parcelSet,
-    removeParcel,
-    immutableStudyArea,
+    refreshStudyArea,
+    studyAreaID,
   } = props;
-  const [studyAreaName, setStudyAreaName] = useState('');
+  console.log(parcelSet)
   const [highlightedCode, setHighlightedCode] = useState(null);
+
+  const deleteParcel = async (parcelID) => {
+    await removeParcel(parcelID, studyAreaID);
+    refreshStudyArea();
+  };
 
   function plot(table) {
     const blocks = [];
@@ -44,63 +48,32 @@ export default function StudyAreaForm(props) {
   const rows = [];
   rows.push(
     <tr>
-      <td></td>
+      <td />
       <td><em>address</em></td>
       <td><em>landuse composition</em></td>
-    </tr>
-  )
-  Object.entries(parcelSet).forEach(([id, data]) => {
+    </tr>,
+  );
+  parcelSet.forEach((parcel) => {
     rows.push(
-      <tr key={id}>
+      <tr key={parcel.parcel_id}>
         <td>
           <Button
             icon="remove"
-            onClick={() => removeParcel(id)}
-            disabled={immutableStudyArea}
+            onClick={() => deleteParcel(parcel.parcel_id)}
           />
         </td>
-        {/*{
-          (!immutableStudyArea) // study area not yet submitted; allow changes
-            ? (
-              <td>
-                <Button
-                  icon="remove"
-                  onClick={() => removeParcel(id)}
-                />
-              </td>
-            )
-            : null
-        }*/}
-        <td>{id}</td>
-        <td><div className="parcel-block">{plot(data.table)}</div></td>
+        <td>{parcel.parcel_id}</td>
+        <td>
+          <div className="parcel-block">
+            {plot(JSON.parse(parcel.parcel_stats.lulc_stats).base)}
+          </div>
+        </td>
       </tr>,
     );
   });
 
   return (
     <div>
-      <p className="sidebar-subheading">
-        <span>Parcels in study area </span>
-        {/*<em>{studyArea}</em>*/}
-      </p>
-      {
-        (!immutableStudyArea)
-          ? (
-            <InputGroup
-              placeholder="name this study area"
-              value={studyAreaName}
-              onChange={(event) => setStudyAreaName(event.currentTarget.value)}
-              rightElement={(
-                <Button
-                  onClick={() => submitStudyArea(studyAreaName)}
-                >
-                  Save
-                </Button>
-              )}
-            />
-          )
-          : <div />
-      }
       <HTMLTable
         className="study-area-table bp4-html-table-condensed"
       >

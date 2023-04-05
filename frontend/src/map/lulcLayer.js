@@ -37,7 +37,7 @@ export function lulcTileLayer(url, title, sourceOptions) {
       ],
       saturation: -0.3,
       contrast: -0.4,
-    }
+    },
   });
 }
 

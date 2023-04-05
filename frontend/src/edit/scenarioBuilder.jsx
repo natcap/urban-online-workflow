@@ -8,32 +8,28 @@ import {
   RadioGroup,
 } from '@blueprintjs/core';
 
-import useInterval from './hooks/useInterval';
-import landuseCodes from './landuseCodes';
-import StudyAreaForm from './studyAreaForm';
+import useInterval from '../hooks/useInterval';
+import landuseCodes from '../landuseCodes';
 import WallpaperingMenu from './wallpaperingMenu';
 import {
-  createStudyArea,
   doWallpaper,
   createScenario,
-  getJobResults,
+  getScenarioResult,
   getJobStatus,
   convertToSingleLULC,
-  mulitPolygonCoordsToWKT,
-  polygonCoordsToWKT,
-} from './requests';
+} from '../requests';
 
 export default function ScenarioBuilder(props) {
   const {
+    // createStudyArea,
     activeStudyAreaID,
-    setActiveStudyAreaID,
+    // setActiveStudyAreaID,
     parcelSet,
     sessionID,
-    removeParcel,
     patternSamplingMode,
     togglePatternSamplingMode,
     patternSampleWKT,
-    refreshSavedStudyAreas,
+    // refreshSavedStudyAreas,
     addScenarioLULCTable,
   } = props;
 
@@ -43,16 +39,15 @@ export default function ScenarioBuilder(props) {
   const [scenarioID, setScenarioID] = useState(null);
   const [selectedPattern, setSelectedPattern] = useState(null);
   const [jobID, setJobID] = useState(null);
-  const [studyAreaName, setStudyAreaName] = useState('');
 
   useInterval(async () => {
     console.log('checking status for job', jobID);
     const status = await getJobStatus(jobID);
     if (status === 'success') {
-      const results = await getJobResults(jobID, scenarioID);
-      console.log(results)
+      const results = await getScenarioResult(jobID, scenarioID);
+      console.log(results);
       addScenarioLULCTable({ [scenarioName]: results.lulc_stats.result });
-      refreshSavedStudyAreas();
+      // refreshSavedStudyAreas();
       setJobID(null);
     }
   }, (jobID && scenarioID) ? 1000 : null);
@@ -74,37 +69,15 @@ export default function ScenarioBuilder(props) {
     setScenarioID(currentScenarioID);
     let jid;
     if (conversionOption === 'wallpaper' && selectedPattern) {
-      console.log('pattern_id', selectedPattern.pattern_id)
       jid = await doWallpaper(
         selectedPattern.pattern_id,
         currentScenarioID
       );
     }
     if (conversionOption === 'paint' && singleLULC) {
-      console.log(singleLULC)
-      jid = await convertToSingleLULC(
-        singleLULC,
-        currentScenarioID
-      );
+      jid = await convertToSingleLULC(singleLULC, currentScenarioID);
     }
     setJobID(jid);
-  };
-
-  const submitStudyArea = async (name) => {
-    // Instantiate the 'baseline' scenario now.
-    const baseLulcTable = {};
-    Object.keys(landuseCodes).forEach((code) => {
-      baseLulcTable[code] = 0;
-      Object.values(parcelSet).forEach((parcel) => {
-        baseLulcTable[code] += parcel.table[code] || 0;
-      });
-    });
-    addScenarioLULCTable({ 'baseline': baseLulcTable });
-
-    setStudyAreaName(name);
-    const id = await createStudyArea(sessionID, name, parcelSet);
-    setActiveStudyAreaID(id);
-    refreshSavedStudyAreas();
   };
 
   if (!Object.keys(parcelSet).length) {
@@ -113,14 +86,9 @@ export default function ScenarioBuilder(props) {
 
   return (
     <>
-      <StudyAreaForm
-        submitStudyArea={submitStudyArea}
-        parcelSet={parcelSet}
-        removeParcel={removeParcel}
-        immutableStudyArea={Boolean(activeStudyAreaID)}
-      />
+
       {
-        (studyAreaName)
+        (activeStudyAreaID)
           ? (
             <form>
               <label
@@ -162,7 +130,6 @@ export default function ScenarioBuilder(props) {
               </div>
               <p className="sidebar-subheading">
                 <span>Save as a new scenario for study area </span>
-                <em>{studyAreaName}</em>
               </p>
               <InputGroup
                 placeholder="name this scenario"

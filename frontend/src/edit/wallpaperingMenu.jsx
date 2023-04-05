@@ -15,9 +15,9 @@ import {
   getPatterns,
   createPattern,
   getJobStatus,
-} from './requests';
-import useInterval from './hooks/useInterval';
-import { publicUrl } from './utils';
+} from '../requests';
+import useInterval from '../hooks/useInterval';
+import { publicUrl } from '../utils';
 
 export default function WallpaperingMenu(props) {
   const {
