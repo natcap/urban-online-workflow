@@ -10,11 +10,11 @@ import landuseCodes from '../landuseCodes';
 
 export default function StudyAreaTable(props) {
   const {
-    parcelSet,
+    parcelArray,
     refreshStudyArea,
     studyAreaID,
+    immutableStudyArea,
   } = props;
-  console.log(parcelSet)
   const [highlightedCode, setHighlightedCode] = useState(null);
 
   const deleteParcel = async (parcelID) => {
@@ -53,13 +53,14 @@ export default function StudyAreaTable(props) {
       <td><em>landuse composition</em></td>
     </tr>,
   );
-  parcelSet.forEach((parcel) => {
+  parcelArray.forEach((parcel) => {
     rows.push(
       <tr key={parcel.parcel_id}>
         <td>
           <Button
             icon="remove"
             onClick={() => deleteParcel(parcel.parcel_id)}
+            disabled={immutableStudyArea}
           />
         </td>
         <td>{parcel.parcel_id}</td>

@@ -2,38 +2,6 @@ import patternsTable from './edit/patternsTable'; // TODO: this is temp
 
 const apiBaseURL = 'http://127.0.0.1:8000';
 
-/**
- * Convert an array of coordinate pairs to WKT representation.
- *
- * @param  {array[array[number]]} coords - an array of two-element arrays
- *  representing [lon, lat] coordinate pairs that outline a polygon
- * @return {string} Well-Known Text representation of the polygon
- */
-export function polygonCoordsToWKT(coords) {
-  return `POLYGON((${
-    coords.map(
-      (lonLat) => `${lonLat[0]} ${lonLat[1]}`,
-    ).join(', ')
-  }))`;
-}
-
-/**
- * Convert an array of polygons to WKT representation.
- *
- * @param  {array[array[array[number]]]} polygons - an array of arrays
- *  of two-element arrays representing [lon, lat] coordinate pairs
- *  that outline a polygon
- * @return {string} Well-Known Text representation of the polygon
- */
-export function mulitPolygonCoordsToWKT(polygons) {
-  return `MULTIPOLYGON(${
-    polygons.map(
-      (polygon) => `((${polygon.map(
-        (lonLat) => `${lonLat[0]} ${lonLat[1]}`,
-      ).join(', ')}))`,
-    )
-  })`;
-}
 
 /**
  * Create a new session and return its id.
@@ -138,14 +106,14 @@ export async function updateStudyArea(sessionID, studyArea) {
 }
 
 /**
- * Get a scenario from its id.
+ * Get all scenarios for a study area.
  *
- * @param  {integer} id - id of the scenario to retrieve
- * @return {object} scenario object
+ * @param  {integer} studyAreaID - id of the study area
+ * @return {array} of scenario objects
  */
-export async function getScenario(id) {
+export async function getScenarios(studyAreaID) {
   return (
-    window.fetch(`${apiBaseURL}/scenario/${id}`, {
+    window.fetch(`${apiBaseURL}/scenario/${studyAreaID}`, {
       method: 'get',
     })
       .then((response) => response.json())
@@ -162,10 +130,9 @@ export async function getScenario(id) {
  * @param  {string} operation - 'wallpaper' or 'parcel_fill'
  * @return {integer} scenario id
  */
-export async function createScenario(studyAreaID, name, description, operation) {
+export async function createScenario(studyAreaID, name, operation) {
   const payload = JSON.stringify({
     name: name,
-    description: description,
     operation: operation,
   });
   return (
@@ -198,24 +165,6 @@ export async function getJobStatus(jobID) {
 }
 
 /**
- * Get results of a job if it's succeeded, or its status otherwise.
- *
- * @param  {integer} jobID - id of the job to check
- * @param  {integer} scenarioID - id of the scenario associated with the job
- * @return {object} results object if job has succeeded, otherwise an object
- *  with a 'status' attribute (one of 'pending', 'running', 'failed')
- */
-export async function getScenarioResult(jobID, scenarioID) {
-  return (
-    window.fetch(`${apiBaseURL}/scenario/result/${jobID}/${scenarioID}`, {
-      method: 'get',
-    })
-      .then((response) => response.json())
-      .catch((error) => console.log(error))
-  );
-}
-
-/**
  * Apply a wallpaper pattern to a given polygon.
  *
  * @param  {integer} patternID - id of the pattern to apply to the area
@@ -223,7 +172,7 @@ export async function getScenarioResult(jobID, scenarioID) {
  *  lulc modification
  * @return {integer} id of the job that will create the modified LULC raster
  */
-export async function doWallpaper(patternID, scenarioID) {
+export async function lulcWallpaper(patternID, scenarioID) {
   return (
     window.fetch(`${apiBaseURL}/wallpaper`, {
       method: 'post',
@@ -247,9 +196,9 @@ export async function doWallpaper(patternID, scenarioID) {
  *  lulc modification
  * @return {integer} id of the job that will create the modified LULC raster
  */
-export async function convertToSingleLULC(lulcCode, scenarioID) {
+export async function lulcFill(lulcCode, scenarioID) {
   return (
-    window.fetch(`${apiBaseURL}/parcel_fill`, {
+    window.fetch(`${apiBaseURL}/lulc_fill`, {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -264,14 +213,28 @@ export async function convertToSingleLULC(lulcCode, scenarioID) {
 }
 
 /**
- * Add parcel to a study area.
+ * Crop the LULC to create a 'baseline' scenario
  *
- * @param  {array[array[number]]} targetCoords - an array of two-element arrays
- *  representing [lon, lat] coordinate pairs outlining the parcel to query
- * @return {[object]} ? - fill in when this endpoint is working
+ * @param  {integer} scenarioID - id of the scenario to associate with this
+ *  lulc modification
+ * @return {integer} id of the job that will create the modified LULC raster
  */
-export async function addParcel(sessionID, studyAreaID, parcelID, parcelCoords) {
-  console.log(polygonCoordsToWKT(parcelCoords))
+export async function lulcCrop(scenarioID) {
+  return (
+    window.fetch(`${apiBaseURL}/lulc_crop/${scenarioID}`, {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then((response) => response.json())
+      .then((json) => json.job_id)
+      .catch((error) => console.log(error))
+  );
+}
+
+/**
+ * Add parcel to a study area.
+ */
+export async function addParcel(sessionID, studyAreaID, parcelID, wkt) {
   return (
     window.fetch(`${apiBaseURL}/add_parcel`, {
       method: 'post',
@@ -280,7 +243,7 @@ export async function addParcel(sessionID, studyAreaID, parcelID, parcelCoords) 
         session_id: sessionID,
         study_area_id: studyAreaID,
         parcel_id: parcelID,
-        wkt: polygonCoordsToWKT(parcelCoords),
+        wkt: wkt,
       }),
     })
       .then((response) => response.json())
@@ -290,10 +253,6 @@ export async function addParcel(sessionID, studyAreaID, parcelID, parcelCoords) 
 
 /**
  * Remove parcel from a study area.
- *
- * @param  {array[array[number]]} targetCoords - an array of two-element arrays
- *  representing [lon, lat] coordinate pairs outlining the parcel to query
- * @return {[object]} ? - fill in when this endpoint is working
  */
 export async function removeParcel(parcelID, studyAreaID) {
   return (

@@ -1,19 +1,35 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 import { Map, View } from 'ol';
-import MVT from 'ol/format/MVT';
+import Collection from 'ol/Collection';
+import LayerGroup from 'ol/layer/Group';
+import { Vector as VectorLayer } from 'ol/layer';
 import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
 import { Vector as VectorSource } from 'ol/source';
-import { Vector as VectorLayer } from 'ol/layer';
+import MVT from 'ol/format/MVT';
 import WKT from 'ol/format/WKT';
 import Feature from 'ol/Feature';
-import { Polygon } from 'ol/geom';
+import { 
+  Point,
+  LineString,
+  LinearRing,
+  Polygon,
+  MultiPoint,
+  MultiLineString,
+  MultiPolygon
+} from 'ol/geom';
+import GeometryCollection from 'ol/geom/GeometryCollection';
+import { inflateCoordinatesArray } from "ol/geom/flat/inflate"
 import {
   Translate,
   defaults as defaultInteractions,
 } from 'ol/interaction';
 import { defaults } from 'ol/control';
+
+import OL3Parser from 'jsts/org/locationtech/jts/io/OL3Parser';
+import WKTWriter from 'jsts/org/locationtech/jts/io/WKTWriter';
+import OverlayOp from 'jsts/org/locationtech/jts/operation/overlay/OverlayOp';
 
 import { Button, Icon } from '@blueprintjs/core';
 
@@ -43,17 +59,19 @@ const GEOTIFF_SOURCE_OPTIONS = {
   }
 }
 
-function getCoords(geometry) {
-  const flatCoords = geometry.getFlatCoordinates();
-  const pairedCoords = flatCoords.reduce(
-    (result, value, index, array) => {
-      if (index % 2 === 0) {
-        result.push(array.slice(index, index + 2));
-      }
-      return result;
-    }, []);
-  return pairedCoords;
-}
+// JSTS utilities
+const ol3parser = new OL3Parser();
+ol3parser.inject(
+  // Order of these matters even though we don't use them all
+  Point,
+  LineString,
+  LinearRing,
+  Polygon,
+  MultiPoint,
+  MultiLineString,
+  MultiPolygon,
+);
+const wktWriter = new WKTWriter();
 
 function centeredPatternSamplerGeom(centerX, centerY) {
   const width = 200; // box dimensions in map CRS units
@@ -96,7 +114,7 @@ const parcelLayer = new VectorTileLayer({
   minZoom: 15, // don't display this layer below zoom level 14
 });
 parcelLayer.set('title', 'Parcels');
-parcelLayer.setZIndex(1);
+parcelLayer.setZIndex(2);
 
 let selectedFeature = null;
 const selectionLayer = new VectorTileLayer({
@@ -110,25 +128,34 @@ const selectionLayer = new VectorTileLayer({
     }
   },
 });
-selectionLayer.set('title', 'Selected Parcels');
-selectionLayer.setZIndex(2);
+selectionLayer.setZIndex(3);
 
 const studyAreaSource = new VectorSource({});
 const studyAreaLayer = new VectorLayer({
-  source: studyAreaSource
+  source: studyAreaSource,
 });
 studyAreaLayer.set('title', 'Study Area');
 studyAreaLayer.setZIndex(3);
+
+const scenarioLayerGroup = new LayerGroup({
+  properties: { group: 'scenarios' },
+});
+scenarioLayerGroup.setZIndex(1);
+
+// Set a default basemap to be visible
+satelliteLayer.setVisible(true);
 
 const map = new Map({
   layers: [
     satelliteLayer,
     streetMapLayer,
-    lulcTileLayer(BASE_LULC_URL, 'Landcover'),
+    lulcTileLayer(BASE_LULC_URL, 'Landcover', 'base'),
     parcelLayer,
     selectionLayer,
+    studyAreaLayer,
     patternSamplerLayer,
     labelLayer,
+    scenarioLayerGroup,
   ],
   view: new View({
     center: [-10984368.72, 3427876.58], // W. San Antonio, EPSG:3857
@@ -144,13 +171,16 @@ const map = new Map({
 export default function MapComponent(props) {
   const {
     sessionID,
-    parcelSet,
+    studyAreaParcels,
     activeStudyAreaID,
     refreshStudyArea,
+    patternSamplingMode,
+    setPatternSampleWKT,
+    scenarios,
   } = props;
   const [layers, setLayers] = useState([]);
   const [showLayerControl, setShowLayerControl] = useState(false);
-  const [basemap, setBasemap] = useState('Satellite');
+  const [selectedBasemap, setSelectedBasemap] = useState('Satellite');
   const [selectedParcel, setSelectedParcel] = useState(null);
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
@@ -173,7 +203,17 @@ export default function MapComponent(props) {
         setVisibility(layer, layer.get('title') === title);
       }
     });
-    setBasemap(title);
+    setSelectedBasemap(title);
+  };
+
+  const switchScenario = (title) => {
+    layers.forEach((layer) => {
+      if (layer.get('group') === 'scenarios') {
+        layer.getLayers().forEach(lyr => {
+          setVisibility(lyr, lyr.get('title') === title);
+        });
+      }
+    });
   };
 
   const clearSelection = () => {
@@ -186,6 +226,7 @@ export default function MapComponent(props) {
 
   // useEffect with no dependencies: only runs after first render
   useEffect(() => {
+    window.onresize = () => setTimeout(map.updateSize(), 200); // update *after* resize
     map.setTarget(mapElementRef.current);
     setLayers(map.getLayers().getArray());
     parcelLayer.setStyle(styleParcel(map.getView().getZoom()));
@@ -202,22 +243,35 @@ export default function MapComponent(props) {
     );
 
     map.on(['click'], async (event) => {
+      // NOTE that a feature's geometry can change with the tile/zoom level and view position
+      // and so its coordinates will change slightly.
       parcelLayer.getFeatures(event.pixel).then(async (features) => {
-        let coords;
+        const geoms = [];
         const feature = features.length ? features[0] : undefined;
         if (feature) {
-          // NOTE that a feature's geometry can change with the tile/zoom level and view position
-          // and so its coordinates will change slightly.
-          // for best precision, maybe don't get the coordinates on the client side
-          coords = getCoords(feature);
+          // Find all the pieces of a feature in case they are split across tiles
+          const fid = feature.getId();
+          const extent = feature.getExtent();
+          const feats = parcelLayer.getSource().getFeaturesInExtent(extent);
+          feats.forEach((feat) => {
+            if (feat.getId() === fid) {
+              geoms.push(ol3parser.read((new Polygon(
+                feat.getFlatCoordinates(),
+                'XY',
+                feat.getEnds()
+              ))));
+            }
+          });
+          const geom = geoms.reduce((partial, a) => OverlayOp.union(partial, a));
+          const wkt = wktWriter.write(geom);
+          selectedFeature = feature;
+          selectionLayer.changed();
+          setSelectedParcel({
+            parcelID: feature.properties_.OBJECTID,
+            address: feature.properties_.address,
+            coords: wkt,
+          });
         }
-        selectedFeature = feature;
-        selectionLayer.changed();
-        setSelectedParcel({
-          parcelID: feature.properties_.OBJECTID,
-          address: feature.properties_.address,
-          coords: coords,
-        });
       });
     });
 
@@ -230,49 +284,57 @@ export default function MapComponent(props) {
         parcelLayer.setStyle(styleParcel(newZoom));
       }
     });
+    map.updateSize();
   }, []);
 
-  // useEffect(() => {
-  //   if (parcelSet.length) {
-  //     const features = parcelSet.forEach(parcel => {
-  //       const feature = wktFormat.readFeature(parcel.wkt, {
-  //         dataProjection: 'EPSG:3857',
-  //         featureProjection: 'EPSG:3857',
-  //       });
-  //       return feature;
-  //     });
-  //     studyAreaSource.addFeatures()
-  //   }
-  // })
+  useEffect(() => {
+    // A naive approach where we don't need to know if studyAreaParcels changed
+    // because a study area was modified, or because the study area was switched.
+    studyAreaSource.clear();
+    if (studyAreaParcels.length) {
+      const features = studyAreaParcels.map((parcel) => {
+        const feature = wktFormat.readFeature(parcel.wkt, {
+          dataProjection: 'EPSG:3857',
+          featureProjection: 'EPSG:3857',
+        });
+        return feature;
+      });
+      studyAreaSource.addFeatures(features);
+    }
+  }, [studyAreaParcels]);
 
-  // useEffect(() => {
-  //   if (scenarioLulcRasters) {
-  //     console.log(scenarioLulcRasters);
-  //     const mapLayerTitles = map.getLayers().getArray().map(lyr => lyr.get('title'));
-  //     console.log(mapLayerTitles);
-  //     Object.entries(scenarioLulcRasters).forEach(([name, url]) => {
-  //       if (!mapLayerTitles.includes(name)) {
-  //         map.addLayer(lulcTileLayer(url, name));
-  //       }
-  //     });
-  //   }
-  // }, [scenarioLulcRasters]);
+  useEffect(() => {
+    // A naive approach where we don't need to know if scenarios changed
+    // because a new one was created, or because the study area was switched.
+    map.removeLayer(scenarioLayerGroup);
+    if (scenarios.length) {
+      const scenarioLayers = [];
+      scenarios.forEach((scene) => {
+        scenarioLayers.push(
+          lulcTileLayer(scene.lulc_url_result, scene.name, 'scenario')
+        );
+      });
+      scenarioLayerGroup.setLayers(new Collection(scenarioLayers));
+      map.addLayer(scenarioLayerGroup);
+      setLayers(map.getLayers().getArray());
+    }
+  }, [scenarios]);
 
   // toggle pattern sampler visibility according to the pattern sampling mode
-  // useEffect(() => {
-  //   if (patternSamplerLayer) {
-  //     if (patternSamplingMode) {
-  //       switchBasemap('Landcover');
-  //       // when pattern sampling mode is turned on,
-  //       // recenter the sampler box in the current view
-  //       const [mapCenterX, mapCenterY] = map.getView().getCenter();
-  //       patternSamplerFeature.setGeometry(
-  //         centeredPatternSamplerGeom(mapCenterX, mapCenterY)
-  //       );
-  //     }
-  //     patternSamplerLayer.setVisible(patternSamplingMode);
-  //   }
-  // }, [patternSamplingMode]);
+  useEffect(() => {
+    if (patternSamplerLayer) {
+      if (patternSamplingMode) {
+        switchBasemap('Landcover');
+        // when pattern sampling mode is turned on,
+        // recenter the sampler box in the current view
+        const [mapCenterX, mapCenterY] = map.getView().getCenter();
+        patternSamplerFeature.setGeometry(
+          centeredPatternSamplerGeom(mapCenterX, mapCenterY)
+        );
+      }
+      patternSamplerLayer.setVisible(patternSamplingMode);
+    }
+  }, [patternSamplingMode]);
 
   return (
     <div className="map-container">
@@ -288,7 +350,8 @@ export default function MapComponent(props) {
           layers={[...layers].reverse()} // copy array & reverse it
           setVisibility={setVisibility}
           switchBasemap={switchBasemap}
-          basemap={basemap}
+          switchScenario={switchScenario}
+          basemap={selectedBasemap}
         />
       </div>
       <ParcelControl
@@ -297,6 +360,7 @@ export default function MapComponent(props) {
         parcel={selectedParcel}
         clearSelection={clearSelection}
         refreshStudyArea={refreshStudyArea}
+        immutableStudyArea={Boolean(scenarios.length)}
       />
     </div>
   );

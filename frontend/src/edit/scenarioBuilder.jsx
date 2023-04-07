@@ -12,25 +12,23 @@ import useInterval from '../hooks/useInterval';
 import landuseCodes from '../landuseCodes';
 import WallpaperingMenu from './wallpaperingMenu';
 import {
-  doWallpaper,
   createScenario,
-  getScenarioResult,
   getJobStatus,
-  convertToSingleLULC,
+  lulcFill,
+  lulcCrop,
+  lulcWallpaper,
 } from '../requests';
 
 export default function ScenarioBuilder(props) {
   const {
-    // createStudyArea,
     activeStudyAreaID,
-    // setActiveStudyAreaID,
-    parcelSet,
+    parcelArray,
     sessionID,
     patternSamplingMode,
     togglePatternSamplingMode,
     patternSampleWKT,
-    // refreshSavedStudyAreas,
-    addScenarioLULCTable,
+    refreshScenarios,
+    scenarioNames,
   } = props;
 
   const [singleLULC, setSingleLULC] = useState(Object.keys(landuseCodes)[0]);
@@ -41,112 +39,94 @@ export default function ScenarioBuilder(props) {
   const [jobID, setJobID] = useState(null);
 
   useInterval(async () => {
+    // There are sometimes two jobs submitted concurrently.
+    // They are in a priority queue, so for now monitor the lower priority one.
     console.log('checking status for job', jobID);
     const status = await getJobStatus(jobID);
     if (status === 'success') {
-      const results = await getScenarioResult(jobID, scenarioID);
-      console.log(results);
-      addScenarioLULCTable({ [scenarioName]: results.lulc_stats.result });
-      // refreshSavedStudyAreas();
+      refreshScenarios();
       setJobID(null);
     }
   }, (jobID && scenarioID) ? 1000 : null);
 
   const submitScenario = async (event) => {
-    // event.preventDefault();
-    if (!scenarioName) {
-      alert('no scenario was selected');
-      return;
+    if (!scenarioNames.includes('baseline')) {
+      const sid = await createScenario(activeStudyAreaID, 'baseline', 'crop');
+      await lulcCrop(sid);
     }
-    let currentScenarioID = scenarioID;
-    // TODO: add validation to check that scenarioName is not already taken
-    // for this study area. If it is, maybe give option to overwrite?
-    // TODO: It might be more orthogonal to have the wallpapering/parcel_fill
-    // endpoint create the scenario on the backend, rather than creating it up-front.
-    currentScenarioID = await createScenario(
-      activeStudyAreaID, scenarioName, 'description', conversionOption
-    );
+    const currentScenarioID = await createScenario(
+      activeStudyAreaID, scenarioName, conversionOption);
     setScenarioID(currentScenarioID);
     let jid;
     if (conversionOption === 'wallpaper' && selectedPattern) {
-      jid = await doWallpaper(
+      jid = await lulcWallpaper(
         selectedPattern.pattern_id,
         currentScenarioID
       );
     }
     if (conversionOption === 'paint' && singleLULC) {
-      jid = await convertToSingleLULC(singleLULC, currentScenarioID);
+      jid = await lulcFill(singleLULC, currentScenarioID);
     }
     setJobID(jid);
   };
 
-  if (!Object.keys(parcelSet).length) {
+  if (!parcelArray.length) {
     return <div />;
   }
 
   return (
-    <>
-
-      {
-        (activeStudyAreaID)
-          ? (
-            <form>
-              <label
-               className="sidebar-subheading"
+    <form>
+      <label className="sidebar-subheading">
+        Modify the landuse in this study area:
+      </label>
+      <RadioGroup
+        className="conversion-radio"
+        inline
+        onChange={(event) => setConversionOption(event.target.value)}
+        selectedValue={conversionOption}
+      >
+        <Radio key="wallpaper" value="wallpaper" label="wallpaper" />
+        <Radio key="paint" value="paint" label="paint" />
+      </RadioGroup>
+      <div className="conversion-panel">
+        {
+          (conversionOption === 'paint')
+            ? (
+              <HTMLSelect
+                onChange={(event) => setSingleLULC(event.target.value)}
               >
-                Modify the landuse in this study area:
-              </label>
-              <RadioGroup
-                className="conversion-radio"
-                inline
-                onChange={(event) => setConversionOption(event.target.value)}
-                selectedValue={conversionOption}
-              >
-                <Radio key="wallpaper" value="wallpaper" label="wallpaper" />
-                <Radio key="paint" value="paint" label="paint" />
-              </RadioGroup>
-              <div className="conversion-panel">
-                {
-                  (conversionOption === 'paint')
-                    ? (
-                      <HTMLSelect
-                        onChange={(event) => setSingleLULC(event.target.value)}
-                      >
-                        {Object.entries(landuseCodes)
-                          .map(([code, data]) => <option key={code} value={code}>{data.name}</option>)}
-                      </HTMLSelect>
-                    )
-                    : (
-                      <WallpaperingMenu
-                        sessionID={sessionID}
-                        selectedPattern={selectedPattern}
-                        setSelectedPattern={setSelectedPattern}
-                        patternSamplingMode={patternSamplingMode}
-                        togglePatternSamplingMode={togglePatternSamplingMode}
-                        patternSampleWKT={patternSampleWKT}
-                      />
-                    )
-                }
-              </div>
-              <p className="sidebar-subheading">
-                <span>Save as a new scenario for study area </span>
-              </p>
-              <InputGroup
-                placeholder="name this scenario"
-                value={scenarioName}
-                onChange={(event) => setScenarioName(event.currentTarget.value)}
-                rightElement={(
-                  <Button
-                    onClick={submitScenario}
-                  >
-                    Save
-                  </Button>
-                )}
+                {Object.entries(landuseCodes)
+                  .map(([code, data]) => <option key={code} value={code}>{data.name}</option>)}
+              </HTMLSelect>
+            )
+            : (
+              <WallpaperingMenu
+                sessionID={sessionID}
+                selectedPattern={selectedPattern}
+                setSelectedPattern={setSelectedPattern}
+                patternSamplingMode={patternSamplingMode}
+                togglePatternSamplingMode={togglePatternSamplingMode}
+                patternSampleWKT={patternSampleWKT}
               />
-            </form>
-          )
-          : <div />
-      }
-    </>
+            )
+        }
+      </div>
+      <p className="sidebar-subheading">
+        <span>Add scenario for this study area </span>
+      </p>
+      <InputGroup
+        placeholder="name this scenario"
+        value={scenarioName}
+        onChange={(event) => setScenarioName(event.currentTarget.value)}
+        rightElement={(
+          <Button
+            onClick={submitScenario}
+            disabled={scenarioNames.includes(scenarioName) || !scenarioName}
+          >
+            Add
+          </Button>
+        )}
+      />
+    </form>
   );
 }

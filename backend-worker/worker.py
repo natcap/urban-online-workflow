@@ -79,8 +79,9 @@ NLCD_COLORS = {}  # update this dict later in file once function is defined.
 
 STATUS_SUCCESS = 'success'
 STATUS_FAILURE = 'failed'
-JOBTYPE_FILL = 'parcel_fill'
+JOBTYPE_FILL = 'lulc_fill'
 JOBTYPE_WALLPAPER = 'wallpaper'
+JOBTYPE_CROP = 'lulc_crop'
 JOBTYPE_PARCEL_STATS = 'stats_under_parcel'
 JOBTYPE_LULC_CLASSNAMES = 'raster_classnames'
 JOBTYPE_PATTERN_THUMBNAIL = 'pattern_thumbnail'
@@ -88,6 +89,7 @@ JOBTYPE_INVEST = 'invest'
 ENDPOINTS = {
     JOBTYPE_FILL: 'scenario',
     JOBTYPE_WALLPAPER: 'scenario',
+    JOBTYPE_CROP: 'scenario',
     JOBTYPE_PARCEL_STATS: 'parcel_stats',
     JOBTYPE_LULC_CLASSNAMES: 'raster_classnames',  # TODO: fixme!
     JOBTYPE_PATTERN_THUMBNAIL: 'pattern',
@@ -698,20 +700,27 @@ def do_work(host, port, outputs_location):
 
         LOGGER.info(f"Starting job {job_id}:{job_type}")
         try:
-            if job_type in {JOBTYPE_FILL, JOBTYPE_WALLPAPER}:
+            if job_type in {JOBTYPE_FILL, JOBTYPE_WALLPAPER, JOBTYPE_CROP}:
                 scenario_id = server_args['scenario_id']
                 workspace = os.path.join(scenarios_dir, str(scenario_id))
                 result_path = os.path.join(
                     workspace, f'{scenario_id}_{job_type}.tif')
                 os.makedirs(workspace, exist_ok=True)
 
+                if job_type == JOBTYPE_CROP:
+                    _create_new_lulc(
+                        parcel_wkt_epsg3857=job_args['target_parcel_wkt'],
+                        target_local_gtiff_path=result_path,
+                        include_pixel_values=True
+                    )
+                    LOGGER.info(f"Baseline study area written to {result_path}")
                 if job_type == JOBTYPE_FILL:
                     fill_parcel(
                         parcel_wkt_epsg3857=job_args['target_parcel_wkt'],
                         fill_lulc_class=job_args['lulc_class'],
                         target_lulc_path=result_path
                     )
-                    LOGGER.info(f"Filled parcel written to {result_path}")
+                    LOGGER.info(f"Filled study area written to {result_path}")
                 elif job_type == JOBTYPE_WALLPAPER:
                     wallpaper_temp_dir = tempfile.mkdtemp(
                         dir=workspace, prefix='wallpaper-')
@@ -722,7 +731,7 @@ def do_work(host, port, outputs_location):
                         target_raster_path=result_path,
                         working_dir=wallpaper_temp_dir
                     )
-                    LOGGER.info(f"Wallpapered parcel written to {result_path}")
+                    LOGGER.info(f"Wallpapered study area written to {result_path}")
                     try:
                         shutil.rmtree(wallpaper_temp_dir)
                     except OSError as e:
@@ -732,16 +741,10 @@ def do_work(host, port, outputs_location):
                 data = {
                     'result': {
                         'lulc_path': result_path,
-                        'lulc_stats': {
-                            'base': pixelcounts_under_parcel(
-                                job_args['target_parcel_wkt'],
-                                job_args['lulc_source_url']
-                            ),
-                            'result': pixelcounts_under_parcel(
-                                job_args['target_parcel_wkt'],
-                                result_path
-                            ),
-                        }
+                        'lulc_stats': pixelcounts_under_parcel(
+                            job_args['target_parcel_wkt'],
+                            result_path
+                        ),
                     },
                 }
             elif job_type == JOBTYPE_PARCEL_STATS:
