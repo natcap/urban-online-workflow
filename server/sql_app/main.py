@@ -204,8 +204,8 @@ def get_scenarios(study_area_id: int, db: Session = Depends(get_db)):
 
 @app.get("/scenario/{scenario_id}", response_model=schemas.Scenario)
 def get_scenario(scenario_id: int, db: Session = Depends(get_db)):
-    db_scenarios = crud.get_scenario(db=db, scenario_id=scenario_id)
-    return db_scenarios
+    db_scenario = crud.get_scenario(db=db, scenario_id=scenario_id)
+    return db_scenario
 
 
 @app.post("/scenario/{study_area_id}", response_model=schemas.ScenarioCreateResponse)
