@@ -63,7 +63,7 @@ export default function StudyAreaTable(props) {
             disabled={immutableStudyArea}
           />
         </td>
-        <td>{parcel.parcel_id}</td>
+        <td>{parcel.address}</td>
         <td>
           <div className="parcel-block">
             {plot(JSON.parse(parcel.parcel_stats.lulc_stats).base)}

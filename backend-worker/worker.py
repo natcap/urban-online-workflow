@@ -22,7 +22,8 @@ from PIL import Image
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
 
-POLLING_INTERVAL_S = 10
+POLLING_INTERVAL_S = 3
+
 DEFAULT_GTIFF_CREATION_TUPLE_OPTIONS = ('GTIFF', (
     'TILED=YES', 'BIGTIFF=YES', 'COMPRESS=LZW',
     'BLOCKXSIZE=256', 'BLOCKYSIZE=256'))

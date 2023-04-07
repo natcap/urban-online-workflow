@@ -107,9 +107,11 @@ const parcelLayer = new VectorTileLayer({
   source: new VectorTileSource({
     format: new MVT(),
     // access API key loaded from your private .env file using dotenv package
-    // because of vite, env variables are exposed through import.meta.env
-    // and must be prefixed with VITE_. https://vitejs.dev/guide/env-and-mode.html#env-files
-    url: 'https://api.mapbox.com/v4/emlys.san-antonio-parcels/{z}/{x}/{y}.mvt?access_token=' + import.meta.env.VITE_MAPBOX_API_KEY,
+    // https://vitejs.dev/guide/env-and-mode.html#env-files
+    // REGRID docs suggest getting this url by first requesting
+    // https://tiles.regrid.com/api/v1/parcels?token=<token>&format=mvt
+    // but I don't see why we need to do that every time.
+    url: `https://tiles.regrid.com/api/v1/parcels/{z}/{x}/{y}.mvt?token=${import.meta.env.VITE_REGRID_TOKEN}`
   }),
   minZoom: 15, // don't display this layer below zoom level 14
 });
@@ -123,7 +125,7 @@ const selectionLayer = new VectorTileLayer({
   style: (feature) => {
     // have to compare feature ids, not the feature objects, because tiling
     // will split some features in to multiple objects with the same id
-    if (selectedFeature && feature.getId() === selectedFeature.getId()) {
+    if (selectedFeature && feature.get('fid') === selectedFeature.get('fid')) {
       return selectedFeatureStyle;
     }
   },
@@ -158,7 +160,7 @@ const map = new Map({
     scenarioLayerGroup,
   ],
   view: new View({
-    center: [-10984368.72, 3427876.58], // W. San Antonio, EPSG:3857
+    center: [-10956248.2268683, 3427877.42426285], // E. San Antonio, EPSG:3857
     zoom: 16,
   }),
   interactions: defaultInteractions().extend([translate]),
@@ -250,11 +252,11 @@ export default function MapComponent(props) {
         const feature = features.length ? features[0] : undefined;
         if (feature) {
           // Find all the pieces of a feature in case they are split across tiles
-          const fid = feature.getId();
+          const fid = feature.get('fid');
           const extent = feature.getExtent();
           const feats = parcelLayer.getSource().getFeaturesInExtent(extent);
           feats.forEach((feat) => {
-            if (feat.getId() === fid) {
+            if (feat.get('fid') === fid) {
               geoms.push(ol3parser.read((new Polygon(
                 feat.getFlatCoordinates(),
                 'XY',
@@ -267,8 +269,8 @@ export default function MapComponent(props) {
           selectedFeature = feature;
           selectionLayer.changed();
           setSelectedParcel({
-            parcelID: feature.properties_.OBJECTID,
-            address: feature.properties_.address,
+            parcelID: fid,
+            address: feature.get('address'),
             coords: wkt,
           });
         }

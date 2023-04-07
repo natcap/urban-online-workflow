@@ -667,6 +667,7 @@ def add_parcel(create_parcel_request: schemas.ParcelCreateRequest,
         db=db,
         parcel_wkt=create_parcel_request.wkt,
         parcel_id=create_parcel_request.parcel_id,
+        address=create_parcel_request.address,
         study_area_id=create_parcel_request.study_area_id)
 
     # Check if this parcel has already been computed.
