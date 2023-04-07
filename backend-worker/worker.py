@@ -26,6 +26,7 @@ from natcap.invest import stormwater
 from natcap.invest import urban_cooling_model
 from natcap.invest import urban_flood_risk_mitigation
 #from natcap.invest import urban_nature_access
+from natcap.invest import validation
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
@@ -85,6 +86,43 @@ NLCD_ORIGIN_X, _, _, NLCD_ORIGIN_Y, _, _ = _NLCD_RASTER_INFO['geotransform']
 PIXELSIZE_X, PIXELSIZE_Y = _NLCD_RASTER_INFO['pixel_size']
 NLCD_COLORS = {}  # update this dict later in file once function is defined.
 
+# Assuming all invest inputs are local for now
+INVEST_BASE_PATH = os.path.join(
+    os.path.dirname(__file__), '..', 'appdata', 'invest-sample-data')
+
+INVEST_MODELS = {
+    "pollination": {
+        "api": pollination, "data_key": "pollination", 
+        "args_path": os.path.join(INVEST_BASE_PATH, 'pollination', 'pollination_args.json')},
+    "stormwater": {
+        "api": stormwater, "data_key": "UrbanStormwater",
+        "args_path": os.path.join(INVEST_BASE_PATH, 'UrbanStormwater', 'urban_stormwater_args.json')},
+    "urban_cooling_model": {
+        "api": urban_cooling_model, "data_key": "UrbanCoolingModel",
+        "args_path": os.path.join(INVEST_BASE_PATH, 'UrbanCoolingModel', 'urban_cooling_model_args.json')},
+    "carbon": {
+        "api": carbon, "data_key": "Carbon",
+        "args_path": os.path.join(INVEST_BASE_PATH, 'Carbon', 'carbon_args.json')},
+    "urban_flood_risk_mitigation": {
+        "api": urban_flood_risk_mitigation, "data_key": "UrbanFloodMitigation",
+        "args_path": os.path.join(INVEST_BASE_PATH, 'UrbanFloodMitigation', 'urban_flood_mitigation_args.json')},
+    #"urban_nature_access": {"api": urban_nature_access, "data_key": "UrbanNatureAccess", "args_path": os.path.join(INVEST_BASE_PATH, 'UrbanNatureAccess', 'urban_nature_access_args.json')},
+}
+
+# Validate invest inputs:
+for model_key, model_params in INVEST_MODELS:
+    model_args_path = model_params['args_path']
+    with open(model_args_path) as json_file:
+        invest_args = json.load(json_file)
+
+    model_args = invest_args['args']
+    validation_results = validation.validate(
+            model_args, model_params['api'].MODEL_SPEC, spatial_overlap_opts=None)
+    if validation_results:
+        LOGGER.info(f'InVEST model {model_key} inputs error.')
+        LOGGER.info(validation_results)
+
+
 STATUS_SUCCESS = 'success'
 STATUS_FAILURE = 'failed'
 JOBTYPE_FILL = 'parcel_fill'
@@ -100,15 +138,6 @@ ENDPOINTS = {
     JOBTYPE_LULC_CLASSNAMES: 'raster_classnames',  # TODO: fixme!
     JOBTYPE_PATTERN_THUMBNAIL: 'pattern',
     JOBTYPE_INVEST: 'invest',
-}
-
-INVEST_MODEL = {
-    "pollination": pollination.execute,
-    "stormwater": stormwater.execute,
-    "urban_cooling_model": urban_cooling_model.execute,
-    "carbon": carbon.execute,
-    "urban_flood_risk_mitigation": urban_flood_risk_mitigation.execute,
-    #"urban_nature_access": urban_nature_access
 }
 
 class Tests(unittest.TestCase):
@@ -810,21 +839,19 @@ def do_work(host, port, outputs_location):
                 invest_model = job_args['invest_model']
                 LOGGER.info(f"Run InVEST model: {job_args['invest_model']}")
 
-                model_args_path = os.path.join(
-                        outputs_location, 'invest-sample-data', 'carbon',
-                        'carbon_willamette_args.json')
+                model_args_path = INVEST_MODELS[invest_model]['args_path']
                 with open(model_args_path) as json_file:
                     invest_args = json.load(json_file)
 
                 model_args = invest_args['args']
-                model_args['workspace_dir'] = os.path.join(outputs_location, 'carbon-test')
-                LOGGER.info(f'Carbon model arguments: {model_args}')
+                model_args['workspace_dir'] = os.path.join(outputs_location, f'{invest_model}-test')
+                LOGGER.info(f'{invest_model} model arguments: {model_args}')
                 #TODO: update lulc input scenario
                 # job_id should be unique
                 invest_task_keys[job_id] = graph.add_task(
-                    INVEST_MODEL[invest_model],
+                    INVEST_MODEL[invest_model]['api'].execute,
                     kwargs={'args':model_args},
-                    task_name='Run carbon model'
+                    task_name=f'Run {invest_model} model [{job_id}]'
                 )
                 data = {
                     'result': {
