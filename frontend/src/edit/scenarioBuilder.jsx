@@ -74,6 +74,23 @@ export default function ScenarioBuilder(props) {
     return <div />;
   }
 
+  console.log(landuseCodes)
+  let scenarioDescription = '';
+  if (conversionOption === 'wallpaper' && selectedPattern) {
+    scenarioDescription = (
+      <span>
+        Create a scenario by <em>wallpapering</em> with <em>{selectedPattern.label}</em>
+      </span>
+    );
+  }
+  if (conversionOption === 'paint' && singleLULC) {
+    scenarioDescription = (
+      <span>
+        Create a scenario by <em>painting</em> with <em>{landuseCodes[singleLULC].name}</em>
+      </span>
+    );
+  }
+
   return (
     <form>
       <label className="sidebar-subheading">
@@ -112,7 +129,7 @@ export default function ScenarioBuilder(props) {
         }
       </div>
       <p className="sidebar-subheading">
-        <span>Add scenario for this study area </span>
+        <span>{scenarioDescription}</span>
       </p>
       <InputGroup
         placeholder="name this scenario"
@@ -123,7 +140,7 @@ export default function ScenarioBuilder(props) {
             onClick={submitScenario}
             disabled={scenarioNames.includes(scenarioName) || !scenarioName}
           >
-            Add
+            Create
           </Button>
         )}
       />

@@ -149,6 +149,18 @@ html, body, #root, .App {
   height: 100px;
 }
 
+#study-area-input-container {
+  display: flex;
+}
+
+#study-area-input-container div {
+  flex-grow: 1;
+}
+
+#study-area-input-container label {
+  font-size: 1.2rem;
+}
+
 .study-area-table {
   margin-top: 0.5rem;
   border-collapse: collapse;
@@ -164,14 +176,23 @@ html, body, #root, .App {
   border-top: none;
 }
 
+.study-area-table .parcel-address {
+  width: 200px;
+}
+
 .study-area-table .parcel-block {
   display: flex;
   flex-wrap:  wrap;
 }
 
-.study-area-legend {
+.study-area-table .hidden-row {
+  display: none;
+}
+
+.study-area-table-legend {
   display: flex;
   height: 1rem;
+  padding-bottom: 2rem;
 }
 
 .scenario-table {
