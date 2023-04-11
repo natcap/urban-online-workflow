@@ -286,3 +286,22 @@ def update_pattern(
     db.refresh(db_pattern)
     return STATUS_SUCCESS
 
+def create_invest_entry(db: Session, invest_result: schemas.InvestResult):
+    """Create a invest entry in the invest_results table."""
+    db_invest = models.InvestResult(**invest_result.dict())
+    db.add(db_invest)
+    db.commit()
+    db.refresh(db_invest)
+    return db_invest
+
+def update_invest(db: Session, scenario_id: int, job_id: int, result: str):
+    """Update an invest result."""
+    db_invest = get_invest(db, scenario_id, job_id)
+    if not db_invest:
+        raise HTTPException(status_code=404, detail="InvestResult not found")
+    setattr(db_invest, 'result', result) 
+
+    db.add(db_invest)
+    db.commit()
+    db.refresh(db_invest)
+    return STATUS_SUCCESS

@@ -236,18 +236,18 @@ async def worker_job_request(db: Session = Depends(get_db)):
 
 @app.post("/jobsqueue/invest")
 def worker_invest_response(
-    invest_job: schemas.WorkerResponse, db: Session = Depends(get_db)):
+    invest_result: schemas.WorkerResponse, db: Session = Depends(get_db)):
     """Update the db given the job details from the worker.
 
     Returned URL result will be partial to allow for local vs cloud stored
     depending on production vs dev environment.
 
     Args:
-        invest_job (pydantic model): a pydantic model with the following
+        invest_result (pydantic model): a pydantic model with the following
             key/vals
 
             "result": {
-                result_directory: "relative path to file location",
+                result: "integer",
                 model: "invest-model-name",
                 }
              "status": "success | failed",
@@ -256,12 +256,12 @@ def worker_invest_response(
                 }
     """
     # Update job in db based on status
-    job_db = crud.get_job(db, job_id=invest_job.server_attrs['job_id'])
+    job_db = crud.get_job(db, job_id=invest_result.server_attrs['job_id'])
     # Update Scenario in db with the result
     scenario_db = crud.get_scenario(
-        db, scenario_id=invest_job.server_attrs['scenario_id'])
+        db, scenario_id=invest_result.server_attrs['scenario_id'])
 
-    job_status = invest_job.status
+    job_status = invest_result.status
     if job_status == STATUS_SUCCESS:
         # Update the job status in the DB to "success"
         job_update = schemas.JobBase(
@@ -272,22 +272,22 @@ def worker_invest_response(
         #scenario_update = schemas.ScenarioUpdate(
         #    lulc_url_result=invest_job.result['lulc_path'],
         #    lulc_stats=json.dumps(invest_job.result['lulc_stats']))
+        LOGGER.debug('Update invest result')
+        _ = crud.update_invest(
+            db=db, scenario_id=invest_result.server_attrs['scenario_id'],
+            job_id=invest_result.server_attrs['job_id'],
+            result=invest_result.result['result'])
     else:
         # Update the job status in the DB to "failed"
         job_update = schemas.JobBase(
             status=STATUS_FAILED,
             name=job_db.name, description=job_db.description)
-        # Update the the scenario lulc path stats with None
-        #scenario_update = schemas.ScenarioUpdate(
-        #    lulc_url_result=None, lulc_stats=None)
+        # If the job failed then there is nothing to update for invest_run as
+        # the default for 'result' is None
 
     LOGGER.debug('Update job status')
     _ = crud.update_job(
         db=db, job=job_update, job_id=invest_job.server_attrs['job_id'])
-    LOGGER.debug('Update scenario result')
-    #_ = crud.update_scenario(
-    #    db=db, scenario=scenario_update,
-    #    scenario_id=invest_job.server_attrs['scenario_id'])
 
 
 @app.post("/jobsqueue/scenario")
@@ -713,6 +713,7 @@ def run_invest(scenario_id: int, db: Session = Depends(get_db)):
     session_id = study_area_db.owner_id
 
     # For each invest model create a new job and add to the queue
+    # Also create a new invest_result entry
     invest_job_dict = {}
     for invest_model in INVEST_MODELS:
         job_schema = schemas.JobBase(
@@ -721,6 +722,11 @@ def run_invest(scenario_id: int, db: Session = Depends(get_db)):
                "status": STATUS_PENDING})
         job_db = crud.create_job(
             db=db, session_id=session_id, job=job_schema)
+
+        invest_schema = schemas.InvestResult(
+            **{"scenario_id": scenario_id, "job_id": job_db.job_id}
+        invest_db = crud.create_invest_result(
+            db=db, invest_result=invest_schema)
 
         # Construct worker job and add to the queue
         worker_task = {

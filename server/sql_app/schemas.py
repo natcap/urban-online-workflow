@@ -208,3 +208,12 @@ class ParcelFill(BaseModel):
     class Config:
         orm_mode = True
 
+
+class InvestResult(BaseModel):
+    """Pydantic model used by other Pydantic models."""
+    scenario_id: int
+    job_id: int
+    result: int = None
+
+    class Config:
+        orm_mode = True
