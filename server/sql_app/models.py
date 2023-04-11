@@ -72,7 +72,6 @@ class Scenario(Base):
 
     scenario_id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
-    description = Column(String)
     lulc_url_result = Column(String)
     lulc_stats = Column(String)
     lulc_url_base = Column(String, default="NLCD_2016_epsg3857.tif")
@@ -80,7 +79,6 @@ class Scenario(Base):
     # each scenario has an associated study area owner
     study_area_id = Column(String, ForeignKey("study_area.id"))
 
-    #parcel_stats = relationship("ParcelStats", back_populates="owner")
     study_area = relationship("StudyArea", back_populates="scenarios")
     invest_results = relationship("InvestResult", back_populates="scenario")
 

@@ -20,7 +20,7 @@ export default function SelectStudyArea(props) {
   return (
     <FormGroup
       inline
-      label="Select a study area"
+      label="Study Area"
       labelFor="select-study-area"
     >
       <HTMLSelect

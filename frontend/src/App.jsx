@@ -9,6 +9,7 @@ import {
   getSession,
   createStudyArea,
   updateStudyArea,
+  getScenarios,
 } from './requests';
 
 export default function App() {
@@ -18,6 +19,9 @@ export default function App() {
     id: undefined,
     parcels: [],
   });
+  const [scenarios, setScenarios] = useState([]);
+  const [patternSamplingMode, setPatternSamplingMode] = useState(false);
+  const [patternSampleWKT, setPatternSampleWKT] = useState(null);
 
   const switchStudyArea = async (id) => {
     let area;
@@ -46,11 +50,21 @@ export default function App() {
     setSavedStudyAreas(otherAreas.concat(updatedArea));
   };
 
+  const refreshScenarios = async () => {
+    if (studyArea.id) {
+      const scenes = await getScenarios(studyArea.id);
+      setScenarios(scenes);
+    }
+  };
+
+  const togglePatternSamplingMode = () => {
+    setPatternSamplingMode((mode) => !mode);
+  };
+
   useEffect(async () => {
     let SID = localStorage.getItem('sessionID');
     if (SID) {
       const session = await getSession(SID);
-      console.log(session)
       if (session && session.id) {
         setSessionID(SID);
         return;
@@ -64,11 +78,10 @@ export default function App() {
   useEffect(async () => {
     if (sessionID) {
       const studyAreas = await getStudyAreas(sessionID);
-      console.log(studyAreas);
-      if (studyAreas.length) {
-        const areas = studyAreas.filter((area) => (
-          area.parcels.length > 0
-        ));
+      const areas = studyAreas.filter((area) => (
+        area.parcels.length > 0
+      ));
+      if (areas.length) {
         setSavedStudyAreas(areas);
         await switchStudyArea(areas[0].id); // TODO: switch to most recently created
       } else {
@@ -77,6 +90,10 @@ export default function App() {
     }
   }, [sessionID]);
 
+  useEffect(() => {
+    refreshScenarios();
+  }, [studyArea.id]);
+
   return (
     (sessionID)
       ? (
@@ -84,9 +101,12 @@ export default function App() {
           <div className="map-and-menu-container">
             <MapComponent
               sessionID={sessionID}
-              parcelSet={studyArea.parcels}
+              studyAreaParcels={studyArea.parcels}
               activeStudyAreaID={studyArea.id}
               refreshStudyArea={refreshStudyArea}
+              patternSamplingMode={patternSamplingMode}
+              setPatternSampleWKT={setPatternSampleWKT}
+              scenarios={scenarios}
             />
             <EditMenu
               sessionID={sessionID}
@@ -95,6 +115,11 @@ export default function App() {
               nameStudyArea={nameStudyArea}
               switchStudyArea={switchStudyArea}
               savedStudyAreas={savedStudyAreas}
+              refreshScenarios={refreshScenarios}
+              scenarios={scenarios}
+              patternSamplingMode={patternSamplingMode}
+              togglePatternSamplingMode={togglePatternSamplingMode}
+              patternSampleWKT={patternSampleWKT}
             />
           </div>
         </div>

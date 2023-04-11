@@ -114,16 +114,18 @@ def create_scenario(db: Session, scenario: schemas.Scenario, study_area_id: int)
     db.refresh(db_scenario)
     return db_scenario
 
-# helper function
+
 def get_scenario(db: Session, scenario_id: int):
     """Read a single scenario by ID."""
     return db.query(models.Scenario).filter(
             models.Scenario.scenario_id == scenario_id).first()
 
+
 def get_scenarios(db: Session, study_area_id: int):
     """Read all scenarios."""
     return db.query(models.Scenario).filter(
             models.Scenario.study_area_id == study_area_id).all()
+
 
 def update_scenario(db: Session, scenario: schemas.Scenario, scenario_id: int):
     """Update a scenario."""

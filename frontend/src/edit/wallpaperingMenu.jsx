@@ -112,27 +112,31 @@ export default function WallpaperingMenu(props) {
             />
           )}
       </div>
-      {(patternSamplingMode)
-        ? (
-          <>
-            <p>1. Drag the box over the map to sample a pattern</p>
-            <p>2. Name the new pattern:</p>
-            <FormGroup>
-              <InputGroup
-                id="text-input"
-                placeholder="Placeholder text"
-                value={newPatternName}
-                onChange={(event) => setNewPatternName(event.target.value)}
-              />
-            </FormGroup>
-            <Button
-              icon="camera"
-              text="Sample this pattern"
-              onClick={handleSamplePattern}
-            />
-          </>
-        )
-        : <div />}
+      {
+        (patternSamplingMode)
+          ? (
+            <>
+              <p>1. Drag the box over the map to sample a pattern</p>
+              <p>2. Name the new pattern:</p>
+              <FormGroup>
+                <InputGroup
+                  id="text-input"
+                  placeholder="Placeholder text"
+                  value={newPatternName}
+                  onChange={(event) => setNewPatternName(event.target.value)}
+                  rightElement={(
+                    <Button
+                      icon="camera"
+                      text="Sample this pattern"
+                      onClick={handleSamplePattern}
+                    />
+                  )}
+                />
+              </FormGroup>
+            </>
+          )
+          : <div />
+      }
     </>
   );
 }
