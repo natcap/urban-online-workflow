@@ -182,7 +182,6 @@ export default function MapComponent(props) {
   } = props;
   const [layers, setLayers] = useState([]);
   const [showLayerControl, setShowLayerControl] = useState(false);
-  const [selectedBasemap, setSelectedBasemap] = useState('Satellite');
   const [selectedParcel, setSelectedParcel] = useState(null);
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
@@ -205,7 +204,6 @@ export default function MapComponent(props) {
         setVisibility(layer, layer.get('title') === title);
       }
     });
-    setSelectedBasemap(title);
   };
 
   const switchScenario = (title) => {
@@ -316,6 +314,9 @@ export default function MapComponent(props) {
           lulcTileLayer(scene.lulc_url_result, scene.name, 'scenario')
         );
       });
+      const mostRecentLyr = scenarioLayers.pop();
+      mostRecentLyr.setVisible(true);
+      scenarioLayers.push(mostRecentLyr);
       scenarioLayerGroup.setLayers(new Collection(scenarioLayers));
       map.addLayer(scenarioLayerGroup);
       setLayers(map.getLayers().getArray());
@@ -353,7 +354,6 @@ export default function MapComponent(props) {
           setVisibility={setVisibility}
           switchBasemap={switchBasemap}
           switchScenario={switchScenario}
-          basemap={selectedBasemap}
         />
       </div>
       <ParcelControl

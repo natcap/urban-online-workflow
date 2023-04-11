@@ -74,7 +74,6 @@ export default function ScenarioBuilder(props) {
     return <div />;
   }
 
-  console.log(landuseCodes)
   let scenarioDescription = '';
   if (conversionOption === 'wallpaper' && selectedPattern) {
     scenarioDescription = (

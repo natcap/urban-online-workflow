@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import {
   Checkbox,
@@ -32,13 +32,26 @@ export default function LayerPanel(props) {
     show,
     switchBasemap,
     switchScenario,
-    basemap,
   } = props;
 
-  // Basemap Radio is controlled by Map, where we hardcode the
-  // default basemap to display. No scenario layers are displayed
-  // by default, so that Radio can be controlled here.
   const [selectedScenario, setSelectedScenario] = useState(null);
+  const [selectedBasemap, setSelectedBasemap] = useState(null);
+
+  useEffect(() => {
+    layers.forEach((layer) => {
+      if (layer.get('type') === 'base') {
+        if (layer.getVisible() === true) {
+          setSelectedBasemap(layer.get('title'));
+        }
+      } else if (layer.get('group') === 'scenarios') {
+        layer.getLayers().forEach(lyr => {
+          if (lyr.getVisible() === true) {
+            setSelectedScenario(lyr.get('title'));
+          }
+        });
+      }
+    });
+  }, [layers]);
 
   if (!show) {
     return null;
@@ -47,6 +60,7 @@ export default function LayerPanel(props) {
   const handleChangeBasemap = (event) => {
     const title = event.target.value;
     switchBasemap(title);
+    setSelectedBasemap(title);
   };
 
   const handleChangeScenario = (event) => {
@@ -104,7 +118,7 @@ export default function LayerPanel(props) {
       <RadioGroup
         label="Basemaps:"
         onChange={handleChangeBasemap}
-        selectedValue={basemap}
+        selectedValue={selectedBasemap}
       >
         {basemaps}
       </RadioGroup>
