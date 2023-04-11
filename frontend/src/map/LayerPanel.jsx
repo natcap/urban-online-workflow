@@ -8,12 +8,13 @@ import {
 
 
 function LayerCheckbox(props) {
-  const { layer, label, setVisibility } = props;
+  const { label, setVisibility } = props;
   const [checked, setChecked] = useState(true);
 
   const handleChange = (event) => {
     setChecked(event.target.checked);
-    setVisibility(layer, event.target.checked);
+    // setVisibility(layer, event.target.checked);
+    setVisibility(label, event.target.checked);
   };
 
   return (
@@ -33,22 +34,22 @@ export default function LayerPanel(props) {
     switchBasemap,
     switchScenario,
   } = props;
+  console.log(layers)
 
   const [selectedScenario, setSelectedScenario] = useState(null);
   const [selectedBasemap, setSelectedBasemap] = useState(null);
 
   useEffect(() => {
-    layers.forEach((layer) => {
-      if (layer.get('type') === 'base') {
-        if (layer.getVisible() === true) {
-          setSelectedBasemap(layer.get('title'));
+    console.log(layers)
+    layers.forEach(([type, title, isVisible]) => {
+      if (type === 'base') {
+        if (isVisible) {
+          setSelectedBasemap(title);
         }
-      } else if (layer.get('group') === 'scenarios') {
-        layer.getLayers().forEach(lyr => {
-          if (lyr.getVisible() === true) {
-            setSelectedScenario(lyr.get('title'));
-          }
-        });
+      } else if (type === 'scenario') {
+        if (isVisible) {
+          setSelectedScenario(title);
+        }
       }
     });
   }, [layers]);
@@ -73,45 +74,38 @@ export default function LayerPanel(props) {
   const basemaps = [];
   const scenarios = [];
   let scenarioLayerGroup;
-  layers.forEach((layer) => {
-    if (layer.get('group') === 'scenarios') {
-      scenarioLayerGroup = layer;
-      layer.getLayers().forEach(lyr => {
-        const title = lyr.get('title');
-        scenarios.push(
-          <Radio
-            key={title}
-            label={title}
-            value={title}
-          />
-        );
-      });
-    } else {
-      if (layer.get('title') === undefined) {
-        return;
-      }
-      if (layer.get('type') === 'base') {
-        const title = layer.get('title');
-        basemaps.push(
-          <Radio
-            key={title}
-            label={title}
-            value={title}
-          />
-        );
-      } else {
-        checkboxes.push(
-          <LayerCheckbox
-            key={layer.get('title')}
-            layer={layer}
-            label={layer.get('title')}
-            setVisibility={setVisibility}
-          />
-        );
-      }
+  layers.forEach(([type, title, isVisible]) => {
+    if (!title) {
+      return;
+    }
+    if (type === 'scenario') {
+      scenarios.push(
+        <Radio
+          key={title}
+          label={title}
+          value={title}
+        />
+      );
+    } else if (type === 'base') {
+      basemaps.push(
+        <Radio
+          key={title}
+          label={title}
+          value={title}
+        />
+      );
+    } else if (type !== 'group') {
+      checkboxes.push(
+        <LayerCheckbox
+          key={title}
+          // layer={layer}
+          label={title}
+          setVisibility={setVisibility}
+        />
+      );
     }
   });
-
+  console.log(scenarios)
   return (
     <div className="layers-panel">
       {checkboxes}
@@ -128,7 +122,7 @@ export default function LayerPanel(props) {
             <>
               <LayerCheckbox
                 key="scenario-group"
-                layer={scenarioLayerGroup}
+                // layer={layer}
                 label="Scenarios:"
                 setVisibility={setVisibility}
               />

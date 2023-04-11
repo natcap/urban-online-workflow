@@ -142,6 +142,8 @@ studyAreaLayer.setZIndex(3);
 const scenarioLayerGroup = new LayerGroup({
   properties: { group: 'scenarios' },
 });
+scenarioLayerGroup.set('type', 'group')
+scenarioLayerGroup.set('title', 'Scenarios:')
 scenarioLayerGroup.setZIndex(1);
 
 // Set a default basemap to be visible
@@ -186,8 +188,15 @@ export default function MapComponent(props) {
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
 
-  const setVisibility = (lyr, visible) => {
-    lyr.setVisible(visible);
+  // TODO: make this only take a title, so that only
+  // names & types of layers pass to LayersPanel.
+  const setVisibility = (title, visible) => {
+    map.getLayers().forEach(lyr => {
+      if (lyr.get('title') === title) {
+        lyr.setVisible(visible)
+      }
+    });
+    // lyr.setVisible(visible);
   };
 
   const toggleLayerControl = () => {
@@ -199,18 +208,22 @@ export default function MapComponent(props) {
   };
 
   const switchBasemap = (title) => {
-    layers.forEach((layer) => {
+    map.getLayers().getArray().forEach((layer) => {
+    // layers.forEach((layer) => {
       if (layer.get('type') === 'base') {
-        setVisibility(layer, layer.get('title') === title);
+        layer.setVisible(layer.get('title') === title)
+        // setVisibility(layer, layer.get('title') === title);
       }
     });
   };
 
   const switchScenario = (title) => {
-    layers.forEach((layer) => {
+    map.getLayers().getArray().forEach((layer) => {
+    // layers.forEach((layer) => {
       if (layer.get('group') === 'scenarios') {
         layer.getLayers().forEach(lyr => {
-          setVisibility(lyr, lyr.get('title') === title);
+          lyr.setVisible(lyr.get('title') === title)
+          // setVisibility(lyr, lyr.get('title') === title);
         });
       }
     });
@@ -224,11 +237,26 @@ export default function MapComponent(props) {
     setSelectedParcel(null);
   };
 
+  const setMapLayers = () => {
+    const lyrs = map.getAllLayers().map(lyr => (
+      [lyr.get('type'), lyr.get('title'), lyr.getVisible()]
+    ));
+    lyrs.push(
+      [
+        scenarioLayerGroup.get('type'),
+        scenarioLayerGroup.get('title'),
+        scenarioLayerGroup.getVisible()
+      ]
+    );
+    setLayers(lyrs);
+  };
+
   // useEffect with no dependencies: only runs after first render
   useEffect(() => {
     window.onresize = () => setTimeout(map.updateSize(), 200); // update *after* resize
     map.setTarget(mapElementRef.current);
-    setLayers(map.getLayers().getArray());
+    // setLayers(map.getLayers().getArray());
+    setMapLayers();
     parcelLayer.setStyle(styleParcel(map.getView().getZoom()));
 
     // when the box appears, or when the user finishes dragging the box,
@@ -284,6 +312,18 @@ export default function MapComponent(props) {
         parcelLayer.setStyle(styleParcel(newZoom));
       }
     });
+
+    map.getLayers().on('add', () => {
+      console.log('added layers')
+      // setLayers(map.getLayers().getArray());
+      setMapLayers();
+    });
+
+    map.getLayers().on('remove', () => {
+      console.log('removed layers')
+      setMapLayers();
+    });
+
     map.updateSize();
   }, []);
 
@@ -319,8 +359,9 @@ export default function MapComponent(props) {
       scenarioLayers.push(mostRecentLyr);
       scenarioLayerGroup.setLayers(new Collection(scenarioLayers));
       map.addLayer(scenarioLayerGroup);
-      setLayers(map.getLayers().getArray());
+      // setLayers(map.getLayers().getArray());
     }
+    console.log(layers)
   }, [scenarios]);
 
   // toggle pattern sampler visibility according to the pattern sampling mode
@@ -350,7 +391,9 @@ export default function MapComponent(props) {
         </Button>
         <LayerPanel
           show={showLayerControl}
-          layers={[...layers].reverse()} // copy array & reverse it
+          // layers={map.getLayers().getArray().reverse()} // copy array & reverse it
+          // layers={[...layers].reverse()} // copy array & reverse it
+          layers={layers}
           setVisibility={setVisibility}
           switchBasemap={switchBasemap}
           switchScenario={switchScenario}
