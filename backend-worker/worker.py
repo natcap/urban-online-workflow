@@ -21,6 +21,7 @@ from osgeo import ogr
 from osgeo import osr
 from PIL import Image
 
+import natcap.invest
 from natcap.invest import carbon
 from natcap.invest import pollination
 from natcap.invest import stormwater
@@ -111,13 +112,16 @@ INVEST_MODELS = {
 }
 
 # Validate invest inputs
-for model_key, model_params in INVEST_MODELS:
+LOGGER.info(f"INVEST VERSION: {natcap.invest.__version__}")
+for model_key, model_params in INVEST_MODELS.items():
     model_args_path = model_params['args_path']
     with open(model_args_path) as json_file:
         invest_args = json.load(json_file)
 
+    # add temp workspace_dir
+    invest_args['args']['workspace_dir'] = INVEST_BASE_PATH
     validation_results = validation.validate(
-            invest_args['args'], model_params['api'].MODEL_SPEC)
+            invest_args['args'], model_params['api'].MODEL_SPEC['args'])
     if validation_results:
         LOGGER.info(f'InVEST model {model_key} inputs error.')
         LOGGER.info(validation_results)

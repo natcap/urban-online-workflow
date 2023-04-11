@@ -740,7 +740,7 @@ def run_invest(scenario_id: int, db: Session = Depends(get_db)):
             db=db, session_id=session_id, job=job_schema)
 
         invest_schema = schemas.InvestResult(
-            **{"scenario_id": scenario_id, "job_id": job_db.job_id}
+            **{"scenario_id": scenario_id, "job_id": job_db.job_id})
         invest_db = crud.create_invest_result(
             db=db, invest_result=invest_schema)
 
