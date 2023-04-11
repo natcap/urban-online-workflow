@@ -10,6 +10,7 @@ html, body, #root, .App {
   /*align-items: stretch;*/
   width: 100%;
   height: 100%;
+  overflow: hidden;
 }
 
 .map-container {
@@ -20,22 +21,20 @@ html, body, #root, .App {
   float: left;
 }
 
+.menu-container {
+  /*flex-grow: 1;*/
+  height: inherit;
+  width: 40%;
+  float: right;
+  padding: 1rem;
+  overflow-y: scroll;
+}
+
 .map-viewport {
   /*flex-grow: 1;*/
   height: 100%;
   width: 100%;
   float: left;
-}
-
-.menu-container {
-  /*flex-grow: 1;*/
-  width: 40%;
-  float: right;
-  padding: 1rem;
-}
-
-.scenario-select {
-  display: inline;
 }
 
 .layers-control {
