@@ -3,6 +3,7 @@ import json
 import logging
 import math
 import os
+import random
 import shutil
 import tempfile
 import time
@@ -109,18 +110,18 @@ INVEST_MODELS = {
     #"urban_nature_access": {"api": urban_nature_access, "data_key": "UrbanNatureAccess", "args_path": os.path.join(INVEST_BASE_PATH, 'UrbanNatureAccess', 'urban_nature_access_args.json')},
 }
 
-# Validate invest inputs:
+# Validate invest inputs
 for model_key, model_params in INVEST_MODELS:
     model_args_path = model_params['args_path']
     with open(model_args_path) as json_file:
         invest_args = json.load(json_file)
 
-    model_args = invest_args['args']
     validation_results = validation.validate(
-            model_args, model_params['api'].MODEL_SPEC, spatial_overlap_opts=None)
+            invest_args['args'], model_params['api'].MODEL_SPEC)
     if validation_results:
         LOGGER.info(f'InVEST model {model_key} inputs error.')
         LOGGER.info(validation_results)
+        raise ValueError("Could not validate InVEST model args")
 
 
 STATUS_SUCCESS = 'success'
@@ -835,7 +836,6 @@ def do_work(host, port, outputs_location):
                     }
                 }
             elif job_type == JOBTYPE_INVEST:
-                # TODO: run invest models!
                 invest_model = job_args['invest_model']
                 LOGGER.info(f"Run InVEST model: {job_args['invest_model']}")
 
@@ -843,19 +843,19 @@ def do_work(host, port, outputs_location):
                 with open(model_args_path) as json_file:
                     invest_args = json.load(json_file)
 
-                model_args = invest_args['args']
-                model_args['workspace_dir'] = os.path.join(outputs_location, f'{invest_model}-test')
-                LOGGER.info(f'{invest_model} model arguments: {model_args}')
+                invest_args['args']['workspace_dir'] = os.path.join(outputs_location, f'{invest_model}-test')
+                LOGGER.info(f'{invest_model} model arguments: {invest_args}')
                 #TODO: update lulc input scenario
+                #TODO: any AOIs needed for models?
                 # job_id should be unique
                 invest_task_keys[job_id] = graph.add_task(
                     INVEST_MODEL[invest_model]['api'].execute,
-                    kwargs={'args':model_args},
+                    kwargs={'args':invest_args['args']},
                     task_name=f'Run {invest_model} model [{job_id}]'
                 )
                 data = {
                     'result': {
-                        'output_path': "return-something",
+                        'invest-result': random.randint(1, 10),
                         'model': job_args['invest_model'],
                     }
                 }
