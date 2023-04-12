@@ -7,7 +7,7 @@ import {
 } from '@blueprintjs/core';
 
 function LayerCheckbox(props) {
-  const { label, setVisibility } = props;
+  const { label, setVisibility, className } = props;
   const [checked, setChecked] = useState(true);
 
   const handleChange = (event) => {
@@ -17,6 +17,7 @@ function LayerCheckbox(props) {
 
   return (
     <Checkbox
+      className={className}
       checked={checked}
       label={label}
       onChange={handleChange}
@@ -93,6 +94,7 @@ export default function LayerPanel(props) {
     } else if (type === 'scenario-group') {
       scenarioGroupCheckbox = (
         <LayerCheckbox
+          className="subheader"
           key={title}
           label={title}
           setVisibility={setVisibility}
@@ -112,8 +114,14 @@ export default function LayerPanel(props) {
   return (
     <div className="layers-panel">
       {checkboxes}
+      <p
+        htmlFor="basemaps-group"
+        className="subheader"
+      >
+        Basemaps:
+      </p>
       <RadioGroup
-        label="Basemaps:"
+        id="basemaps-group"
         onChange={handleChangeBasemap}
         selectedValue={selectedBasemap}
       >

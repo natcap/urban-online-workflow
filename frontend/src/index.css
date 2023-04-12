@@ -56,6 +56,12 @@ html, body, #root, .App {
   filter: drop-shadow(2px 2px 2px grey);
 }
 
+.layers-panel .subheader {
+  border-top: dotted;
+  border-width: thin;
+  padding-top: 0.5rem;
+}
+
 .layer-info {
   background-color: rgba(255,255,255,0.9);
   position: absolute;
