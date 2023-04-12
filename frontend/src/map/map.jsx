@@ -160,8 +160,8 @@ const map = new Map({
     scenarioLayerGroup,
   ],
   view: new View({
-    center: [-10956248.2268683, 3427877.42426285], // E. San Antonio, EPSG:3857
-    zoom: 16,
+    center: [-10964048.932711, 3429505.23069662], // San Antonio, TX EPSG:3857
+    zoom: 12,
   }),
   interactions: defaultInteractions().extend([translate]),
   controls: defaults({
