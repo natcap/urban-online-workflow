@@ -253,6 +253,16 @@ export default function MapComponent(props) {
     setLayers(lyrs);
   };
 
+  const zoomToStudyArea = () => {
+    map.getView().fit(
+      studyAreaSource.getExtent(),
+      {
+        padding: [10, 10, 10, 10], // pixels
+        maxZoom: 16,
+      },
+    );
+  };
+
   // useEffect with no dependencies: only runs after first render
   useEffect(() => {
     window.onresize = () => setTimeout(map.updateSize(), 200); // update *after* resize
@@ -338,6 +348,7 @@ export default function MapComponent(props) {
         return feature;
       });
       studyAreaSource.addFeatures(features);
+      zoomToStudyArea();
     }
   }, [studyAreaParcels]);
 
