@@ -113,10 +113,8 @@ html, body, #root, .App {
 .wallpaper-selected-pattern {
   display: inline-block;
   float: right;
-/*  margin-left: 1rem;*/
   width: 80px;
   height: 80px;
-/*  border: dotted gray;*/
 }
 
 .wallpaper-selected-pattern .bp4-non-ideal-state-visual {

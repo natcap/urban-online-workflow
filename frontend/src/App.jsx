@@ -53,7 +53,6 @@ export default function App() {
   const refreshScenarios = async () => {
     if (studyArea.id) {
       const scenes = await getScenarios(studyArea.id);
-      console.log(scenes)
       setScenarios(scenes);
     }
   };
