@@ -288,7 +288,7 @@ def update_pattern(
     db.refresh(db_pattern)
     return STATUS_SUCCESS
 
-def create_invest_entry(db: Session, invest_result: schemas.InvestResult):
+def create_invest_result(db: Session, invest_result: schemas.InvestResult):
     """Create a invest entry in the invest_results table."""
     db_invest = models.InvestResult(**invest_result.dict())
     db.add(db_invest)
@@ -296,12 +296,18 @@ def create_invest_entry(db: Session, invest_result: schemas.InvestResult):
     db.refresh(db_invest)
     return db_invest
 
+def get_invest(db: Session, scenario_id: int, job_id: int):
+    """Read invest result  by ``scenario_id`` and ``job_id``."""
+    return db.query(models.InvestResult).filter(
+            models.InvestResult.job_id == job_id,
+            models.InvestResult.scenario_id == scenario_id).first()
+
 def update_invest(db: Session, scenario_id: int, job_id: int, result: str):
     """Update an invest result."""
     db_invest = get_invest(db, scenario_id, job_id)
     if not db_invest:
         raise HTTPException(status_code=404, detail="InvestResult not found")
-    setattr(db_invest, 'result', result) 
+    setattr(db_invest, 'result', result)
 
     db.add(db_invest)
     db.commit()

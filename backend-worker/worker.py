@@ -27,11 +27,18 @@ from natcap.invest import pollination
 from natcap.invest import stormwater
 from natcap.invest import urban_cooling_model
 from natcap.invest import urban_flood_risk_mitigation
-#from natcap.invest import urban_nature_access
+from natcap.invest import urban_nature_access
 from natcap.invest import validation
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
+
+logging.getLogger("carbon").setLevel(logging.INFO)
+logging.getLogger("pollination").setLevel(logging.INFO)
+logging.getLogger("stormwater").setLevel(logging.INFO)
+logging.getLogger("urban_cooling_model").setLevel(logging.INFO)
+logging.getLogger("urban_flood_risk_mitigation").setLevel(logging.INFO)
+logging.getLogger("urban_nature_access").setLevel(logging.INFO)
 
 POLLING_INTERVAL_S = 10
 DEFAULT_GTIFF_CREATION_TUPLE_OPTIONS = ('GTIFF', (
@@ -108,7 +115,7 @@ INVEST_MODELS = {
     "urban_flood_risk_mitigation": {
         "api": urban_flood_risk_mitigation, "data_key": "UrbanFloodMitigation",
         "args_path": os.path.join(INVEST_BASE_PATH, 'UrbanFloodMitigation', 'urban_flood_mitigation_args.json')},
-    #"urban_nature_access": {"api": urban_nature_access, "data_key": "UrbanNatureAccess", "args_path": os.path.join(INVEST_BASE_PATH, 'UrbanNatureAccess', 'urban_nature_access_args.json')},
+    "urban_nature_access": {"api": urban_nature_access, "data_key": "UrbanNatureAccess", "args_path": os.path.join(INVEST_BASE_PATH, 'UrbanNatureAccess', 'urban_nature_access_args.json')},
 }
 
 # Validate invest inputs
@@ -326,7 +333,7 @@ def _warp_raster_to_web_mercator(source_albers_raster_path,
     """
     pygeoprocessing.geoprocessing.warp_raster(
         source_albers_raster_path, (PIXELSIZE_X, PIXELSIZE_Y),
-        target_web_mercator_raster_path, 'nearest',
+        target_web_mercator_raster_path, 'near',
         target_projection_wkt=WEB_MERCATOR_SRS_WKT)
 
 
@@ -382,7 +389,7 @@ def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path,
     pygeoprocessing.geoprocessing.warp_raster(
         NLCD_RASTER_PATH, (PIXELSIZE_X, PIXELSIZE_Y),
         target_local_gtiff_path,
-        resample_method='nearest',
+        resample_method='near',
         target_bb=[buf_minx, buf_miny, buf_maxx, buf_maxy])
 
     if not include_pixel_values:
@@ -471,7 +478,7 @@ def wallpaper_parcel(parcel_wkt_epsg3857, pattern_wkt_epsg3857,
     nlud_under_parcel_path = os.path.join(working_dir, 'nlud_under_parcel.tif')
     pygeoprocessing.geoprocessing.warp_raster(
         source_nlud_raster_path, nlud_raster_info['pixel_size'],
-        nlud_under_parcel_path, 'nearest',
+        nlud_under_parcel_path, 'near',
         target_bb=parcel_raster_info['bounding_box'])
     nlud_under_parcel_raster_info = pygeoprocessing.get_raster_info(
         nlud_under_parcel_path)
@@ -481,7 +488,7 @@ def wallpaper_parcel(parcel_wkt_epsg3857, pattern_wkt_epsg3857,
     pattern_bbox = shapely.wkt.loads(pattern_wkt_epsg3857).bounds
     pygeoprocessing.geoprocessing.warp_raster(
         source_nlud_raster_path, nlud_raster_info['pixel_size'],
-        nlud_under_pattern_path, 'nearest',
+        nlud_under_pattern_path, 'near',
         target_bb=pattern_bbox)
     wallpaper_array = pygeoprocessing.raster_to_numpy_array(
         nlud_under_pattern_path)
@@ -689,7 +696,7 @@ def make_thumbnail(pattern_wkt_epsg3857, colors_dict, target_thumbnail_path,
     # just a small bit of the surrounding context.
     pygeoprocessing.geoprocessing.warp_raster(
         NLCD_RASTER_PATH, _NLCD_RASTER_INFO['pixel_size'],
-        thumbnail_gtiff_path, 'nearest',
+        thumbnail_gtiff_path, 'near',
         target_bb=shapely.wkt.loads(pattern_wkt_epsg3857).buffer(
             PIXELSIZE_X/2).bounds
     )
@@ -856,7 +863,7 @@ def do_work(host, port, outputs_location):
                 #TODO: any AOIs needed for models?
                 # job_id should be unique
                 invest_task_keys[job_id] = graph.add_task(
-                    INVEST_MODEL[invest_model]['api'].execute,
+                    INVEST_MODELS[invest_model]['api'].execute,
                     kwargs={'args':invest_args['args']},
                     task_name=f'Run {invest_model} model [{job_id}]'
                 )

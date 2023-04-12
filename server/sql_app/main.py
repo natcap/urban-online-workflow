@@ -47,10 +47,10 @@ STATUS_FAIL = "failed"
 LOW_PRIORITY = 3
 MEDIUM_PRIORITY = 2
 HIGH_PRIORITY = 1
+QUEUE_COUNT = 0
 # InVEST model list
-#INVEST_MODELS = ["pollination", "stormwater", "urban_cooling_model", "carbon",
-#                 "urban_flood_risk_mitigation", "urban_nature_access"]
-INVEST_MODELS = ["carbon"]
+INVEST_MODELS = ["pollination", "stormwater", "urban_cooling_model", "carbon",
+                 "urban_flood_risk_mitigation", "urban_nature_access"]
 JOB_TYPES = {
     "invest": "invest",
     "pattern_thumbnail": "pattern_thumbnail",
@@ -242,7 +242,7 @@ async def worker_job_request(db: Session = Depends(get_db)):
     """If there's work to be done in the queue send it to the worker."""
     try:
         # Get job from queue, ignoring returned priority value
-        _, job_details = QUEUE.get_nowait()
+        _, _, job_details = QUEUE.get_nowait()
         return json.dumps(job_details)
     except queue.Empty:
         return None
@@ -284,13 +284,13 @@ def worker_invest_response(
         # TODO: how will we store InVEST model results? In Scenario table or in
         # a separate InVEST table? Should each model have a table? Issue #70
         #scenario_update = schemas.ScenarioUpdate(
-        #    lulc_url_result=invest_job.result['lulc_path'],
-        #    lulc_stats=json.dumps(invest_job.result['lulc_stats']))
+        #    lulc_url_result=invest_result.result['lulc_path'],
+        #    lulc_stats=json.dumps(invest_result.result['lulc_stats']))
         LOGGER.debug('Update invest result')
         _ = crud.update_invest(
             db=db, scenario_id=invest_result.server_attrs['scenario_id'],
             job_id=invest_result.server_attrs['job_id'],
-            result=invest_result.result['result'])
+            result=invest_result.result['invest-result'])
     else:
         # Update the job status in the DB to "failed"
         job_update = schemas.JobBase(
@@ -301,7 +301,7 @@ def worker_invest_response(
 
     LOGGER.debug('Update job status')
     _ = crud.update_job(
-        db=db, job=job_update, job_id=invest_job.server_attrs['job_id'])
+        db=db, job=job_update, job_id=invest_result.server_attrs['job_id'])
 
 
 @app.post("/jobsqueue/scenario")
@@ -515,7 +515,8 @@ def create_pattern(session_id: str, pattern: schemas.PatternBase,
         }
     }
 
-    QUEUE.put_nowait((HIGH_PRIORITY, worker_task))
+    QUEUE.put_nowait((HIGH_PRIORITY, QUEUE_COUNT, worker_task))
+    QUEUE_COUNT += 1
 
     return {**worker_task['server_attrs'], "label": pattern.label}
 
@@ -573,7 +574,8 @@ def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
             }
         }
 
-    QUEUE.put_nowait((MEDIUM_PRIORITY, worker_task))
+    QUEUE.put_nowait((MEDIUM_PRIORITY, QUEUE_COUNT, worker_task))
+    QUEUE_COUNT += 1
 
     # Return job_id for response
     return job_db
@@ -609,7 +611,8 @@ def lulc_fill(lulc_fill: schemas.ParcelFill,
             }
         }
 
-    QUEUE.put_nowait((MEDIUM_PRIORITY, worker_task))
+    QUEUE.put_nowait((MEDIUM_PRIORITY, QUEUE_COUNT, worker_task))
+    QUEUE_COUNT += 1
 
     # Return job_id for response
     return job_db
@@ -647,7 +650,8 @@ def lulc_crop(scenario_id: int, db: Session = Depends(get_db)):
     # In practice, this job is queue'd concurrently with
     # a lulc_fill or wallpaper job, so this one should be
     # prioritized.
-    QUEUE.put_nowait((HIGH_PRIORITY, worker_task))
+    QUEUE.put_nowait((HIGH_PRIORITY, QUEUE_COUNT, worker_task))
+    QUEUE_COUNT += 1
 
     # Return job_id for response
     return job_db
@@ -707,7 +711,8 @@ def add_parcel(create_parcel_request: schemas.ParcelCreateRequest,
             }
         }
 
-    QUEUE.put_nowait((HIGH_PRIORITY, worker_task))
+    QUEUE.put_nowait((HIGH_PRIORITY, QUEUE_COUNT, worker_task))
+    QUEUE_COUNT += 1
 
     # Return job_id
     return worker_task['server_attrs']
@@ -756,7 +761,8 @@ def run_invest(scenario_id: int, db: Session = Depends(get_db)):
                 }
             }
 
-        QUEUE.put_nowait((MEDIUM_PRIORITY, worker_task))
+        QUEUE.put_nowait((MEDIUM_PRIORITY, QUEUE_COUNT, worker_task))
+        QUEUE_COUNT += 1
 
         invest_job_dict[invest_model] = job_db.job_id
 
