@@ -164,10 +164,13 @@ def create_parcel_stats(db: Session, parcel_id: int, parcel_wkt: str, job_id: in
 
 
 def create_parcel(db: Session, study_area_id: int,
-                  parcel_id: int, parcel_wkt: str):
+                  parcel_id: int, address: str, parcel_wkt: str):
     """Create an entry in parcel table."""
     db_parcel = models.Parcel(
-        study_area_id=study_area_id, parcel_id=parcel_id, wkt=parcel_wkt)
+        study_area_id=study_area_id,
+        parcel_id=parcel_id,
+        address=address,
+        wkt=parcel_wkt)
     try:
         db.add(db_parcel)
         db.commit()

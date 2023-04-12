@@ -234,7 +234,7 @@ export async function lulcCrop(scenarioID) {
 /**
  * Add parcel to a study area.
  */
-export async function addParcel(sessionID, studyAreaID, parcelID, wkt) {
+export async function addParcel(sessionID, studyAreaID, parcelID, address, wkt) {
   return (
     window.fetch(`${apiBaseURL}/add_parcel`, {
       method: 'post',
@@ -243,6 +243,7 @@ export async function addParcel(sessionID, studyAreaID, parcelID, wkt) {
         session_id: sessionID,
         study_area_id: studyAreaID,
         parcel_id: parcelID,
+        address: address,
         wkt: wkt,
       }),
     })

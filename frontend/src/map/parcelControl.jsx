@@ -32,7 +32,7 @@ export default function ParcelControl(props) {
   }, (jobID) ? 200 : null); // This server operation should be quick
 
   const handleClick = async (parcel) => {
-    const jid = await addParcel(sessionID, activeStudyAreaID, parcel.parcelID, parcel.coords);
+    const jid = await addParcel(sessionID, activeStudyAreaID, parcel.parcelID, parcel.address, parcel.coords);
     setJobID(jid.job_id);
   };
 

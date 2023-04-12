@@ -16,10 +16,19 @@ export default function StudyAreaTable(props) {
     immutableStudyArea,
   } = props;
   const [highlightedCode, setHighlightedCode] = useState(null);
+  const [hiddenRowClass, setHiddenRowClass] = useState('');
 
   const deleteParcel = async (parcelID) => {
     await removeParcel(parcelID, studyAreaID);
     refreshStudyArea();
+  };
+
+  const toggleRows = () => {
+    if (hiddenRowClass) {
+      setHiddenRowClass('');
+    } else {
+      setHiddenRowClass('hidden-row');
+    }
   };
 
   function plot(table) {
@@ -48,14 +57,22 @@ export default function StudyAreaTable(props) {
   const rows = [];
   rows.push(
     <tr>
-      <td />
-      <td><em>address</em></td>
+      <td>
+        <Button
+          icon={hiddenRowClass ? 'Maximize' : 'Minimize'}
+          onClick={toggleRows}
+        />
+      </td>
+      <td className="parcel-address"><em>address</em></td>
       <td><em>landuse composition</em></td>
     </tr>,
   );
   parcelArray.forEach((parcel) => {
     rows.push(
-      <tr key={parcel.parcel_id}>
+      <tr
+        className={hiddenRowClass}
+        key={parcel.parcel_id}
+      >
         <td>
           <Button
             icon="remove"
@@ -63,7 +80,7 @@ export default function StudyAreaTable(props) {
             disabled={immutableStudyArea}
           />
         </td>
-        <td>{parcel.parcel_id}</td>
+        <td className="parcel-address">{parcel.address}</td>
         <td>
           <div className="parcel-block">
             {plot(JSON.parse(parcel.parcel_stats.lulc_stats).base)}
@@ -82,7 +99,7 @@ export default function StudyAreaTable(props) {
           {rows}
         </tbody>
       </HTMLTable>
-      <div className="study-area-legend">
+      <div className="study-area-table-legend">
         {
           (highlightedCode)
             ? (

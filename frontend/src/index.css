@@ -10,6 +10,7 @@ html, body, #root, .App {
   /*align-items: stretch;*/
   width: 100%;
   height: 100%;
+  overflow: hidden;
 }
 
 .map-container {
@@ -20,22 +21,20 @@ html, body, #root, .App {
   float: left;
 }
 
+.menu-container {
+  /*flex-grow: 1;*/
+  height: inherit;
+  width: 40%;
+  float: right;
+  padding: 1rem;
+  overflow-y: scroll;
+}
+
 .map-viewport {
   /*flex-grow: 1;*/
   height: 100%;
   width: 100%;
   float: left;
-}
-
-.menu-container {
-  /*flex-grow: 1;*/
-  width: 40%;
-  float: right;
-  padding: 1rem;
-}
-
-.scenario-select {
-  display: inline;
 }
 
 .layers-control {
@@ -55,6 +54,12 @@ html, body, #root, .App {
   padding: 0.5rem;
   margin: 0;
   filter: drop-shadow(2px 2px 2px grey);
+}
+
+.layers-panel .subheader {
+  border-top: dotted;
+  border-width: thin;
+  padding-top: 0.5rem;
 }
 
 .layer-info {
@@ -107,7 +112,7 @@ html, body, #root, .App {
 
 .wallpaper-selected-pattern {
   display: inline-block;
-  margin-left: 1rem;
+  float: right;
   width: 80px;
   height: 80px;
 }
@@ -147,6 +152,18 @@ html, body, #root, .App {
   height: 100px;
 }
 
+#study-area-input-container {
+  display: flex;
+}
+
+#study-area-input-container div {
+  flex-grow: 1;
+}
+
+#study-area-input-container label {
+  font-size: 1.2rem;
+}
+
 .study-area-table {
   margin-top: 0.5rem;
   border-collapse: collapse;
@@ -162,14 +179,23 @@ html, body, #root, .App {
   border-top: none;
 }
 
+.study-area-table .parcel-address {
+  width: 200px;
+}
+
 .study-area-table .parcel-block {
   display: flex;
   flex-wrap:  wrap;
 }
 
-.study-area-legend {
+.study-area-table .hidden-row {
+  display: none;
+}
+
+.study-area-table-legend {
   display: flex;
   height: 1rem;
+  padding-bottom: 2rem;
 }
 
 .scenario-table {

@@ -40,13 +40,13 @@ export default function EditMenu(props) {
       >
         <Tab
           id="create"
-          title="Create"
+          title=""
           panel={(
             <div>
               {
                 (studyArea.id)
                   ? (
-                    <>
+                    <div id="study-area-input-container">
                       <SelectStudyArea
                         studyAreaID={studyArea.id}
                         switchStudyArea={switchStudyArea}
@@ -56,7 +56,7 @@ export default function EditMenu(props) {
                         nameStudyArea={nameStudyArea}
                         name={studyArea.name}
                       />
-                    </>
+                    </div>
                   )
                   : <div />
               }
