@@ -166,6 +166,7 @@ class ParcelCreateRequest(BaseModel):
     session_id: str
     study_area_id: int
     parcel_id: int
+    address: str = None
     wkt: str
 
 

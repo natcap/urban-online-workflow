@@ -41,6 +41,7 @@ logging.getLogger("urban_flood_risk_mitigation").setLevel(logging.INFO)
 logging.getLogger("urban_nature_access").setLevel(logging.INFO)
 
 POLLING_INTERVAL_S = 10
+
 DEFAULT_GTIFF_CREATION_TUPLE_OPTIONS = ('GTIFF', (
     'TILED=YES', 'BIGTIFF=YES', 'COMPRESS=LZW',
     'BLOCKXSIZE=256', 'BLOCKYSIZE=256'))

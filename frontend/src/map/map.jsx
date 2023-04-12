@@ -107,9 +107,11 @@ const parcelLayer = new VectorTileLayer({
   source: new VectorTileSource({
     format: new MVT(),
     // access API key loaded from your private .env file using dotenv package
-    // because of vite, env variables are exposed through import.meta.env
-    // and must be prefixed with VITE_. https://vitejs.dev/guide/env-and-mode.html#env-files
-    url: 'https://api.mapbox.com/v4/emlys.san-antonio-parcels/{z}/{x}/{y}.mvt?access_token=' + import.meta.env.VITE_MAPBOX_API_KEY,
+    // https://vitejs.dev/guide/env-and-mode.html#env-files
+    // REGRID docs suggest getting this url by first requesting
+    // https://tiles.regrid.com/api/v1/parcels?token=<token>&format=mvt
+    // but I don't see why we need to do that every time.
+    url: `https://tiles.regrid.com/api/v1/parcels/{z}/{x}/{y}.mvt?token=${import.meta.env.VITE_REGRID_TOKEN}`
   }),
   minZoom: 15, // don't display this layer below zoom level 14
 });
@@ -123,7 +125,7 @@ const selectionLayer = new VectorTileLayer({
   style: (feature) => {
     // have to compare feature ids, not the feature objects, because tiling
     // will split some features in to multiple objects with the same id
-    if (selectedFeature && feature.getId() === selectedFeature.getId()) {
+    if (selectedFeature && feature.get('fid') === selectedFeature.get('fid')) {
       return selectedFeatureStyle;
     }
   },
@@ -137,9 +139,9 @@ const studyAreaLayer = new VectorLayer({
 studyAreaLayer.set('title', 'Study Area');
 studyAreaLayer.setZIndex(3);
 
-const scenarioLayerGroup = new LayerGroup({
-  properties: { group: 'scenarios' },
-});
+const scenarioLayerGroup = new LayerGroup({});
+scenarioLayerGroup.set('type', 'scenario-group');
+scenarioLayerGroup.set('title', 'Scenarios:'); // displays in LayerPanel
 scenarioLayerGroup.setZIndex(1);
 
 // Set a default basemap to be visible
@@ -158,8 +160,8 @@ const map = new Map({
     scenarioLayerGroup,
   ],
   view: new View({
-    center: [-10984368.72, 3427876.58], // W. San Antonio, EPSG:3857
-    zoom: 16,
+    center: [-10964048.932711, 3429505.23069662], // San Antonio, TX EPSG:3857
+    zoom: 12,
   }),
   interactions: defaultInteractions().extend([translate]),
   controls: defaults({
@@ -180,13 +182,25 @@ export default function MapComponent(props) {
   } = props;
   const [layers, setLayers] = useState([]);
   const [showLayerControl, setShowLayerControl] = useState(false);
-  const [selectedBasemap, setSelectedBasemap] = useState('Satellite');
   const [selectedParcel, setSelectedParcel] = useState(null);
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
 
-  const setVisibility = (lyr, visible) => {
-    lyr.setVisible(visible);
+  /**
+   * Click handler for layers controlled by checkboxes (not radios).
+   * @param  {string}  title - title of layer to show/hide
+   * @param  {Boolean} visible
+   * @return {undefined}
+   */
+  const setVisibility = (title, visible) => {
+    // Specically use getLayers instead of getAllLayers
+    // so that this can work for Layers and LayerGroups.
+    // But note this will not reach Layers w/in Groups.
+    map.getLayers().forEach(lyr => {
+      if (lyr.get('title') === title) {
+        lyr.setVisible(visible);
+      }
+    });
   };
 
   const toggleLayerControl = () => {
@@ -198,20 +212,17 @@ export default function MapComponent(props) {
   };
 
   const switchBasemap = (title) => {
-    layers.forEach((layer) => {
+    map.getAllLayers().forEach((layer) => {
       if (layer.get('type') === 'base') {
-        setVisibility(layer, layer.get('title') === title);
+        layer.setVisible(layer.get('title') === title);
       }
     });
-    setSelectedBasemap(title);
   };
 
   const switchScenario = (title) => {
-    layers.forEach((layer) => {
-      if (layer.get('group') === 'scenarios') {
-        layer.getLayers().forEach(lyr => {
-          setVisibility(lyr, lyr.get('title') === title);
-        });
+    map.getAllLayers().forEach((layer) => {
+      if (layer.get('type') === 'scenario') {
+        layer.setVisible(layer.get('title') === title)
       }
     });
   };
@@ -224,11 +235,39 @@ export default function MapComponent(props) {
     setSelectedParcel(null);
   };
 
+  const setMapLayers = () => {
+    const lyrs = map.getAllLayers().map(lyr => (
+      [lyr.get('type'), lyr.get('title'), lyr.getVisible()]
+    ));
+    // LayerGroups are excluded from getAllLayers, but
+    // we want to include the Group in the LayerPanel
+    // in addition to it's children, as toggling the Group
+    // is a convenient way to show/hide all children.
+    lyrs.push(
+      [
+        scenarioLayerGroup.get('type'),
+        scenarioLayerGroup.get('title'),
+        scenarioLayerGroup.getVisible()
+      ]
+    );
+    setLayers(lyrs);
+  };
+
+  const zoomToStudyArea = () => {
+    map.getView().fit(
+      studyAreaSource.getExtent(),
+      {
+        padding: [10, 10, 10, 10], // pixels
+        maxZoom: 16,
+      },
+    );
+  };
+
   // useEffect with no dependencies: only runs after first render
   useEffect(() => {
     window.onresize = () => setTimeout(map.updateSize(), 200); // update *after* resize
     map.setTarget(mapElementRef.current);
-    setLayers(map.getLayers().getArray());
+    setMapLayers();
     parcelLayer.setStyle(styleParcel(map.getView().getZoom()));
 
     // when the box appears, or when the user finishes dragging the box,
@@ -250,11 +289,11 @@ export default function MapComponent(props) {
         const feature = features.length ? features[0] : undefined;
         if (feature) {
           // Find all the pieces of a feature in case they are split across tiles
-          const fid = feature.getId();
+          const fid = feature.get('fid');
           const extent = feature.getExtent();
           const feats = parcelLayer.getSource().getFeaturesInExtent(extent);
           feats.forEach((feat) => {
-            if (feat.getId() === fid) {
+            if (feat.get('fid') === fid) {
               geoms.push(ol3parser.read((new Polygon(
                 feat.getFlatCoordinates(),
                 'XY',
@@ -267,8 +306,8 @@ export default function MapComponent(props) {
           selectedFeature = feature;
           selectionLayer.changed();
           setSelectedParcel({
-            parcelID: feature.properties_.OBJECTID,
-            address: feature.properties_.address,
+            parcelID: fid,
+            address: feature.get('address'),
             coords: wkt,
           });
         }
@@ -284,6 +323,15 @@ export default function MapComponent(props) {
         parcelLayer.setStyle(styleParcel(newZoom));
       }
     });
+
+    map.getLayers().on('add', () => {
+      setMapLayers();
+    });
+
+    map.getLayers().on('remove', () => {
+      setMapLayers();
+    });
+
     map.updateSize();
   }, []);
 
@@ -300,6 +348,7 @@ export default function MapComponent(props) {
         return feature;
       });
       studyAreaSource.addFeatures(features);
+      zoomToStudyArea();
     }
   }, [studyAreaParcels]);
 
@@ -314,9 +363,11 @@ export default function MapComponent(props) {
           lulcTileLayer(scene.lulc_url_result, scene.name, 'scenario')
         );
       });
+      const mostRecentLyr = scenarioLayers.pop();
+      mostRecentLyr.setVisible(true);
+      scenarioLayers.push(mostRecentLyr);
       scenarioLayerGroup.setLayers(new Collection(scenarioLayers));
       map.addLayer(scenarioLayerGroup);
-      setLayers(map.getLayers().getArray());
     }
   }, [scenarios]);
 
@@ -347,11 +398,10 @@ export default function MapComponent(props) {
         </Button>
         <LayerPanel
           show={showLayerControl}
-          layers={[...layers].reverse()} // copy array & reverse it
+          layers={layers}
           setVisibility={setVisibility}
           switchBasemap={switchBasemap}
           switchScenario={switchScenario}
-          basemap={selectedBasemap}
         />
       </div>
       <ParcelControl
