@@ -139,11 +139,9 @@ const studyAreaLayer = new VectorLayer({
 studyAreaLayer.set('title', 'Study Area');
 studyAreaLayer.setZIndex(3);
 
-const scenarioLayerGroup = new LayerGroup({
-  properties: { group: 'scenarios' },
-});
-scenarioLayerGroup.set('type', 'group')
-scenarioLayerGroup.set('title', 'Scenarios:')
+const scenarioLayerGroup = new LayerGroup({});
+scenarioLayerGroup.set('type', 'scenario-group');
+scenarioLayerGroup.set('title', 'Scenarios:'); // displays in LayerPanel
 scenarioLayerGroup.setZIndex(1);
 
 // Set a default basemap to be visible
@@ -188,15 +186,21 @@ export default function MapComponent(props) {
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
 
-  // TODO: make this only take a title, so that only
-  // names & types of layers pass to LayersPanel.
+  /**
+   * Click handler for layers controlled by checkboxes (not radios).
+   * @param  {string}  title - title of layer to show/hide
+   * @param  {Boolean} visible
+   * @return {undefined}
+   */
   const setVisibility = (title, visible) => {
+    // Specically use getLayers instead of getAllLayers
+    // so that this can work for Layers and LayerGroups.
+    // But note this will not reach Layers w/in Groups.
     map.getLayers().forEach(lyr => {
       if (lyr.get('title') === title) {
-        lyr.setVisible(visible)
+        lyr.setVisible(visible);
       }
     });
-    // lyr.setVisible(visible);
   };
 
   const toggleLayerControl = () => {
@@ -208,23 +212,17 @@ export default function MapComponent(props) {
   };
 
   const switchBasemap = (title) => {
-    map.getLayers().getArray().forEach((layer) => {
-    // layers.forEach((layer) => {
+    map.getAllLayers().forEach((layer) => {
       if (layer.get('type') === 'base') {
-        layer.setVisible(layer.get('title') === title)
-        // setVisibility(layer, layer.get('title') === title);
+        layer.setVisible(layer.get('title') === title);
       }
     });
   };
 
   const switchScenario = (title) => {
-    map.getLayers().getArray().forEach((layer) => {
-    // layers.forEach((layer) => {
-      if (layer.get('group') === 'scenarios') {
-        layer.getLayers().forEach(lyr => {
-          lyr.setVisible(lyr.get('title') === title)
-          // setVisibility(lyr, lyr.get('title') === title);
-        });
+    map.getAllLayers().forEach((layer) => {
+      if (layer.get('type') === 'scenario') {
+        layer.setVisible(layer.get('title') === title)
       }
     });
   };
@@ -241,6 +239,10 @@ export default function MapComponent(props) {
     const lyrs = map.getAllLayers().map(lyr => (
       [lyr.get('type'), lyr.get('title'), lyr.getVisible()]
     ));
+    // LayerGroups are excluded from getAllLayers, but
+    // we want to include the Group in the LayerPanel
+    // in addition to it's children, as toggling the Group
+    // is a convenient way to show/hide all children.
     lyrs.push(
       [
         scenarioLayerGroup.get('type'),
@@ -255,7 +257,6 @@ export default function MapComponent(props) {
   useEffect(() => {
     window.onresize = () => setTimeout(map.updateSize(), 200); // update *after* resize
     map.setTarget(mapElementRef.current);
-    // setLayers(map.getLayers().getArray());
     setMapLayers();
     parcelLayer.setStyle(styleParcel(map.getView().getZoom()));
 
@@ -314,13 +315,10 @@ export default function MapComponent(props) {
     });
 
     map.getLayers().on('add', () => {
-      console.log('added layers')
-      // setLayers(map.getLayers().getArray());
       setMapLayers();
     });
 
     map.getLayers().on('remove', () => {
-      console.log('removed layers')
       setMapLayers();
     });
 
@@ -359,9 +357,7 @@ export default function MapComponent(props) {
       scenarioLayers.push(mostRecentLyr);
       scenarioLayerGroup.setLayers(new Collection(scenarioLayers));
       map.addLayer(scenarioLayerGroup);
-      // setLayers(map.getLayers().getArray());
     }
-    console.log(layers)
   }, [scenarios]);
 
   // toggle pattern sampler visibility according to the pattern sampling mode
@@ -391,8 +387,6 @@ export default function MapComponent(props) {
         </Button>
         <LayerPanel
           show={showLayerControl}
-          // layers={map.getLayers().getArray().reverse()} // copy array & reverse it
-          // layers={[...layers].reverse()} // copy array & reverse it
           layers={layers}
           setVisibility={setVisibility}
           switchBasemap={switchBasemap}

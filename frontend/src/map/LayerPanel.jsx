@@ -6,14 +6,12 @@ import {
   RadioGroup,
 } from '@blueprintjs/core';
 
-
 function LayerCheckbox(props) {
   const { label, setVisibility } = props;
   const [checked, setChecked] = useState(true);
 
   const handleChange = (event) => {
     setChecked(event.target.checked);
-    // setVisibility(layer, event.target.checked);
     setVisibility(label, event.target.checked);
   };
 
@@ -34,13 +32,11 @@ export default function LayerPanel(props) {
     switchBasemap,
     switchScenario,
   } = props;
-  console.log(layers)
 
   const [selectedScenario, setSelectedScenario] = useState(null);
   const [selectedBasemap, setSelectedBasemap] = useState(null);
 
   useEffect(() => {
-    console.log(layers)
     layers.forEach(([type, title, isVisible]) => {
       if (type === 'base') {
         if (isVisible) {
@@ -73,7 +69,7 @@ export default function LayerPanel(props) {
   const checkboxes = [];
   const basemaps = [];
   const scenarios = [];
-  let scenarioLayerGroup;
+  let scenarioGroupCheckbox;
   layers.forEach(([type, title, isVisible]) => {
     if (!title) {
       return;
@@ -94,18 +90,25 @@ export default function LayerPanel(props) {
           value={title}
         />
       );
-    } else if (type !== 'group') {
+    } else if (type === 'scenario-group') {
+      scenarioGroupCheckbox = (
+        <LayerCheckbox
+          key={title}
+          label={title}
+          setVisibility={setVisibility}
+        />
+      );
+    } else {
       checkboxes.push(
         <LayerCheckbox
           key={title}
-          // layer={layer}
           label={title}
           setVisibility={setVisibility}
         />
       );
     }
   });
-  console.log(scenarios)
+
   return (
     <div className="layers-panel">
       {checkboxes}
@@ -120,12 +123,7 @@ export default function LayerPanel(props) {
         (scenarios.length)
           ? (
             <>
-              <LayerCheckbox
-                key="scenario-group"
-                // layer={layer}
-                label="Scenarios:"
-                setVisibility={setVisibility}
-              />
+              {scenarioGroupCheckbox}
               <RadioGroup
                 onChange={handleChangeScenario}
                 selectedValue={selectedScenario}
