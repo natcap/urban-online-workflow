@@ -118,7 +118,6 @@ for model_name in INVEST_MODELS:
     logging.getLogger(model_name).setLevel(logging.WARNING)
 
 # Validate invest inputs
-LOGGER.info(f"INVEST VERSION: {natcap.invest.__version__}")
 for model_key, model_params in INVEST_MODELS.items():
     model_args_path = model_params['args_path']
     with open(model_args_path) as json_file:
