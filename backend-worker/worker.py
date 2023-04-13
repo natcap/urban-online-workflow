@@ -33,12 +33,13 @@ from natcap.invest import validation
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
 
-logging.getLogger("carbon").setLevel(logging.INFO)
-logging.getLogger("pollination").setLevel(logging.INFO)
-logging.getLogger("stormwater").setLevel(logging.INFO)
-logging.getLogger("urban_cooling_model").setLevel(logging.INFO)
-logging.getLogger("urban_flood_risk_mitigation").setLevel(logging.INFO)
-logging.getLogger("urban_nature_access").setLevel(logging.INFO)
+logging.getLogger("carbon").setLevel(logging.WARNING)
+logging.getLogger("pollination").setLevel(logging.WARNING)
+logging.getLogger("stormwater").setLevel(logging.WARNING)
+logging.getLogger("urban_cooling_model").setLevel(logging.WARNING)
+logging.getLogger("urban_flood_risk_mitigation").setLevel(logging.WARNING)
+logging.getLogger("urban_nature_access").setLevel(logging.WARNING)
+logging.getLogger('taskgraph').setLevel(logging.WARNING)
 
 POLLING_INTERVAL_S = 10
 

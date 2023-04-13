@@ -47,7 +47,7 @@ STATUS_FAIL = "failed"
 LOW_PRIORITY = 3
 MEDIUM_PRIORITY = 2
 HIGH_PRIORITY = 1
-QUEUE_COUNT = 0
+
 # InVEST model list
 INVEST_MODELS = ["pollination", "stormwater", "urban_cooling_model", "carbon",
                  "urban_flood_risk_mitigation", "urban_nature_access"]
@@ -515,8 +515,7 @@ def create_pattern(session_id: str, pattern: schemas.PatternBase,
         }
     }
 
-    QUEUE.put_nowait((HIGH_PRIORITY, QUEUE_COUNT, worker_task))
-    QUEUE_COUNT += 1
+    QUEUE.put_nowait((HIGH_PRIORITY, job_db.job_id, worker_task))
 
     return {**worker_task['server_attrs'], "label": pattern.label}
 
@@ -574,8 +573,7 @@ def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
             }
         }
 
-    QUEUE.put_nowait((MEDIUM_PRIORITY, QUEUE_COUNT, worker_task))
-    QUEUE_COUNT += 1
+    QUEUE.put_nowait((MEDIUM_PRIORITY, job_db.job_id, worker_task))
 
     # Return job_id for response
     return job_db
@@ -611,8 +609,7 @@ def lulc_fill(lulc_fill: schemas.ParcelFill,
             }
         }
 
-    QUEUE.put_nowait((MEDIUM_PRIORITY, QUEUE_COUNT, worker_task))
-    QUEUE_COUNT += 1
+    QUEUE.put_nowait((MEDIUM_PRIORITY, job_db.job_id, worker_task))
 
     # Return job_id for response
     return job_db
@@ -650,8 +647,7 @@ def lulc_crop(scenario_id: int, db: Session = Depends(get_db)):
     # In practice, this job is queue'd concurrently with
     # a lulc_fill or wallpaper job, so this one should be
     # prioritized.
-    QUEUE.put_nowait((HIGH_PRIORITY, QUEUE_COUNT, worker_task))
-    QUEUE_COUNT += 1
+    QUEUE.put_nowait((HIGH_PRIORITY, job_db.job_id, worker_task))
 
     # Return job_id for response
     return job_db
@@ -712,8 +708,7 @@ def add_parcel(create_parcel_request: schemas.ParcelCreateRequest,
             }
         }
 
-    QUEUE.put_nowait((HIGH_PRIORITY, QUEUE_COUNT, worker_task))
-    QUEUE_COUNT += 1
+    QUEUE.put_nowait((HIGH_PRIORITY, job_db.job_id, worker_task))
 
     # Return job_id
     return worker_task['server_attrs']
@@ -762,8 +757,7 @@ def run_invest(scenario_id: int, db: Session = Depends(get_db)):
                 }
             }
 
-        QUEUE.put_nowait((MEDIUM_PRIORITY, QUEUE_COUNT, worker_task))
-        QUEUE_COUNT += 1
+        QUEUE.put_nowait((MEDIUM_PRIORITY, job_db.job_id, worker_task))
 
         invest_job_dict[invest_model] = job_db.job_id
 
