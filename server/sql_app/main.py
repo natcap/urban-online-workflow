@@ -765,8 +765,8 @@ def run_invest(scenario_id: int, db: Session = Depends(get_db)):
     return invest_job_dict
 
 
-@app.get("/invest/result/{job_id}")
-def get_invest_results(job_id: int, db: Session = Depends(get_db)):
+@app.get("/invest/result/{job_id}/{scenario_id}")
+def get_invest_results(job_id: int, scenario_id: int, db: Session = Depends(get_db)):
     """Return the invest result if the job was successful."""
     # Check job status and return URL and Stats from table
     LOGGER.info(f'Job ID: {job_id}')
@@ -774,14 +774,12 @@ def get_invest_results(job_id: int, db: Session = Depends(get_db)):
     if job_db is None:
         raise HTTPException(status_code=404, detail="Job not found")
     if job_db.status == STATUS_SUCCESS:
-        #invest_db = crud.get_invest_result_job(db, job_id=job_id)
-        invest_status = "SUCCESS"
-        #if invest_db is None:
-        #    raise HTTPException(
-        #        status_code=404, detail="InVEST result not found")
-        #invest_results = invest_db.lulc_stats
-        #return stats_results
-        return invest_status
+        invest_db = crud.get_invest(db, job_id=job_id, scenario_id=scenario_id)
+        if invest_db is None:
+            raise HTTPException(
+                status_code=404, detail="InVEST result not found")
+        invest_results = invest_db.result
+        return invest_results
     else:
         return job_db.status
 
