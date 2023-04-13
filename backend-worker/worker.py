@@ -21,7 +21,6 @@ from osgeo import ogr
 from osgeo import osr
 from PIL import Image
 
-import natcap.invest
 from natcap.invest import carbon
 from natcap.invest import pollination
 from natcap.invest import stormwater
@@ -33,13 +32,6 @@ from natcap.invest import validation
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
 
-logging.getLogger("carbon").setLevel(logging.WARNING)
-logging.getLogger("pollination").setLevel(logging.WARNING)
-logging.getLogger("stormwater").setLevel(logging.WARNING)
-logging.getLogger("urban_cooling_model").setLevel(logging.WARNING)
-logging.getLogger("urban_flood_risk_mitigation").setLevel(logging.WARNING)
-logging.getLogger("urban_nature_access").setLevel(logging.WARNING)
-logging.getLogger('taskgraph').setLevel(logging.WARNING)
 
 POLLING_INTERVAL_S = 10
 
@@ -119,6 +111,11 @@ INVEST_MODELS = {
         "args_path": os.path.join(INVEST_BASE_PATH, 'UrbanFloodMitigation', 'urban_flood_mitigation_args.json')},
     "urban_nature_access": {"api": urban_nature_access, "data_key": "UrbanNatureAccess", "args_path": os.path.join(INVEST_BASE_PATH, 'UrbanNatureAccess', 'urban_nature_access_args.json')},
 }
+
+# Quiet logging
+logging.getLogger('taskgraph').setLevel(logging.WARNING)
+for model_name in INVEST_MODELS:
+    logging.getLogger(model_name).setLevel(logging.WARNING)
 
 # Validate invest inputs
 LOGGER.info(f"INVEST VERSION: {natcap.invest.__version__}")
