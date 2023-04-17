@@ -15,7 +15,6 @@ import pygeoprocessing
 import requests
 import shapely.geometry
 import shapely.wkt
-import taskgraph
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
@@ -33,7 +32,7 @@ logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
 
 
-POLLING_INTERVAL_S = 10
+POLLING_INTERVAL_S = 3
 
 DEFAULT_GTIFF_CREATION_TUPLE_OPTIONS = ('GTIFF', (
     'TILED=YES', 'BIGTIFF=YES', 'COMPRESS=LZW',
@@ -113,7 +112,6 @@ INVEST_MODELS = {
 }
 
 # Quiet logging
-logging.getLogger('taskgraph').setLevel(logging.WARNING)
 for model_name in INVEST_MODELS:
     logging.getLogger(model_name).setLevel(logging.WARNING)
 
@@ -731,11 +729,6 @@ def do_work(host, port, outputs_location):
     LOGGER.info(f'Starting worker, queueing {job_queue_url}')
     LOGGER.info(f'Polling the queue every {POLLING_INTERVAL_S}s if no work')
 
-    n_workers = 2
-    work_token_dir = os.path.join(outputs_location, 'taskgraph')
-    graph = taskgraph.TaskGraph(work_token_dir, n_workers)
-    invest_task_keys = {}
-
     while True:
         response = requests.get(job_queue_url)
         # if there is no work on the queue, expecting response.json()==None
@@ -860,11 +853,8 @@ def do_work(host, port, outputs_location):
                 #TODO: update lulc input scenario
                 #TODO: any AOIs needed for models?
                 # job_id should be unique
-                invest_task_keys[job_id] = graph.add_task(
-                    INVEST_MODELS[invest_model]['api'].execute,
-                    kwargs={'args':invest_args['args']},
-                    task_name=f'Run {invest_model} model [{job_id}]'
-                )
+                INVEST_MODELS[invest_model]['api'].execute(invest_args['args'])
+
                 data = {
                     'result': {
                         'invest-result': random.randint(1, 10),
