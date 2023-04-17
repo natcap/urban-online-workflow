@@ -3,6 +3,7 @@ import json
 import logging
 import math
 import os
+import random
 import shutil
 import tempfile
 import time
@@ -19,8 +20,17 @@ from osgeo import ogr
 from osgeo import osr
 from PIL import Image
 
+from natcap.invest import carbon
+from natcap.invest import pollination
+from natcap.invest import stormwater
+from natcap.invest import urban_cooling_model
+from natcap.invest import urban_flood_risk_mitigation
+from natcap.invest import urban_nature_access
+from natcap.invest import validation
+
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
+
 
 POLLING_INTERVAL_S = 3
 
@@ -78,6 +88,49 @@ NLCD_ORIGIN_X, _, _, NLCD_ORIGIN_Y, _, _ = _NLCD_RASTER_INFO['geotransform']
 PIXELSIZE_X, PIXELSIZE_Y = _NLCD_RASTER_INFO['pixel_size']
 NLCD_COLORS = {}  # update this dict later in file once function is defined.
 
+# Assuming all invest inputs are local for now
+INVEST_BASE_PATH = os.path.join(
+    os.path.dirname(__file__), '..', 'appdata', 'invest-sample-data')
+
+INVEST_MODELS = {
+    "pollination": {
+        "api": pollination, "data_key": "pollination", 
+        "args_path": os.path.join(INVEST_BASE_PATH, 'pollination', 'pollination_args.json')},
+    "stormwater": {
+        "api": stormwater, "data_key": "UrbanStormwater",
+        "args_path": os.path.join(INVEST_BASE_PATH, 'UrbanStormwater', 'urban_stormwater_args.json')},
+    "urban_cooling_model": {
+        "api": urban_cooling_model, "data_key": "UrbanCoolingModel",
+        "args_path": os.path.join(INVEST_BASE_PATH, 'UrbanCoolingModel', 'urban_cooling_model_args.json')},
+    "carbon": {
+        "api": carbon, "data_key": "Carbon",
+        "args_path": os.path.join(INVEST_BASE_PATH, 'Carbon', 'carbon_args.json')},
+    "urban_flood_risk_mitigation": {
+        "api": urban_flood_risk_mitigation, "data_key": "UrbanFloodMitigation",
+        "args_path": os.path.join(INVEST_BASE_PATH, 'UrbanFloodMitigation', 'urban_flood_mitigation_args.json')},
+    "urban_nature_access": {"api": urban_nature_access, "data_key": "UrbanNatureAccess", "args_path": os.path.join(INVEST_BASE_PATH, 'UrbanNatureAccess', 'urban_nature_access_args.json')},
+}
+
+# Quiet logging
+for model_name in INVEST_MODELS:
+    logging.getLogger(model_name).setLevel(logging.WARNING)
+
+# Validate invest inputs
+for model_key, model_params in INVEST_MODELS.items():
+    model_args_path = model_params['args_path']
+    with open(model_args_path) as json_file:
+        invest_args = json.load(json_file)
+
+    # add temp workspace_dir
+    invest_args['args']['workspace_dir'] = INVEST_BASE_PATH
+    validation_results = validation.validate(
+            invest_args['args'], model_params['api'].MODEL_SPEC['args'])
+    if validation_results:
+        LOGGER.info(f'InVEST model {model_key} inputs error.')
+        LOGGER.info(validation_results)
+        raise ValueError("Could not validate InVEST model args")
+
+
 STATUS_SUCCESS = 'success'
 STATUS_FAILURE = 'failed'
 JOBTYPE_FILL = 'lulc_fill'
@@ -96,7 +149,6 @@ ENDPOINTS = {
     JOBTYPE_PATTERN_THUMBNAIL: 'pattern',
     JOBTYPE_INVEST: 'invest',
 }
-
 
 class Tests(unittest.TestCase):
     def setUp(self):
@@ -277,7 +329,7 @@ def _warp_raster_to_web_mercator(source_albers_raster_path,
     """
     pygeoprocessing.geoprocessing.warp_raster(
         source_albers_raster_path, (PIXELSIZE_X, PIXELSIZE_Y),
-        target_web_mercator_raster_path, 'nearest',
+        target_web_mercator_raster_path, 'near',
         target_projection_wkt=WEB_MERCATOR_SRS_WKT)
 
 
@@ -333,7 +385,7 @@ def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path,
     pygeoprocessing.geoprocessing.warp_raster(
         NLCD_RASTER_PATH, (PIXELSIZE_X, PIXELSIZE_Y),
         target_local_gtiff_path,
-        resample_method='nearest',
+        resample_method='near',
         target_bb=[buf_minx, buf_miny, buf_maxx, buf_maxy])
 
     if not include_pixel_values:
@@ -422,7 +474,7 @@ def wallpaper_parcel(parcel_wkt_epsg3857, pattern_wkt_epsg3857,
     nlud_under_parcel_path = os.path.join(working_dir, 'nlud_under_parcel.tif')
     pygeoprocessing.geoprocessing.warp_raster(
         source_nlud_raster_path, nlud_raster_info['pixel_size'],
-        nlud_under_parcel_path, 'nearest',
+        nlud_under_parcel_path, 'near',
         target_bb=parcel_raster_info['bounding_box'])
     nlud_under_parcel_raster_info = pygeoprocessing.get_raster_info(
         nlud_under_parcel_path)
@@ -432,7 +484,7 @@ def wallpaper_parcel(parcel_wkt_epsg3857, pattern_wkt_epsg3857,
     pattern_bbox = shapely.wkt.loads(pattern_wkt_epsg3857).bounds
     pygeoprocessing.geoprocessing.warp_raster(
         source_nlud_raster_path, nlud_raster_info['pixel_size'],
-        nlud_under_pattern_path, 'nearest',
+        nlud_under_pattern_path, 'near',
         target_bb=pattern_bbox)
     wallpaper_array = pygeoprocessing.raster_to_numpy_array(
         nlud_under_pattern_path)
@@ -640,7 +692,7 @@ def make_thumbnail(pattern_wkt_epsg3857, colors_dict, target_thumbnail_path,
     # just a small bit of the surrounding context.
     pygeoprocessing.geoprocessing.warp_raster(
         NLCD_RASTER_PATH, _NLCD_RASTER_INFO['pixel_size'],
-        thumbnail_gtiff_path, 'nearest',
+        thumbnail_gtiff_path, 'near',
         target_bb=shapely.wkt.loads(pattern_wkt_epsg3857).buffer(
             PIXELSIZE_X/2).bounds
     )
@@ -676,6 +728,7 @@ def do_work(host, port, outputs_location):
     job_queue_url = f'http://{host}:{port}/jobsqueue/'
     LOGGER.info(f'Starting worker, queueing {job_queue_url}')
     LOGGER.info(f'Polling the queue every {POLLING_INTERVAL_S}s if no work')
+
     while True:
         response = requests.get(job_queue_url)
         # if there is no work on the queue, expecting response.json()==None
@@ -692,6 +745,7 @@ def do_work(host, port, outputs_location):
         job_type = response_json['job_type']
         job_args = response_json['job_args']
 
+        #TODO: could this be moved outside of while loop?
         # Make sure the appropriate directory is created
         scenarios_dir = os.path.join(outputs_location, 'scenarios')
         model_outputs_dir = os.path.join(outputs_location, 'model_outputs')
@@ -787,12 +841,24 @@ def do_work(host, port, outputs_location):
                     }
                 }
             elif job_type == JOBTYPE_INVEST:
-                # TODO: run invest models!
-                LOGGER.info(f"TODO: Run InVEST model: {job_args['invest_model']}")
+                invest_model = job_args['invest_model']
+                LOGGER.info(f"Run InVEST model: {job_args['invest_model']}")
+
+                model_args_path = INVEST_MODELS[invest_model]['args_path']
+                with open(model_args_path) as json_file:
+                    invest_args = json.load(json_file)
+
+                invest_args['args']['workspace_dir'] = os.path.join(outputs_location, f'{invest_model}-test')
+                LOGGER.info(f'{invest_model} model arguments: {invest_args}')
+                #TODO: update lulc input scenario
+                #TODO: any AOIs needed for models?
+                # job_id should be unique
+                INVEST_MODELS[invest_model]['api'].execute(invest_args['args'])
+
                 data = {
                     'result': {
-                        'output_path': "return-something",
-                        'model': jobs_args['invest_model'],
+                        'invest-result': random.randint(1, 10),
+                        'model': job_args['invest_model'],
                     }
                 }
             else:
@@ -821,6 +887,7 @@ def main():
     parser.add_argument('output_dir')
 
     args = parser.parse_args()
+    LOGGER.info(f'parser args: {args}')
     do_work(
         host=args.queue_host,
         port=args.queue_port,

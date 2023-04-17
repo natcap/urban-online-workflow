@@ -47,6 +47,7 @@ STATUS_FAIL = "failed"
 LOW_PRIORITY = 3
 MEDIUM_PRIORITY = 2
 HIGH_PRIORITY = 1
+
 # InVEST model list
 INVEST_MODELS = ["pollination", "stormwater", "urban_cooling_model", "carbon",
                  "urban_flood_risk_mitigation", "urban_nature_access"]
@@ -241,7 +242,7 @@ async def worker_job_request(db: Session = Depends(get_db)):
     """If there's work to be done in the queue send it to the worker."""
     try:
         # Get job from queue, ignoring returned priority value
-        _, job_details = QUEUE.get_nowait()
+        _, _, job_details = QUEUE.get_nowait()
         return json.dumps(job_details)
     except queue.Empty:
         return None
@@ -249,18 +250,18 @@ async def worker_job_request(db: Session = Depends(get_db)):
 
 @app.post("/jobsqueue/invest")
 def worker_invest_response(
-    invest_job: schemas.WorkerResponse, db: Session = Depends(get_db)):
+    invest_result: schemas.WorkerResponse, db: Session = Depends(get_db)):
     """Update the db given the job details from the worker.
 
     Returned URL result will be partial to allow for local vs cloud stored
     depending on production vs dev environment.
 
     Args:
-        invest_job (pydantic model): a pydantic model with the following
+        invest_result (pydantic model): a pydantic model with the following
             key/vals
 
             "result": {
-                result_directory: "relative path to file location",
+                result: "integer",
                 model: "invest-model-name",
                 }
              "status": "success | failed",
@@ -269,12 +270,12 @@ def worker_invest_response(
                 }
     """
     # Update job in db based on status
-    job_db = crud.get_job(db, job_id=scenario_job.server_attrs['job_id'])
+    job_db = crud.get_job(db, job_id=invest_result.server_attrs['job_id'])
     # Update Scenario in db with the result
     scenario_db = crud.get_scenario(
-        db, scenario_id=scenario_job.server_attrs['scenario_id'])
+        db, scenario_id=invest_result.server_attrs['scenario_id'])
 
-    job_status = scenario_job.status
+    job_status = invest_result.status
     if job_status == STATUS_SUCCESS:
         # Update the job status in the DB to "success"
         job_update = schemas.JobBase(
@@ -283,24 +284,24 @@ def worker_invest_response(
         # TODO: how will we store InVEST model results? In Scenario table or in
         # a separate InVEST table? Should each model have a table? Issue #70
         #scenario_update = schemas.ScenarioUpdate(
-        #    lulc_url_result=scenario_job.result['lulc_path'],
-        #    lulc_stats=json.dumps(scenario_job.result['lulc_stats']))
+        #    lulc_url_result=invest_result.result['lulc_path'],
+        #    lulc_stats=json.dumps(invest_result.result['lulc_stats']))
+        LOGGER.debug('Update invest result')
+        _ = crud.update_invest(
+            db=db, scenario_id=invest_result.server_attrs['scenario_id'],
+            job_id=invest_result.server_attrs['job_id'],
+            result=invest_result.result['invest-result'])
     else:
         # Update the job status in the DB to "failed"
         job_update = schemas.JobBase(
             status=STATUS_FAILED,
             name=job_db.name, description=job_db.description)
-        # Update the the scenario lulc path stats with None
-        #scenario_update = schemas.ScenarioUpdate(
-        #    lulc_url_result=None, lulc_stats=None)
+        # If the job failed then there is nothing to update for invest_run as
+        # the default for 'result' is None
 
     LOGGER.debug('Update job status')
     _ = crud.update_job(
-        db=db, job=job_update, job_id=scenario_job.server_attrs['job_id'])
-    LOGGER.debug('Update scenario result')
-    #_ = crud.update_scenario(
-    #    db=db, scenario=scenario_update,
-    #    scenario_id=scenario_job.server_attrs['scenario_id'])
+        db=db, job=job_update, job_id=invest_result.server_attrs['job_id'])
 
 
 @app.post("/jobsqueue/scenario")
@@ -514,7 +515,7 @@ def create_pattern(session_id: str, pattern: schemas.PatternBase,
         }
     }
 
-    QUEUE.put_nowait((HIGH_PRIORITY, worker_task))
+    QUEUE.put_nowait((HIGH_PRIORITY, job_db.job_id, worker_task))
 
     return {**worker_task['server_attrs'], "label": pattern.label}
 
@@ -572,7 +573,7 @@ def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
             }
         }
 
-    QUEUE.put_nowait((MEDIUM_PRIORITY, worker_task))
+    QUEUE.put_nowait((MEDIUM_PRIORITY, job_db.job_id, worker_task))
 
     # Return job_id for response
     return job_db
@@ -608,7 +609,7 @@ def lulc_fill(lulc_fill: schemas.ParcelFill,
             }
         }
 
-    QUEUE.put_nowait((MEDIUM_PRIORITY, worker_task))
+    QUEUE.put_nowait((MEDIUM_PRIORITY, job_db.job_id, worker_task))
 
     # Return job_id for response
     return job_db
@@ -646,7 +647,7 @@ def lulc_crop(scenario_id: int, db: Session = Depends(get_db)):
     # In practice, this job is queue'd concurrently with
     # a lulc_fill or wallpaper job, so this one should be
     # prioritized.
-    QUEUE.put_nowait((HIGH_PRIORITY, worker_task))
+    QUEUE.put_nowait((HIGH_PRIORITY, job_db.job_id, worker_task))
 
     # Return job_id for response
     return job_db
@@ -707,7 +708,7 @@ def add_parcel(create_parcel_request: schemas.ParcelCreateRequest,
             }
         }
 
-    QUEUE.put_nowait((HIGH_PRIORITY, worker_task))
+    QUEUE.put_nowait((HIGH_PRIORITY, job_db.job_id, worker_task))
 
     # Return job_id
     return worker_task['server_attrs']
@@ -729,6 +730,7 @@ def run_invest(scenario_id: int, db: Session = Depends(get_db)):
     session_id = study_area_db.owner_id
 
     # For each invest model create a new job and add to the queue
+    # Also create a new invest_result entry
     invest_job_dict = {}
     for invest_model in INVEST_MODELS:
         job_schema = schemas.JobBase(
@@ -737,6 +739,11 @@ def run_invest(scenario_id: int, db: Session = Depends(get_db)):
                "status": STATUS_PENDING})
         job_db = crud.create_job(
             db=db, session_id=session_id, job=job_schema)
+
+        invest_schema = schemas.InvestResult(
+            **{"scenario_id": scenario_id, "job_id": job_db.job_id})
+        invest_db = crud.create_invest_result(
+            db=db, invest_result=invest_schema)
 
         # Construct worker job and add to the queue
         worker_task = {
@@ -750,7 +757,7 @@ def run_invest(scenario_id: int, db: Session = Depends(get_db)):
                 }
             }
 
-        QUEUE.put_nowait((MEDIUM_PRIORITY, worker_task))
+        QUEUE.put_nowait((MEDIUM_PRIORITY, job_db.job_id, worker_task))
 
         invest_job_dict[invest_model] = job_db.job_id
 
@@ -758,8 +765,8 @@ def run_invest(scenario_id: int, db: Session = Depends(get_db)):
     return invest_job_dict
 
 
-@app.get("/invest/result/{job_id}")
-def get_invest_results(job_id: int, db: Session = Depends(get_db)):
+@app.get("/invest/result/{job_id}/{scenario_id}")
+def get_invest_results(job_id: int, scenario_id: int, db: Session = Depends(get_db)):
     """Return the invest result if the job was successful."""
     # Check job status and return URL and Stats from table
     LOGGER.info(f'Job ID: {job_id}')
@@ -767,14 +774,12 @@ def get_invest_results(job_id: int, db: Session = Depends(get_db)):
     if job_db is None:
         raise HTTPException(status_code=404, detail="Job not found")
     if job_db.status == STATUS_SUCCESS:
-        #invest_db = crud.get_invest_result_job(db, job_id=job_id)
-        invest_status = "SUCCESS"
-        #if invest_db is None:
-        #    raise HTTPException(
-        #        status_code=404, detail="InVEST result not found")
-        #invest_results = invest_db.lulc_stats
-        #return stats_results
-        return invest_status
+        invest_db = crud.get_invest(db, job_id=job_id, scenario_id=scenario_id)
+        if invest_db is None:
+            raise HTTPException(
+                status_code=404, detail="InVEST result not found")
+        invest_results = invest_db.result
+        return invest_results
     else:
         return job_db.status
 

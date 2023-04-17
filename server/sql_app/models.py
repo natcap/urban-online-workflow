@@ -80,6 +80,7 @@ class Scenario(Base):
     study_area_id = Column(String, ForeignKey("study_area.id"))
 
     study_area = relationship("StudyArea", back_populates="scenarios")
+    invest_results = relationship("InvestResult", back_populates="scenario")
 
 
 class Pattern(Base):
@@ -120,3 +121,14 @@ class Parcel(Base):
 
     study_area = relationship("StudyArea", back_populates="parcels")
     parcel_stats = relationship("ParcelStats", uselist=False)
+
+
+class InvestResult(Base):
+    """SQLAlchemy model for InVEST results."""
+    __tablename__ = "invest_results"
+
+    scenario_id = Column(Integer, ForeignKey("scenarios.scenario_id"), primary_key=True)
+    job_id = Column(Integer, ForeignKey("jobs.job_id"), primary_key=True)
+    result = Column(Integer)
+
+    scenario = relationship("Scenario", back_populates="invest_results")
