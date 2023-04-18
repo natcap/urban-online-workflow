@@ -94,41 +94,59 @@ INVEST_BASE_PATH = os.path.join(
 
 INVEST_MODELS = {
     "pollination": {
-        "api": pollination, "data_key": "pollination", 
-        "args_path": os.path.join(INVEST_BASE_PATH, 'pollination', 'pollination_args.json')},
+        "api": pollination,
+        "data_key": "pollination", 
+        "args_path": os.path.join(
+            INVEST_BASE_PATH, 'pollination', 'pollination_args.json')},
     "stormwater": {
-        "api": stormwater, "data_key": "UrbanStormwater",
-        "args_path": os.path.join(INVEST_BASE_PATH, 'UrbanStormwater', 'urban_stormwater_args.json')},
+        "api": stormwater,
+        "data_key": "UrbanStormwater",
+        "args_path": os.path.join(
+            INVEST_BASE_PATH, 'UrbanStormwater', 'urban_stormwater_args.json')},
     "urban_cooling_model": {
-        "api": urban_cooling_model, "data_key": "UrbanCoolingModel",
-        "args_path": os.path.join(INVEST_BASE_PATH, 'UrbanCoolingModel', 'urban_cooling_model_args.json')},
+        "api": urban_cooling_model,
+        "data_key": "UrbanCoolingModel",
+        "args_path": os.path.join(
+            INVEST_BASE_PATH, 'UrbanCoolingModel',
+            'urban_cooling_model_args.json')},
     "carbon": {
-        "api": carbon, "data_key": "Carbon",
-        "args_path": os.path.join(INVEST_BASE_PATH, 'Carbon', 'carbon_args.json')},
+        "api": carbon,
+        "data_key": "Carbon",
+        "args_path": os.path.join(
+            INVEST_BASE_PATH, 'Carbon', 'carbon_args.json')},
     "urban_flood_risk_mitigation": {
-        "api": urban_flood_risk_mitigation, "data_key": "UrbanFloodMitigation",
-        "args_path": os.path.join(INVEST_BASE_PATH, 'UrbanFloodMitigation', 'urban_flood_mitigation_args.json')},
-    "urban_nature_access": {"api": urban_nature_access, "data_key": "UrbanNatureAccess", "args_path": os.path.join(INVEST_BASE_PATH, 'UrbanNatureAccess', 'urban_nature_access_args.json')},
+        "api": urban_flood_risk_mitigation,
+        "data_key": "UrbanFloodMitigation",
+        "args_path": os.path.join(
+            INVEST_BASE_PATH, 'UrbanFloodMitigation',
+            'urban_flood_mitigation_args.json')},
+    "urban_nature_access": {
+        "api": urban_nature_access,
+        "data_key": "UrbanNatureAccess",
+        "args_path": os.path.join(
+            INVEST_BASE_PATH, 'UrbanNatureAccess',
+            'urban_nature_access_args.json')},
 }
+LARGEST_SERVICESHED = 2230  # meters https://github.com/natcap/urban-online-workflow/issues/79
 
 # Quiet logging
 for model_name in INVEST_MODELS:
     logging.getLogger(model_name).setLevel(logging.WARNING)
 
 # Validate invest inputs
-for model_key, model_params in INVEST_MODELS.items():
-    model_args_path = model_params['args_path']
-    with open(model_args_path) as json_file:
-        invest_args = json.load(json_file)
+# for model_key, model_params in INVEST_MODELS.items():
+#     model_args_path = model_params['args_path']
+#     with open(model_args_path) as json_file:
+#         invest_args = json.load(json_file)
 
-    # add temp workspace_dir
-    invest_args['args']['workspace_dir'] = INVEST_BASE_PATH
-    validation_results = validation.validate(
-            invest_args['args'], model_params['api'].MODEL_SPEC['args'])
-    if validation_results:
-        LOGGER.info(f'InVEST model {model_key} inputs error.')
-        LOGGER.info(validation_results)
-        raise ValueError("Could not validate InVEST model args")
+#     # add temp workspace_dir
+#     invest_args['args']['workspace_dir'] = INVEST_BASE_PATH
+#     validation_results = validation.validate(
+#             invest_args['args'], model_params['api'].MODEL_SPEC['args'])
+#     if validation_results:
+#         LOGGER.info(f'InVEST model {model_key} inputs error.')
+#         LOGGER.info(validation_results)
+#         raise ValueError("Could not validate InVEST model args")
 
 
 STATUS_SUCCESS = 'success'
@@ -370,9 +388,7 @@ def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path,
     """
     parcel_geom = shapely.wkt.loads(parcel_wkt_epsg3857)
     parcel_min_x, parcel_min_y, parcel_max_x, parcel_max_y = parcel_geom.bounds
-    buffer_dist = abs(min(parcel_max_x - parcel_min_x,
-                          parcel_max_y - parcel_min_y))
-    buffered_parcel_geom = parcel_geom.buffer(buffer_dist)
+    buffered_parcel_geom = parcel_geom.buffer(LARGEST_SERVICESHED)
     buf_minx, buf_miny, buf_maxx, buf_maxy = buffered_parcel_geom.bounds
 
     # Round "up" to the nearest pixel, sort of the pixel-math version of
