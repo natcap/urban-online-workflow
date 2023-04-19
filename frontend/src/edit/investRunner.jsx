@@ -11,21 +11,30 @@ import {
 } from '../requests';
 
 export default function InvestRunner(props) {
-  // useInterval(async () => {
-  //   // There are sometimes two jobs submitted concurrently.
-  //   // They are in a priority queue, so for now monitor the lower priority one.
-  //   console.log('checking status for job', jobID);
-  //   const status = await getJobStatus(jobID);
-  //   if (status === 'success') {
-  //     refreshScenarios();
-  //     setJobID(null);
-  //   }
-  // }, (jobID && scenarioID) ? 1000 : null);
+  const {
+    scenarios,
+    refreshScenarios,
+  } = props;
+  const [jobIDs, setJobIDs] = useState([]);
+
+  useInterval(async () => {
+    const statuses = await Promise.all(jobIDs.map((id) => getJobStatus(id)));
+    const pendingJobs = [...jobIDs];
+    statuses.forEach((status, idx) => {
+      if (['success', 'failed'].includes(status)) {
+        pendingJobs.splice(idx, 1);
+      }
+    });
+    setJobIDs(pendingJobs);
+    if (!pendingJobs.length) {
+      refreshScenarios();
+    }
+  }, (jobIDs.length) ? 2000 : null);
 
   const handleClick = async () => {
-    console.log(props.scenarios)
-    const jobs = await Promise.all(props.scenarios.map((scenario) => runInvest(scenario.scenario_id)));
-    console.log(jobs);
+    const jobs = await Promise.all(scenarios.map((scenario) => runInvest(scenario.scenario_id)));
+    const jids = jobs.map((j) => Object.values(j));
+    setJobIDs(jids.flat());
   };
 
   return (

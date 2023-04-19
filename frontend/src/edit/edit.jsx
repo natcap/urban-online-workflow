@@ -97,6 +97,7 @@ export default function EditMenu(props) {
                       <br />
                       <InvestRunner
                         scenarios={scenarios}
+                        refreshScenarios={refreshScenarios}
                       />
                     </>
                   )
