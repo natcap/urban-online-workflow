@@ -26,6 +26,7 @@ from natcap.invest import stormwater
 from natcap.invest import urban_cooling_model
 from natcap.invest import urban_flood_risk_mitigation
 from natcap.invest import urban_nature_access
+from natcap.invest import datastack
 from natcap.invest import validation
 
 logging.basicConfig(level=logging.INFO)
@@ -142,23 +143,23 @@ INVEST_MODELS = {
 LARGEST_SERVICESHED = 2230  # meters https://github.com/natcap/urban-online-workflow/issues/79
 
 # Quiet logging
-for model_name in INVEST_MODELS:
-    logging.getLogger(model_name).setLevel(logging.WARNING)
+logging.getLogger(f'pygeoprocessing').setLevel(logging.WARNING)
+logging.getLogger(f'natcap.invest').setLevel(logging.WARNING)
+logging.getLogger(f'taskgraph').setLevel(logging.WARNING)
 
 # Validate invest inputs
-# for model_key, model_params in INVEST_MODELS.items():
-#     model_args_path = model_params['args_path']
-#     with open(model_args_path) as json_file:
-#         invest_args = json.load(json_file)
+for model_key, model_params in INVEST_MODELS.items():
+    model_args_path = model_params['args_path']
+    args_dict = datastack.extract_parameter_set(model_args_path).args
 
-#     # add temp workspace_dir
-#     invest_args['args']['workspace_dir'] = INVEST_BASE_PATH
-#     validation_results = validation.validate(
-#             invest_args['args'], model_params['api'].MODEL_SPEC['args'])
-#     if validation_results:
-#         LOGGER.info(f'InVEST model {model_key} inputs error.')
-#         LOGGER.info(validation_results)
-#         raise ValueError("Could not validate InVEST model args")
+    # add temp workspace_dir
+    args_dict['workspace_dir'] = INVEST_BASE_PATH
+    validation_results = validation.validate(
+            args_dict, model_params['api'].MODEL_SPEC['args'])
+    if validation_results:
+        LOGGER.info(f'InVEST model {model_key} inputs error.')
+        LOGGER.info(validation_results)
+        raise ValueError("Could not validate InVEST model args")
 
 
 STATUS_SUCCESS = 'success'
@@ -871,18 +872,17 @@ def do_work(host, port, outputs_location):
                 LOGGER.info(f"Run InVEST model: {job_args['invest_model']}")
 
                 model_args_path = INVEST_MODELS[invest_model]['args_path']
-                with open(model_args_path) as json_file:
-                    invest_args = json.load(json_file)
+                # Filepaths in json are likely relative, but not to the CWD.
+                # Use datastack API to make absolute paths.
+                args_dict = datastack.extract_parameter_set(model_args_path).args
 
-                invest_args['args']['workspace_dir'] = os.path.join(outputs_location, f'{invest_model}-test')
-                LOGGER.info(f'{invest_model} model arguments: {invest_args}')
+                args_dict['workspace_dir'] = os.path.join(outputs_location, f'{invest_model}-test')
+                LOGGER.info(f'{invest_model} model arguments: {args_dict}')
                 #TODO: update lulc input scenario
                 #TODO: any other location-specific data needed for models?
                 # https://github.com/natcap/urban-online-workflow/issues/12
-                
-                # TODO: invest data is not valid, mock a runtime instead
-                # INVEST_MODELS[invest_model]['api'].execute(invest_args['args'])
-                time.sleep(random.randint(1, 5))
+
+                INVEST_MODELS[invest_model]['api'].execute(args_dict)
 
                 data = {
                     'result': {

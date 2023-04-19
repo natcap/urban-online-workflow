@@ -219,7 +219,7 @@ html, body, #root, .App {
   text-align: center;
 }
 
-.invest-runner {
+#invest-runner {
   display: flex;
   flex-direction: column;
 }

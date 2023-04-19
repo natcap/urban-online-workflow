@@ -35,10 +35,11 @@ export default function InvestRunner(props) {
     if (!pendingJobs.length) {
       refreshScenarios(); // assuming results are in scenario db
     }
-  }, (jobIDs.length) ? 2000 : null);
+  }, (jobIDs.length) ? 3000 : null);
 
   const handleClick = async () => {
-    setProgress(0);
+    setProgressState('success');
+    setProgress(0.02); // start at > 0 to indicate things are happening
     const jobs = await Promise.all(
       scenarios.map((scenario) => runInvest(scenario.scenario_id))
     );
@@ -51,6 +52,7 @@ export default function InvestRunner(props) {
     <div id="invest-runner">
       <Button
         onClick={handleClick}
+        disabled={jobIDs.length}
       >
         Run InVEST Models
       </Button>
@@ -60,7 +62,7 @@ export default function InvestRunner(props) {
             <ProgressBar
               value={progress}
               intent={progressState}
-              animate={false}
+              animate={progress < 1}
             />
           )
           : <div />
