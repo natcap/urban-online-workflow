@@ -88,9 +88,21 @@ NLCD_ORIGIN_X, _, _, NLCD_ORIGIN_Y, _, _ = _NLCD_RASTER_INFO['geotransform']
 PIXELSIZE_X, PIXELSIZE_Y = _NLCD_RASTER_INFO['pixel_size']
 NLCD_COLORS = {}  # update this dict later in file once function is defined.
 
-# Assuming all invest inputs are local for now
-INVEST_BASE_PATH = os.path.join(
-    os.path.dirname(__file__), '..', 'appdata', 'invest-sample-data')
+INVEST_SAMPLE_DATA = 'invest-sample-data'
+INVEST_BASE_PATHS = {
+    'docker': f'/opt/appdata/{INVEST_SAMPLE_DATA}',
+    'local': os.path.join(
+        os.path.dirname(__file__), '..', 'appdata', INVEST_SAMPLE_DATA)
+}
+INVEST_BASE_PATH = None
+for data_path in INVEST_BASE_PATHS.values():
+    if os.path.exists(data_path):
+        INVEST_BASE_PATH = data_path
+        break
+if INVEST_BASE_PATH is None:
+    raise AssertionError(
+        f"Could not find {INVEST_SAMPLE_DATA} at any known locations")
+LOGGER.info(f"Using InVEST data at {INVEST_SAMPLE_DATA}")
 
 INVEST_MODELS = {
     "pollination": {
@@ -867,9 +879,12 @@ def do_work(host, port, outputs_location):
                 invest_args['args']['workspace_dir'] = os.path.join(outputs_location, f'{invest_model}-test')
                 LOGGER.info(f'{invest_model} model arguments: {invest_args}')
                 #TODO: update lulc input scenario
-                #TODO: any AOIs needed for models?
-                # job_id should be unique
-                INVEST_MODELS[invest_model]['api'].execute(invest_args['args'])
+                #TODO: any other location-specific data needed for models?
+                # https://github.com/natcap/urban-online-workflow/issues/12
+                
+                # TODO: invest data is not valid, mock a runtime instead
+                # INVEST_MODELS[invest_model]['api'].execute(invest_args['args'])
+                time.sleep(random.randint(1, 5))
 
                 data = {
                     'result': {
@@ -886,7 +901,7 @@ def do_work(host, port, outputs_location):
             result_path = None
             data = {}  # data doesn't matter in a failure
         finally:
-            LOGGER.info(f"Job {job_id}:{job_type} finished with {status}")
+            LOGGER.info(f"Job {job_id}: {job_type} finished with {status}")
             data['server_attrs'] = server_args
             data['status'] = status
             requests.post(
