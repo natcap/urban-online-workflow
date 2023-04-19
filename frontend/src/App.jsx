@@ -54,7 +54,6 @@ export default function App() {
     if (studyArea.id) {
       const scenes = await getScenarios(studyArea.id);
       setScenarios(scenes);
-      console.log(scenes)
     }
   };
 
