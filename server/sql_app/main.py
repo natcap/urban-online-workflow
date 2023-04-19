@@ -42,15 +42,22 @@ QUEUE = queue.PriorityQueue()
 STATUS_PENDING = "pending"
 STATUS_RUNNING = "running"
 STATUS_SUCCESS = "success"
-STATUS_FAIL = "failed"
+STATUS_FAILED = "failed"
 # Priority constants to use for jobs
 LOW_PRIORITY = 3
 MEDIUM_PRIORITY = 2
 HIGH_PRIORITY = 1
 
 # InVEST model list
-INVEST_MODELS = ["pollination", "stormwater", "urban_cooling_model", "carbon",
-                 "urban_flood_risk_mitigation", "urban_nature_access"]
+INVEST_MODELS = [
+    "pollination",
+    "stormwater",
+    "urban_cooling_model",
+    "carbon",
+    "urban_flood_risk_mitigation",
+    "urban_nature_access"
+]
+
 JOB_TYPES = {
     "invest": "invest",
     "pattern_thumbnail": "pattern_thumbnail",
@@ -735,7 +742,7 @@ def run_invest(scenario_id: int, db: Session = Depends(get_db)):
     for invest_model in INVEST_MODELS:
         job_schema = schemas.JobBase(
             **{"name": f"InVEST: {invest_model}",
-               "description": "executing invest model {invest_model}",
+               "description": f"executing invest model {invest_model}",
                "status": STATUS_PENDING})
         job_db = crud.create_job(
             db=db, session_id=session_id, job=job_schema)

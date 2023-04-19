@@ -162,7 +162,7 @@ for model_name in INVEST_MODELS:
 
 
 STATUS_SUCCESS = 'success'
-STATUS_FAILURE = 'failed'
+STATUS_FAILED = 'failed'
 JOBTYPE_FILL = 'lulc_fill'
 JOBTYPE_WALLPAPER = 'wallpaper'
 JOBTYPE_CROP = 'lulc_crop'
@@ -305,8 +305,6 @@ class Tests(unittest.TestCase):
         thumbnail = os.path.join('thumbnail_pattern.png')
         make_thumbnail(pattern.wkt, NLCD_COLORS, thumbnail, self.workspace_dir)
 
-        # This is useful for debugging
-        #import pdb; pdb.set_trace()  # print(self.workspace_dir)
 
     def test_classnames(self):
         classes = get_classnames_from_raster_attr_table(NLCD_RASTER_PATH)
@@ -897,9 +895,11 @@ def do_work(host, port, outputs_location):
             status = STATUS_SUCCESS
         except Exception as error:
             LOGGER.exception(f'{job_type} failed: {error}')
-            status = STATUS_FAILURE
+            status = STATUS_FAILED
             result_path = None
-            data = {}  # data doesn't matter in a failure
+            data = {
+                'result': STATUS_FAILED
+            }  # data must validate against schema even in fail
         finally:
             LOGGER.info(f"Job {job_id}: {job_type} finished with {status}")
             data['server_attrs'] = server_args
