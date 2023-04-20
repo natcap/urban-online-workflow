@@ -26,6 +26,7 @@ from natcap.invest import stormwater
 from natcap.invest import urban_cooling_model
 from natcap.invest import urban_flood_risk_mitigation
 from natcap.invest import urban_nature_access
+from natcap.invest import datastack
 from natcap.invest import validation
 
 logging.basicConfig(level=logging.INFO)
@@ -88,43 +89,73 @@ NLCD_ORIGIN_X, _, _, NLCD_ORIGIN_Y, _, _ = _NLCD_RASTER_INFO['geotransform']
 PIXELSIZE_X, PIXELSIZE_Y = _NLCD_RASTER_INFO['pixel_size']
 NLCD_COLORS = {}  # update this dict later in file once function is defined.
 
-# Assuming all invest inputs are local for now
-INVEST_BASE_PATH = os.path.join(
-    os.path.dirname(__file__), '..', 'appdata', 'invest-sample-data')
+INVEST_SAMPLE_DATA = 'invest-sample-data'
+INVEST_BASE_PATHS = {
+    'docker': f'/opt/appdata/{INVEST_SAMPLE_DATA}',
+    'local': os.path.join(
+        os.path.dirname(__file__), '..', 'appdata', INVEST_SAMPLE_DATA)
+}
+INVEST_BASE_PATH = None
+for data_path in INVEST_BASE_PATHS.values():
+    if os.path.exists(data_path):
+        INVEST_BASE_PATH = data_path
+        break
+if INVEST_BASE_PATH is None:
+    raise AssertionError(
+        f"Could not find {INVEST_SAMPLE_DATA} at any known locations")
+LOGGER.info(f"Using InVEST data at {INVEST_SAMPLE_DATA}")
 
 INVEST_MODELS = {
     "pollination": {
-        "api": pollination, "data_key": "pollination", 
-        "args_path": os.path.join(INVEST_BASE_PATH, 'pollination', 'pollination_args.json')},
+        "api": pollination,
+        "data_key": "pollination", 
+        "args_path": os.path.join(
+            INVEST_BASE_PATH, 'pollination', 'pollination_args.json')},
     "stormwater": {
-        "api": stormwater, "data_key": "UrbanStormwater",
-        "args_path": os.path.join(INVEST_BASE_PATH, 'UrbanStormwater', 'urban_stormwater_args.json')},
+        "api": stormwater,
+        "data_key": "UrbanStormwater",
+        "args_path": os.path.join(
+            INVEST_BASE_PATH, 'UrbanStormwater', 'urban_stormwater_args.json')},
     "urban_cooling_model": {
-        "api": urban_cooling_model, "data_key": "UrbanCoolingModel",
-        "args_path": os.path.join(INVEST_BASE_PATH, 'UrbanCoolingModel', 'urban_cooling_model_args.json')},
+        "api": urban_cooling_model,
+        "data_key": "UrbanCoolingModel",
+        "args_path": os.path.join(
+            INVEST_BASE_PATH, 'UrbanCoolingModel',
+            'urban_cooling_model_args.json')},
     "carbon": {
-        "api": carbon, "data_key": "Carbon",
-        "args_path": os.path.join(INVEST_BASE_PATH, 'Carbon', 'carbon_args.json')},
+        "api": carbon,
+        "data_key": "Carbon",
+        "args_path": os.path.join(
+            INVEST_BASE_PATH, 'Carbon', 'carbon_args.json')},
     "urban_flood_risk_mitigation": {
-        "api": urban_flood_risk_mitigation, "data_key": "UrbanFloodMitigation",
-        "args_path": os.path.join(INVEST_BASE_PATH, 'UrbanFloodMitigation', 'urban_flood_mitigation_args.json')},
-    "urban_nature_access": {"api": urban_nature_access, "data_key": "UrbanNatureAccess", "args_path": os.path.join(INVEST_BASE_PATH, 'UrbanNatureAccess', 'urban_nature_access_args.json')},
+        "api": urban_flood_risk_mitigation,
+        "data_key": "UrbanFloodMitigation",
+        "args_path": os.path.join(
+            INVEST_BASE_PATH, 'UrbanFloodMitigation',
+            'urban_flood_mitigation_args.json')},
+    "urban_nature_access": {
+        "api": urban_nature_access,
+        "data_key": "UrbanNatureAccess",
+        "args_path": os.path.join(
+            INVEST_BASE_PATH, 'UrbanNatureAccess',
+            'urban_nature_access_args.json')},
 }
+LARGEST_SERVICESHED = 2230  # meters https://github.com/natcap/urban-online-workflow/issues/79
 
 # Quiet logging
-for model_name in INVEST_MODELS:
-    logging.getLogger(model_name).setLevel(logging.WARNING)
+logging.getLogger(f'pygeoprocessing').setLevel(logging.WARNING)
+logging.getLogger(f'natcap.invest').setLevel(logging.WARNING)
+logging.getLogger(f'taskgraph').setLevel(logging.WARNING)
 
 # Validate invest inputs
 for model_key, model_params in INVEST_MODELS.items():
     model_args_path = model_params['args_path']
-    with open(model_args_path) as json_file:
-        invest_args = json.load(json_file)
+    args_dict = datastack.extract_parameter_set(model_args_path).args
 
     # add temp workspace_dir
-    invest_args['args']['workspace_dir'] = INVEST_BASE_PATH
+    args_dict['workspace_dir'] = INVEST_BASE_PATH
     validation_results = validation.validate(
-            invest_args['args'], model_params['api'].MODEL_SPEC['args'])
+            args_dict, model_params['api'].MODEL_SPEC['args'])
     if validation_results:
         LOGGER.info(f'InVEST model {model_key} inputs error.')
         LOGGER.info(validation_results)
@@ -132,7 +163,7 @@ for model_key, model_params in INVEST_MODELS.items():
 
 
 STATUS_SUCCESS = 'success'
-STATUS_FAILURE = 'failed'
+STATUS_FAILED = 'failed'
 JOBTYPE_FILL = 'lulc_fill'
 JOBTYPE_WALLPAPER = 'wallpaper'
 JOBTYPE_CROP = 'lulc_crop'
@@ -275,8 +306,6 @@ class Tests(unittest.TestCase):
         thumbnail = os.path.join('thumbnail_pattern.png')
         make_thumbnail(pattern.wkt, NLCD_COLORS, thumbnail, self.workspace_dir)
 
-        # This is useful for debugging
-        #import pdb; pdb.set_trace()  # print(self.workspace_dir)
 
     def test_classnames(self):
         classes = get_classnames_from_raster_attr_table(NLCD_RASTER_PATH)
@@ -370,9 +399,7 @@ def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path,
     """
     parcel_geom = shapely.wkt.loads(parcel_wkt_epsg3857)
     parcel_min_x, parcel_min_y, parcel_max_x, parcel_max_y = parcel_geom.bounds
-    buffer_dist = abs(min(parcel_max_x - parcel_min_x,
-                          parcel_max_y - parcel_min_y))
-    buffered_parcel_geom = parcel_geom.buffer(buffer_dist)
+    buffered_parcel_geom = parcel_geom.buffer(LARGEST_SERVICESHED)
     buf_minx, buf_miny, buf_maxx, buf_maxy = buffered_parcel_geom.bounds
 
     # Round "up" to the nearest pixel, sort of the pixel-math version of
@@ -845,15 +872,17 @@ def do_work(host, port, outputs_location):
                 LOGGER.info(f"Run InVEST model: {job_args['invest_model']}")
 
                 model_args_path = INVEST_MODELS[invest_model]['args_path']
-                with open(model_args_path) as json_file:
-                    invest_args = json.load(json_file)
+                # Filepaths in json are likely relative, but not to the CWD.
+                # Use datastack API to make absolute paths.
+                args_dict = datastack.extract_parameter_set(model_args_path).args
 
-                invest_args['args']['workspace_dir'] = os.path.join(outputs_location, f'{invest_model}-test')
-                LOGGER.info(f'{invest_model} model arguments: {invest_args}')
+                args_dict['workspace_dir'] = os.path.join(outputs_location, f'{invest_model}-test')
+                LOGGER.info(f'{invest_model} model arguments: {args_dict}')
                 #TODO: update lulc input scenario
-                #TODO: any AOIs needed for models?
-                # job_id should be unique
-                INVEST_MODELS[invest_model]['api'].execute(invest_args['args'])
+                #TODO: any other location-specific data needed for models?
+                # https://github.com/natcap/urban-online-workflow/issues/12
+
+                INVEST_MODELS[invest_model]['api'].execute(args_dict)
 
                 data = {
                     'result': {
@@ -866,11 +895,13 @@ def do_work(host, port, outputs_location):
             status = STATUS_SUCCESS
         except Exception as error:
             LOGGER.exception(f'{job_type} failed: {error}')
-            status = STATUS_FAILURE
+            status = STATUS_FAILED
             result_path = None
-            data = {}  # data doesn't matter in a failure
+            data = {
+                'result': STATUS_FAILED
+            }  # data must validate against schema even in fail
         finally:
-            LOGGER.info(f"Job {job_id}:{job_type} finished with {status}")
+            LOGGER.info(f"Job {job_id}: {job_type} finished with {status}")
             data['server_attrs'] = server_args
             data['status'] = status
             requests.post(

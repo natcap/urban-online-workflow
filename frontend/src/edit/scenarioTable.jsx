@@ -71,16 +71,10 @@ export default function ScenarioTable(props) {
   });
 
   return (
-    <>
-      <HTMLTable bordered striped className="scenario-table">
-        <tbody>
-          {rows}
-        </tbody>
-      </HTMLTable>
-      <br />
-      <Button>
-        Run InVEST Models
-      </Button>
-    </>
+    <HTMLTable bordered striped className="scenario-table">
+      <tbody>
+        {rows}
+      </tbody>
+    </HTMLTable>
   );
 }

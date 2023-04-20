@@ -310,3 +310,14 @@ export async function createPattern(wkt, label, sessionID) {
       .catch((error) => console.log(error))
   );
 }
+
+export async function runInvest(scenarioID) {
+  return (
+    window.fetch(`${apiBaseURL}/invest/${scenarioID}`, {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
+}

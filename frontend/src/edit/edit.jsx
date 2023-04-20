@@ -11,6 +11,7 @@ import ScenarioTable from './scenarioTable';
 import SelectStudyArea from './selectStudyArea';
 import StudyAreaTable from './studyAreaTable';
 import InputStudyAreaName from './inputStudyAreaName';
+import InvestRunner from './investRunner';
 
 FocusStyleManager.onlyShowFocusOnTabs();
 
@@ -89,9 +90,16 @@ export default function EditMenu(props) {
               {
                 (scenarios.length)
                   ? (
-                    <ScenarioTable
-                      scenarios={scenarios}
-                    />
+                    <>
+                      <ScenarioTable
+                        scenarios={scenarios}
+                      />
+                      <br />
+                      <InvestRunner
+                        scenarios={scenarios}
+                        refreshScenarios={refreshScenarios}
+                      />
+                    </>
                   )
                   : <div />
               }
