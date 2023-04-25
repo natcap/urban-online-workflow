@@ -50,12 +50,12 @@ HIGH_PRIORITY = 1
 
 # InVEST model list
 INVEST_MODELS = [
-    "pollination",
-    "stormwater",
-    "urban_cooling_model",
-    "carbon",
-    "urban_flood_risk_mitigation",
-    "urban_nature_access"
+    # "pollination",
+    # "stormwater",
+    # "urban_cooling_model",
+    "carbon"
+    # "urban_flood_risk_mitigation",
+    # "urban_nature_access"
 ]
 
 JOB_TYPES = {
@@ -760,9 +760,10 @@ def run_invest(scenario_id: int, db: Session = Depends(get_db)):
             },
             "job_args": {
                 "invest_model": invest_model,
-                "lulc_source_url": scenario_lulc
-                }
+                "lulc_source_url": scenario_lulc,
+                "scenario_id": scenario_id
             }
+        }
 
         QUEUE.put_nowait((MEDIUM_PRIORITY, job_db.job_id, worker_task))
 
