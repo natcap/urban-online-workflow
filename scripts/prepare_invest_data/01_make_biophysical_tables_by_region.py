@@ -10,7 +10,7 @@ import os
 import pandas
 
 # Chris's biophysical tables
-base_path = '../urban-workflow/naturban/data/parameters'
+base_path = '../../urban-workflow/naturban/data/parameters'
 table_list = [
     'building_energy_table_bioregions.csv',
     'pollination_3_8_0_guilds_bioregions.csv',
@@ -20,7 +20,7 @@ table_list = [
 ]
 label = 'bioregion'
 
-target_path = '../appdata/invest-data/biophysical_tables'
+target_path = '../../appdata/invest-data/biophysical_tables'
 
 for table in table_list:
     data = pandas.read_csv(os.path.join(base_path, table))
