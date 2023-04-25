@@ -1,0 +1,9 @@
+,lucode,building type,kwh_per_cdd,kwh_per_hdd,cost_per_kwh,bioregion,bio_desc
+16,80,residential 75,1.35,1.65,0.706666667,NA29,Sierra Madre Forests & Mexican Drylands (NA29)
+17,81,residential 75,1.35,1.65,0.706666667,NA29,Sierra Madre Forests & Mexican Drylands (NA29)
+18,82,commercial 75,27.0,33.0,0.8325,NA29,Sierra Madre Forests & Mexican Drylands (NA29)
+19,83,industrial 75,27.0,33.0,0.62,NA29,Sierra Madre Forests & Mexican Drylands (NA29)
+20,84,mixed use 75,1.35,1.65,0.769583333,NA29,Sierra Madre Forests & Mexican Drylands (NA29)
+21,85,mixed use 75,1.35,1.65,0.769583333,NA29,Sierra Madre Forests & Mexican Drylands (NA29)
+22,86,commercial 75,27.0,33.0,0.8325,NA29,Sierra Madre Forests & Mexican Drylands (NA29)
+23,88,commercial 100,36.0,44.0,0.8325,NA29,Sierra Madre Forests & Mexican Drylands (NA29)

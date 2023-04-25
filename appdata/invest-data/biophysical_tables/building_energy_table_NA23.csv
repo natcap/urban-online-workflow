@@ -1,0 +1,9 @@
+,lucode,building type,kwh_per_cdd,kwh_per_hdd,cost_per_kwh,bioregion,bio_desc
+80,80,residential 75,1.35,1.65,0.706666667,NA23,Interior Plateau & Southern Great Lakes Forests (NA23)
+81,81,residential 75,1.35,1.65,0.706666667,NA23,Interior Plateau & Southern Great Lakes Forests (NA23)
+82,82,commercial 75,27.0,33.0,0.8325,NA23,Interior Plateau & Southern Great Lakes Forests (NA23)
+83,83,industrial 75,27.0,33.0,0.62,NA23,Interior Plateau & Southern Great Lakes Forests (NA23)
+84,84,mixed use 75,1.35,1.65,0.769583333,NA23,Interior Plateau & Southern Great Lakes Forests (NA23)
+85,85,mixed use 75,1.35,1.65,0.769583333,NA23,Interior Plateau & Southern Great Lakes Forests (NA23)
+86,86,commercial 75,27.0,33.0,0.8325,NA23,Interior Plateau & Southern Great Lakes Forests (NA23)
+87,88,commercial 100,36.0,44.0,0.8325,NA23,Interior Plateau & Southern Great Lakes Forests (NA23)

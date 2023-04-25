@@ -1,0 +1,11 @@
+{
+    "args": {
+        "calc_sequestration": true,
+        "carbon_pools_path": "../biophysical_tables/urban_carbon_nlcd_NA16.csv",
+        "do_redd": false,
+        "do_valuation": false,
+        "lulc_cur_path": ""
+    },
+    "invest_version": "3.11.0.post1240+g363fe5b79.d20230421",
+    "model_name": "carbon"
+}
