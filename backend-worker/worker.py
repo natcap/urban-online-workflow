@@ -780,16 +780,6 @@ def make_thumbnail(pattern_wkt_epsg3857, colors_dict, target_thumbnail_path,
     shutil.rmtree(working_dir, ignore_errors=True)
 
 
-def parameterize_model(invest_model, bioregion):
-    model_meta = INVEST_MODELS[invest_model]
-    args_dict = model_meta['args_dict']
-    # args_dict = datastack.extract_parameter_set(model_args_path).args
-    if model_meta['bioregion_dependent_keys']:
-        for key in model_meta['bioregion_dependent_keys']:
-            args_dict[key] = args_dict[key] % bioregion
-    return args_dict
-
-
 def get_bioregion(point):
     vector = gdal.OpenEx(BIOREGIONS_VECTOR_PATH, gdal.OF_VECTOR)
     layer = vector.GetLayer()
