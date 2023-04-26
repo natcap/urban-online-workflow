@@ -38,6 +38,39 @@ def build_carbon_args(bioregion):
     return None
 
 
+def build_urban_cooling_args(bioregion):
+    model_name = 'urban_cooling_model'
+    # Parameter values from
+    # https://github.com/chrisnootenboom/urban-workflow/blob/master/configs/inputs_config.yaml
+    args_dict = {
+        "do_energy_valuation": False,
+        "do_productivity_valuation": False,
+        "ref_eto_raster_path": "../../CGIAR_et0_annual_epsg_3857.tif",
+        "cc_method": "factors",
+        "cc_weight_albedo": "0.2",
+        "cc_weight_eti": "0.2",
+        "cc_weight_shade": "0.6",
+        "t_air_average_radius": "600",
+        "green_area_cooling_distance": "450",
+        "t_ref": "35",  # TODO: derive from location
+        "uhi_max": "3.56"  # TODO: derive from location
+    }
+    # Make this path relative to the location of the target json
+    args_dict['biophysical_table_path'] = \
+        f'../biophysical_tables/ucm_nlcd_{bioregion}.csv'
+    datastack.build_parameter_set(
+        args_dict,
+        model_name,
+        os.path.join(
+            BASE_DATA_PATH,
+            model_name,
+            f'urban_cooling_model_{bioregion}_args.json'),
+        relative=True)
+
+    return None
+
+
 if __name__ == '__main__':
     for region in AVAILABLE_BIOREGIONS:
         build_carbon_args(region)
+        build_urban_cooling_args(region)

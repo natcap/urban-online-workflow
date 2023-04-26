@@ -113,6 +113,7 @@ AVAILABLE_BIOREGIONS = ['NA10', 'NA11', 'NA12', 'NA13', 'NA15', 'NA16', 'NA17',
                         'NA18', 'NA19', 'NA20', 'NA21', 'NA22', 'NA23', 'NA24',
                         'NA25', 'NA27', 'NA28', 'NA29', 'NA30', 'NA31', 'NT26']
 CARBON = 'carbon'
+URBAN_COOLING = 'urban_cooling_model'
 INVEST_MODELS = {
     "pollination": {
         "api": pollination,
@@ -126,13 +127,14 @@ INVEST_MODELS = {
         "lulc_args_key": "lulc_path",
         "args_path": os.path.join(
             INVEST_BASE_PATH, 'UrbanStormwater', 'urban_stormwater_args.json')},
-    "urban_cooling_model": {
+    URBAN_COOLING: {
         "api": urban_cooling_model,
-        "data_key": "UrbanCoolingModel",
         "lulc_args_key": "lulc_raster_path",
+        "aoi_args_key": "aoi_vector_path",
         "args_path": os.path.join(
-            INVEST_BASE_PATH, 'UrbanCoolingModel',
-            'urban_cooling_model_args.json')},
+            INVEST_BASE_PATH, URBAN_COOLING,
+            'urban_cooling_model_%s_args.json')
+    },
     CARBON: {
         "api": carbon,
         "lulc_args_key": "lulc_cur_path",
