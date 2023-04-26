@@ -21,14 +21,8 @@ from osgeo import osr
 from PIL import Image
 
 from natcap.invest import carbon
-from natcap.invest import pollination
-from natcap.invest import stormwater
 from natcap.invest import urban_cooling_model
-from natcap.invest import urban_flood_risk_mitigation
-from natcap.invest import urban_nature_access
-from natcap.invest import datastack
 from natcap.invest import utils
-from natcap.invest import validation
 
 import invest_args
 
@@ -110,20 +104,6 @@ LARGEST_SERVICESHED = 2230  # meters https://github.com/natcap/urban-online-work
 logging.getLogger(f'pygeoprocessing').setLevel(logging.WARNING)
 # logging.getLogger(f'natcap.invest').setLevel(logging.WARNING)
 logging.getLogger(f'taskgraph').setLevel(logging.WARNING)
-
-# Validate invest inputs
-# for model_key, model_params in INVEST_MODELS.items():
-#     model_args_path = model_params['args_path']
-#     args_dict = datastack.extract_parameter_set(model_args_path).args
-
-#     # add temp workspace_dir
-#     args_dict['workspace_dir'] = INVEST_BASE_PATH
-#     validation_results = validation.validate(
-#             args_dict, model_params['api'].MODEL_SPEC['args'])
-#     if validation_results:
-#         LOGGER.info(f'InVEST model {model_key} inputs error.')
-#         LOGGER.info(validation_results)
-#         raise ValueError("Could not validate InVEST model args")
 
 
 STATUS_SUCCESS = 'success'
