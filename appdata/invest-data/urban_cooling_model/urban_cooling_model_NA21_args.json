@@ -1,0 +1,18 @@
+{
+    "args": {
+        "biophysical_table_path": "../biophysical_tables/ucm_nlcd_NA21.csv",
+        "cc_method": "factors",
+        "cc_weight_albedo": "0.2",
+        "cc_weight_eti": "0.2",
+        "cc_weight_shade": "0.6",
+        "do_energy_valuation": false,
+        "do_productivity_valuation": false,
+        "green_area_cooling_distance": "450",
+        "ref_eto_raster_path": "../../CGIAR_et0_annual_epsg_3857.tif",
+        "t_air_average_radius": "600",
+        "t_ref": "35",
+        "uhi_max": "3.56"
+    },
+    "invest_version": "3.11.0.post1240+g363fe5b79.d20230421",
+    "model_name": "urban_cooling_model"
+}
