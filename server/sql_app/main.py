@@ -52,7 +52,7 @@ HIGH_PRIORITY = 1
 INVEST_MODELS = [
     # "pollination",
     # "stormwater",
-    # "urban_cooling_model",
+    "urban_cooling_model",
     "carbon"
     # "urban_flood_risk_mitigation",
     # "urban_nature_access"
