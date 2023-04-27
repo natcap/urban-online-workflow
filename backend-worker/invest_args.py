@@ -63,7 +63,6 @@ def carbon(lulc_path, workspace_dir):
         (minx + maxx) / 2, (miny + maxy) / 2)
     bioregion = get_bioregion(center)
 
-    # Make this path relative to the location of the target json
     args_dict['carbon_pools_path'] = os.path.join(
         INVEST_BASE_PATH,
         'biophysical_tables',
