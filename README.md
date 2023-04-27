@@ -17,3 +17,10 @@ $ docker compose up --build
 
 ## View fastapi endpoint documentation
 `http://localhost:8000/docs`
+
+## Data Requirements
+local path which mounts in container - (bucket where source file can be found)
+`appdata/NLCD_2016_epsg3857.tif` (natcap-urban-online-datasets-public)
+`appdata/invest-data/CGIAR_et0_annual_epsg_3857.tif` (natcap-urban-online-datasets)
+`appdata/invest-data/OE_Bioregions_3857.shp` (natcap-urban-online-datasets)
+
