@@ -144,7 +144,6 @@ class Tests(unittest.TestCase):
             os.path.join(self.workspace_dir, 'parcel.fgb'),
             _WEB_MERCATOR_SRS.ExportToWkt(), 'FlatGeoBuf')
 
-        # nlud_path = 'appdata/NLCD_2016_epsg3857.tif'
         pixelcounts = pixelcounts_under_parcel(
             parcel.wkt, NLCD_RASTER_PATH)
 
@@ -243,7 +242,6 @@ class Tests(unittest.TestCase):
         target_raster_path = os.path.join(
             self.workspace_dir, 'wallpapered_raster.tif')
 
-        # nlcd_path = 'appdata/NLCD_2016_epsg3857.tif'
         wallpaper_parcel(parcel.wkt, pattern.wkt, NLCD_RASTER_PATH,
                          target_raster_path, self.workspace_dir)
 
