@@ -4,12 +4,12 @@ Create biophysical tables for invest, by bioregion.
 Chris N. parameterized many biophysical tables for invest models,
 assigning values that vary by "bioregion". To use these tables
 in invest, we need to split them to make one table per bioregion.
-https://github.com/chrisnootenboom/urban-workflow
 """
 import os
 import pandas
 
-# Chris's biophysical tables
+# Chris's biophysical tables from
+# https://github.com/chrisnootenboom/urban-workflow
 base_path = '../../urban-workflow/naturban/data/parameters'
 table_list = [
     'building_energy_table_bioregions.csv',
@@ -30,5 +30,3 @@ for table in table_list:
             target_path, table.replace('bioregions', group))
         print(f'writing {target_filename}')
         df.to_csv(target_filename)
-
-
