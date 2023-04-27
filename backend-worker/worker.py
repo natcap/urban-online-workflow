@@ -291,7 +291,7 @@ class Tests(unittest.TestCase):
         # Coordinates are in EPSG:3857 "Web Mercator"
         point_over_san_antonio = shapely.geometry.Point(
             -10965275.57, 3429693.30)
-        region = get_bioregion(point_over_san_antonio)
+        region = invest_args.get_bioregion(point_over_san_antonio)
         self.assertEqual(region, 'NA28')
 
     def test_get_bioregion_out_of_bounds(self):
@@ -299,7 +299,7 @@ class Tests(unittest.TestCase):
         point = shapely.geometry.Point(
             10965275.57, -3429693.30)
         with self.assertRaises(ValueError):
-            region = get_bioregion(point)
+            region = invest_args.get_bioregion(point)
 
 
 def _warp_raster_to_web_mercator(source_albers_raster_path,
