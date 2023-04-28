@@ -102,7 +102,6 @@ LARGEST_SERVICESHED = 2230  # meters https://github.com/natcap/urban-online-work
 
 # Quiet logging
 logging.getLogger(f'pygeoprocessing').setLevel(logging.WARNING)
-# logging.getLogger(f'natcap.invest').setLevel(logging.WARNING)
 logging.getLogger(f'taskgraph').setLevel(logging.WARNING)
 
 
@@ -213,7 +212,6 @@ class Tests(unittest.TestCase):
         target_raster_path = os.path.join(
             self.workspace_dir, 'wallpapered_raster.tif')
 
-        # nlud_path = 'appdata/NLCD_2016_epsg3857.tif'
         wallpaper_parcel(parcel.wkt, pattern.wkt, NLCD_RASTER_PATH,
                          target_raster_path, self.workspace_dir)
 
