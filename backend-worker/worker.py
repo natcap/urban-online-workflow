@@ -21,13 +21,10 @@ from osgeo import osr
 from PIL import Image
 
 from natcap.invest import carbon
-from natcap.invest import pollination
-from natcap.invest import stormwater
 from natcap.invest import urban_cooling_model
-from natcap.invest import urban_flood_risk_mitigation
-from natcap.invest import urban_nature_access
-from natcap.invest import datastack
-from natcap.invest import validation
+from natcap.invest import utils
+
+import invest_args
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
@@ -89,77 +86,23 @@ NLCD_ORIGIN_X, _, _, NLCD_ORIGIN_Y, _, _ = _NLCD_RASTER_INFO['geotransform']
 PIXELSIZE_X, PIXELSIZE_Y = _NLCD_RASTER_INFO['pixel_size']
 NLCD_COLORS = {}  # update this dict later in file once function is defined.
 
-INVEST_SAMPLE_DATA = 'invest-sample-data'
-INVEST_BASE_PATHS = {
-    'docker': f'/opt/appdata/{INVEST_SAMPLE_DATA}',
-    'local': os.path.join(
-        os.path.dirname(__file__), '..', 'appdata', INVEST_SAMPLE_DATA)
-}
-INVEST_BASE_PATH = None
-for data_path in INVEST_BASE_PATHS.values():
-    if os.path.exists(data_path):
-        INVEST_BASE_PATH = data_path
-        break
-if INVEST_BASE_PATH is None:
-    raise AssertionError(
-        f"Could not find {INVEST_SAMPLE_DATA} at any known locations")
-LOGGER.info(f"Using InVEST data at {INVEST_SAMPLE_DATA}")
-
+CARBON = 'carbon'
+URBAN_COOLING = 'urban_cooling_model'
 INVEST_MODELS = {
-    "pollination": {
-        "api": pollination,
-        "data_key": "pollination", 
-        "args_path": os.path.join(
-            INVEST_BASE_PATH, 'pollination', 'pollination_args.json')},
-    "stormwater": {
-        "api": stormwater,
-        "data_key": "UrbanStormwater",
-        "args_path": os.path.join(
-            INVEST_BASE_PATH, 'UrbanStormwater', 'urban_stormwater_args.json')},
-    "urban_cooling_model": {
+    URBAN_COOLING: {
         "api": urban_cooling_model,
-        "data_key": "UrbanCoolingModel",
-        "args_path": os.path.join(
-            INVEST_BASE_PATH, 'UrbanCoolingModel',
-            'urban_cooling_model_args.json')},
-    "carbon": {
+        "build_args": invest_args.urban_cooling
+    },
+    CARBON: {
         "api": carbon,
-        "data_key": "Carbon",
-        "args_path": os.path.join(
-            INVEST_BASE_PATH, 'Carbon', 'carbon_args.json')},
-    "urban_flood_risk_mitigation": {
-        "api": urban_flood_risk_mitigation,
-        "data_key": "UrbanFloodMitigation",
-        "args_path": os.path.join(
-            INVEST_BASE_PATH, 'UrbanFloodMitigation',
-            'urban_flood_mitigation_args.json')},
-    "urban_nature_access": {
-        "api": urban_nature_access,
-        "data_key": "UrbanNatureAccess",
-        "args_path": os.path.join(
-            INVEST_BASE_PATH, 'UrbanNatureAccess',
-            'urban_nature_access_args.json')},
+        "build_args": invest_args.carbon
+    }
 }
 LARGEST_SERVICESHED = 2230  # meters https://github.com/natcap/urban-online-workflow/issues/79
 
 # Quiet logging
 logging.getLogger(f'pygeoprocessing').setLevel(logging.WARNING)
-logging.getLogger(f'natcap.invest').setLevel(logging.WARNING)
 logging.getLogger(f'taskgraph').setLevel(logging.WARNING)
-
-# Validate invest inputs
-for model_key, model_params in INVEST_MODELS.items():
-    model_args_path = model_params['args_path']
-    args_dict = datastack.extract_parameter_set(model_args_path).args
-
-    # add temp workspace_dir
-    args_dict['workspace_dir'] = INVEST_BASE_PATH
-    validation_results = validation.validate(
-            args_dict, model_params['api'].MODEL_SPEC['args'])
-    if validation_results:
-        LOGGER.info(f'InVEST model {model_key} inputs error.')
-        LOGGER.info(validation_results)
-        raise ValueError("Could not validate InVEST model args")
 
 
 STATUS_SUCCESS = 'success'
@@ -200,9 +143,8 @@ class Tests(unittest.TestCase):
             os.path.join(self.workspace_dir, 'parcel.fgb'),
             _WEB_MERCATOR_SRS.ExportToWkt(), 'FlatGeoBuf')
 
-        nlud_path = 'appdata/nlud.tif'
         pixelcounts = pixelcounts_under_parcel(
-            parcel.wkt, nlud_path)
+            parcel.wkt, NLCD_RASTER_PATH)
 
         expected_values = {
             262: 40,
@@ -270,8 +212,7 @@ class Tests(unittest.TestCase):
         target_raster_path = os.path.join(
             self.workspace_dir, 'wallpapered_raster.tif')
 
-        nlud_path = 'appdata/nlud.tif'
-        wallpaper_parcel(parcel.wkt, pattern.wkt, nlud_path,
+        wallpaper_parcel(parcel.wkt, pattern.wkt, NLCD_RASTER_PATH,
                          target_raster_path, self.workspace_dir)
 
     def test_wallpaper_nlcd(self):
@@ -299,8 +240,7 @@ class Tests(unittest.TestCase):
         target_raster_path = os.path.join(
             self.workspace_dir, 'wallpapered_raster.tif')
 
-        nlcd_path = 'appdata/NLCD_2016.tif'
-        wallpaper_parcel(parcel.wkt, pattern.wkt, nlcd_path,
+        wallpaper_parcel(parcel.wkt, pattern.wkt, NLCD_RASTER_PATH,
                          target_raster_path, self.workspace_dir)
 
         thumbnail = os.path.join('thumbnail_pattern.png')
@@ -341,6 +281,21 @@ class Tests(unittest.TestCase):
             (k, v['color']) for (k, v) in
             get_classnames_from_raster_attr_table(NLCD_RASTER_PATH).items())
         make_thumbnail(gtiff_path, colors, thumbnail)
+
+    def test_get_bioregion(self):
+        # University of Texas: San Antonio, selected by hand in QGIS
+        # Coordinates are in EPSG:3857 "Web Mercator"
+        point_over_san_antonio = shapely.geometry.Point(
+            -10965275.57, 3429693.30)
+        region = invest_args.get_bioregion(point_over_san_antonio)
+        self.assertEqual(region, 'NA28')
+
+    def test_get_bioregion_out_of_bounds(self):
+        # Outside North America; flip of San Antonio coords
+        point = shapely.geometry.Point(
+            10965275.57, -3429693.30)
+        with self.assertRaises(ValueError):
+            region = invest_args.get_bioregion(point)
 
 
 def _warp_raster_to_web_mercator(source_albers_raster_path,
@@ -869,20 +824,26 @@ def do_work(host, port, outputs_location):
                 }
             elif job_type == JOBTYPE_INVEST:
                 invest_model = job_args['invest_model']
+                scenario_id = job_args['scenario_id']
                 LOGGER.info(f"Run InVEST model: {job_args['invest_model']}")
 
-                model_args_path = INVEST_MODELS[invest_model]['args_path']
-                # Filepaths in json are likely relative, but not to the CWD.
-                # Use datastack API to make absolute paths.
-                args_dict = datastack.extract_parameter_set(model_args_path).args
+                model_meta = INVEST_MODELS[invest_model]
+                lulc_path = job_args['lulc_source_url']
+                
+                workspace_dir = os.path.join(
+                    model_outputs_dir, f'{invest_model}-{scenario_id}')
 
-                args_dict['workspace_dir'] = os.path.join(outputs_location, f'{invest_model}-test')
-                LOGGER.info(f'{invest_model} model arguments: {args_dict}')
-                #TODO: update lulc input scenario
-                #TODO: any other location-specific data needed for models?
-                # https://github.com/natcap/urban-online-workflow/issues/12
-
-                INVEST_MODELS[invest_model]['api'].execute(args_dict)
+                # Ultimately we may not need prepare_workspace, but it is
+                # convenient for 1) creating the workspace as a location to
+                # write dynamically-created input files like an AOI vector, and
+                # 2) having invest log to a file.
+                with utils.prepare_workspace(workspace_dir,
+                                             name=invest_model,
+                                             logging_level=logging.INFO):
+                    args_dict = model_meta['build_args'](
+                        lulc_path, workspace_dir)
+                    LOGGER.info(f'{invest_model} model arguments: {args_dict}')
+                    model_meta['api'].execute(args_dict)
 
                 data = {
                     'result': {
