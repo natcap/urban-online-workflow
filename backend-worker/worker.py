@@ -63,6 +63,13 @@ if _NLCD_RASTER_INFO is None:
     raise AssertionError(
         f"Could not open {NLCD_FILENAME} at any known locations")
 LOGGER.info(f"Using NLCD at {NLCD_RASTER_PATH}")
+NLCD_COLOR_TABLE_PATH = os.path.join(
+    os.path.dirname(NLCD_RASTER_PATH), 'NLCD_2016.lulcdata.json')
+
+with open(NLCD_COLOR_TABLE_PATH, 'r') as file:
+    table = json.loads(file.read())
+NLCD_COLORS = {int(lulc_code): data['color'] for lulc_code, data
+               in table.items()}
 
 NLCD_SRS_WKT = _NLCD_RASTER_INFO['projection_wkt']
 _NLCD_SRS = osr.SpatialReference()
@@ -84,7 +91,7 @@ OGR_GEOMETRY_TYPES = {
 # NLCD raster attributes copied in by hand from gdalinfo
 NLCD_ORIGIN_X, _, _, NLCD_ORIGIN_Y, _, _ = _NLCD_RASTER_INFO['geotransform']
 PIXELSIZE_X, PIXELSIZE_Y = _NLCD_RASTER_INFO['pixel_size']
-NLCD_COLORS = {}  # update this dict later in file once function is defined.
+# NLCD_COLORS = {}  # update this dict later in file once function is defined.
 
 CARBON = 'carbon'
 URBAN_COOLING = 'urban_cooling_model'
@@ -247,21 +254,18 @@ class Tests(unittest.TestCase):
         make_thumbnail(pattern.wkt, NLCD_COLORS, thumbnail, self.workspace_dir)
 
 
-    def test_classnames(self):
-        classes = get_classnames_from_raster_attr_table(NLCD_RASTER_PATH)
+    # def test_classnames(self):
+    #     classes = get_classnames_from_raster_attr_table(NLCD_RASTER_PATH)
 
-        # See https://www.mrlc.gov/data/legends/national-land-cover-database-class-legend-and-description
-        # for a list of classes in NLCD.
-        # 20 classes total 4 are specific to Alaska and so not in our dataset.
-        self.assertEqual(len(classes), 16)
-        for _, attrs in classes.items():
-            self.assertRegexpMatches(attrs['color'], '#[0-9a-fA-F]{6}')
+    #     # See https://www.mrlc.gov/data/legends/national-land-cover-database-class-legend-and-description
+    #     # for a list of classes in NLCD.
+    #     # 20 classes total 4 are specific to Alaska and so not in our dataset.
+    #     self.assertEqual(len(classes), 16)
+    #     for _, attrs in classes.items():
+    #         self.assertRegexpMatches(attrs['color'], '#[0-9a-fA-F]{6}')
 
-    @unittest.skip
+    # @unittest.skip
     def test_thumbnail(self):
-
-        gtiff_path = os.path.join(self.workspace_dir, 'raster.tif')
-
         # University of Texas: San Antonio, selected by hand in QGIS
         # Coordinates are in EPSG:3857 "Web Mercator"
         point_over_san_antonio = shapely.geometry.Point(
@@ -269,18 +273,9 @@ class Tests(unittest.TestCase):
 
         # Raster units are in meters (mercator)
         parcel = point_over_san_antonio.buffer(100)
-        pygeoprocessing.geoprocessing.shapely_geometry_to_vector(
-            [point_over_san_antonio, parcel],
-            os.path.join(self.workspace_dir, 'parcel.shp'),
-            _WEB_MERCATOR_SRS.ExportToWkt(), 'ESRI Shapefile')
 
-        _create_new_lulc(parcel.wkt, gtiff_path)
-
-        thumbnail = os.path.join('thumbnail.png')
-        colors = dict(
-            (k, v['color']) for (k, v) in
-            get_classnames_from_raster_attr_table(NLCD_RASTER_PATH).items())
-        make_thumbnail(gtiff_path, colors, thumbnail)
+        thumbnail = os.path.join(self.workspace_dir, 'thumbnail.png')
+        make_thumbnail(parcel.wkt, NLCD_COLORS, thumbnail)
 
     def test_get_bioregion(self):
         # University of Texas: San Antonio, selected by hand in QGIS
@@ -609,60 +604,60 @@ def pixelcounts_under_parcel(parcel_wkt_epsg3857, source_raster_path):
     return return_values
 
 
-def get_classnames_from_raster_attr_table(raster_path):
-    """Read classnames from a gdal-readable path.
+# def get_classnames_from_raster_attr_table(raster_path):
+#     """Read classnames from a gdal-readable path.
 
-    Args:
-        raster_path (string): A GDAL raster path representing a raster.
+#     Args:
+#         raster_path (string): A GDAL raster path representing a raster.
 
-    Returns:
-        classes (dict): A mapping of int lulc codes to its string label.
+#     Returns:
+#         classes (dict): A mapping of int lulc codes to its string label.
 
-    Raises:
-        AssertionError: When the raster provided does not have an attribute
-            table.
-        AssertionError: When the target column name could not be found in the
-            attribute table.
-    """
-    raster = gdal.OpenEx(raster_path)
-    band = raster.GetRasterBand(1)
-    attr_table = band.GetDefaultRAT()
-    if attr_table is None:
-        raise AssertionError(
-            "Could not load attribute table. Did you include the sidecar "
-            ".tif.aux.xml file?")
+#     Raises:
+#         AssertionError: When the raster provided does not have an attribute
+#             table.
+#         AssertionError: When the target column name could not be found in the
+#             attribute table.
+#     """
+#     raster = gdal.OpenEx(raster_path)
+#     band = raster.GetRasterBand(1)
+#     attr_table = band.GetDefaultRAT()
+#     if attr_table is None:
+#         raise AssertionError(
+#             "Could not load attribute table. Did you include the sidecar "
+#             ".tif.aux.xml file?")
 
-    # locate the name column
-    name_col_idx = -1
-    target_colname = 'NLCD Land Cover Class'
-    for col_idx in range(attr_table.GetColumnCount() - 1):
-        if attr_table.GetNameOfCol(col_idx) == target_colname:
-            name_col_idx = col_idx
-            break
-    if name_col_idx == -1:
-        raise AssertionError(
-            f"Could not find column {target_colname} in {raster_path}")
+#     # locate the name column
+#     name_col_idx = -1
+#     target_colname = 'NLCD Land Cover Class'
+#     for col_idx in range(attr_table.GetColumnCount() - 1):
+#         if attr_table.GetNameOfCol(col_idx) == target_colname:
+#             name_col_idx = col_idx
+#             break
+#     if name_col_idx == -1:
+#         raise AssertionError(
+#             f"Could not find column {target_colname} in {raster_path}")
 
-    color_table = band.GetColorTable()
+#     color_table = band.GetColorTable()
 
-    def _to_hex(r, g, b, a):
-        return f"#{r:02x}{g:02x}{b:02x}"
+#     def _to_hex(r, g, b, a):
+#         return f"#{r:02x}{g:02x}{b:02x}"
 
-    classes = {}
-    for row_idx in range(attr_table.GetRowCount()):
-        name = attr_table.GetValueAsString(row_idx, name_col_idx)
-        if name and name != 'Unclassified':
-            classes[row_idx] = {
-                'name': name,
-                'color': _to_hex(*color_table.GetColorEntry(row_idx)),
-            }
+#     classes = {}
+#     for row_idx in range(attr_table.GetRowCount()):
+#         name = attr_table.GetValueAsString(row_idx, name_col_idx)
+#         if name and name != 'Unclassified':
+#             classes[row_idx] = {
+#                 'name': name,
+#                 'color': _to_hex(*color_table.GetColorEntry(row_idx)),
+#             }
 
-    return classes
+#     return classes
 
 
-NLCD_COLORS.update(dict(
-    (k, v['color']) for (k, v) in
-    get_classnames_from_raster_attr_table(NLCD_RASTER_PATH).items()))
+# NLCD_COLORS.update(dict(
+#     (k, v['color']) for (k, v) in
+#     get_classnames_from_raster_attr_table(NLCD_RASTER_PATH).items()))
 
 
 def make_thumbnail(pattern_wkt_epsg3857, colors_dict, target_thumbnail_path,
@@ -685,6 +680,8 @@ def make_thumbnail(pattern_wkt_epsg3857, colors_dict, target_thumbnail_path,
 
     rgb_colors = {}
     for lucode, hex_color in colors_dict.items():
+        print(lucode)
+        print(hex_color)
         rgb_colors[lucode] = [
             int(f'0x{"".join(hex_color[1:3])}', 16),
             int(f'0x{"".join(hex_color[3:5])}', 16),
@@ -692,12 +689,14 @@ def make_thumbnail(pattern_wkt_epsg3857, colors_dict, target_thumbnail_path,
         ]
 
     rgb_colors_list = []
+    print(rgb_colors)
     for i in range(0, 256):
         try:
             rgb_colors_list.extend(rgb_colors[i])
         except KeyError:
             rgb_colors_list.extend([0, 0, 0])
 
+    print(rgb_colors_list)
     image.putpalette(rgb_colors_list)
     factor = 30  # taken from the pixelsize so we can just deal in native units
     image = image.resize((image.width * factor,
@@ -795,11 +794,11 @@ def do_work(host, port, outputs_location):
                         }
                     }
                 }
-            elif job_type == JOBTYPE_LULC_CLASSNAMES:
-                data = {
-                    'result': get_classnames_from_raster_attr_table(
-                        NLCD_RASTER_PATH)
-                }
+            # elif job_type == JOBTYPE_LULC_CLASSNAMES:
+            #     data = {
+            #         'result': get_classnames_from_raster_attr_table(
+            #             NLCD_RASTER_PATH)
+            #     }
             elif job_type == JOBTYPE_PATTERN_THUMBNAIL:
                 thumbnails_dir = os.path.join(
                     model_outputs_dir, 'thumbnails')

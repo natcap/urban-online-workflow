@@ -10,17 +10,15 @@ import { Vector as VectorSource } from 'ol/source';
 import MVT from 'ol/format/MVT';
 import WKT from 'ol/format/WKT';
 import Feature from 'ol/Feature';
-import { 
+import {
   Point,
   LineString,
   LinearRing,
   Polygon,
   MultiPoint,
   MultiLineString,
-  MultiPolygon
+  MultiPolygon,
 } from 'ol/geom';
-import GeometryCollection from 'ol/geom/GeometryCollection';
-import { inflateCoordinatesArray } from "ol/geom/flat/inflate"
 import {
   Translate,
   defaults as defaultInteractions,
@@ -135,6 +133,7 @@ selectionLayer.setZIndex(3);
 const studyAreaSource = new VectorSource({});
 const studyAreaLayer = new VectorLayer({
   source: studyAreaSource,
+  style: selectedFeatureStyle
 });
 studyAreaLayer.set('title', 'Study Area');
 studyAreaLayer.setZIndex(3);

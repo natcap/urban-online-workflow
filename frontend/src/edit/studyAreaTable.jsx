@@ -6,7 +6,7 @@ import {
 } from '@blueprintjs/core';
 
 import { removeParcel } from '../requests';
-import landuseCodes from '../landuseCodes';
+import landuseCodes from '../../../appdata/NLCD_2016.lulcdata.json';
 
 export default function StudyAreaTable(props) {
   const {

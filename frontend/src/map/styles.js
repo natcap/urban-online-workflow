@@ -3,11 +3,11 @@ import { Fill, Stroke, Style } from 'ol/style';
 // style for selected features in the parcel layer
 export const selectedFeatureStyle = new Style({
   stroke: new Stroke({
-    color: 'rgba(51, 153, 204,0.8)',
+    color: 'rgba(51, 153, 204, 0.8)',
     width: 4,
   }),
   fill: new Fill({
-    color: 'rgba(51, 153, 204,0.4)',
+    color: 'rgba(0, 0, 0, 0.0)',
   }),
 });
 

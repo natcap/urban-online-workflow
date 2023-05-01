@@ -5,7 +5,7 @@ import {
   Button,
 } from '@blueprintjs/core';
 
-import landuseCodes from '../landuseCodes';
+import landuseCodes from '../../../appdata/NLCD_2016.lulcdata.json';
 
 function sqkm(count) {
   if (!parseInt(count)) {
