@@ -26,6 +26,7 @@ export default function EditMenu(props) {
     patternSampleWKT,
     sessionID,
     studyArea,
+    setHoveredParcel,
     switchStudyArea,
     savedStudyAreas,
   } = props;
@@ -69,6 +70,7 @@ export default function EditMenu(props) {
                       studyAreaID={studyArea.id}
                       refreshStudyArea={refreshStudyArea}
                       immutableStudyArea={Boolean(scenarios.length)}
+                      setHoveredParcel={setHoveredParcel}
                     />
                   )
                   : (

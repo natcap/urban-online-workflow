@@ -14,6 +14,7 @@ export default function StudyAreaTable(props) {
     refreshStudyArea,
     studyAreaID,
     immutableStudyArea,
+    setHoveredParcel,
   } = props;
   const [highlightedCode, setHighlightedCode] = useState(null);
   const [hiddenRowClass, setHiddenRowClass] = useState('');
@@ -72,6 +73,10 @@ export default function StudyAreaTable(props) {
       <tr
         className={hiddenRowClass}
         key={parcel.parcel_id}
+        onMouseOver={() => setHoveredParcel(parcel.parcel_id)}
+        onFocus={() => setHoveredParcel(parcel.parcel_id)}
+        onMouseOut={() => setHoveredParcel(null)}
+        onBlur={() => setHoveredParcel(null)}
       >
         <td>
           <Button

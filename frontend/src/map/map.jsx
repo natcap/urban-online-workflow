@@ -174,6 +174,7 @@ export default function MapComponent(props) {
   const {
     sessionID,
     studyAreaParcels,
+    hoveredParcel,
     activeStudyAreaID,
     refreshStudyArea,
     patternSamplingMode,
@@ -262,6 +263,22 @@ export default function MapComponent(props) {
       },
     );
   };
+
+  useEffect(() => {
+    if (hoveredParcel) {
+      const feats = parcelLayer.getSource().getFeaturesInExtent(
+        map.getView().calculateExtent()
+      );
+      feats.forEach((feature) => {
+        if (feature.get('fid') === hoveredParcel) {
+          selectedFeature = feature;
+        }
+      });
+    } else {
+      selectedFeature = null;
+    }
+    selectionLayer.changed();
+  }, [hoveredParcel]);
 
   // useEffect with no dependencies: only runs after first render
   useEffect(() => {
