@@ -91,7 +91,6 @@ OGR_GEOMETRY_TYPES = {
 # NLCD raster attributes copied in by hand from gdalinfo
 NLCD_ORIGIN_X, _, _, NLCD_ORIGIN_Y, _, _ = _NLCD_RASTER_INFO['geotransform']
 PIXELSIZE_X, PIXELSIZE_Y = _NLCD_RASTER_INFO['pixel_size']
-# NLCD_COLORS = {}  # update this dict later in file once function is defined.
 
 CARBON = 'carbon'
 URBAN_COOLING = 'urban_cooling_model'
@@ -118,7 +117,6 @@ JOBTYPE_FILL = 'lulc_fill'
 JOBTYPE_WALLPAPER = 'wallpaper'
 JOBTYPE_CROP = 'lulc_crop'
 JOBTYPE_PARCEL_STATS = 'stats_under_parcel'
-JOBTYPE_LULC_CLASSNAMES = 'raster_classnames'
 JOBTYPE_PATTERN_THUMBNAIL = 'pattern_thumbnail'
 JOBTYPE_INVEST = 'invest'
 ENDPOINTS = {
@@ -126,10 +124,10 @@ ENDPOINTS = {
     JOBTYPE_WALLPAPER: 'scenario',
     JOBTYPE_CROP: 'scenario',
     JOBTYPE_PARCEL_STATS: 'parcel_stats',
-    JOBTYPE_LULC_CLASSNAMES: 'raster_classnames',  # TODO: fixme!
     JOBTYPE_PATTERN_THUMBNAIL: 'pattern',
     JOBTYPE_INVEST: 'invest',
 }
+
 
 class Tests(unittest.TestCase):
     def setUp(self):
@@ -253,18 +251,6 @@ class Tests(unittest.TestCase):
         thumbnail = os.path.join('thumbnail_pattern.png')
         make_thumbnail(pattern.wkt, NLCD_COLORS, thumbnail, self.workspace_dir)
 
-
-    # def test_classnames(self):
-    #     classes = get_classnames_from_raster_attr_table(NLCD_RASTER_PATH)
-
-    #     # See https://www.mrlc.gov/data/legends/national-land-cover-database-class-legend-and-description
-    #     # for a list of classes in NLCD.
-    #     # 20 classes total 4 are specific to Alaska and so not in our dataset.
-    #     self.assertEqual(len(classes), 16)
-    #     for _, attrs in classes.items():
-    #         self.assertRegexpMatches(attrs['color'], '#[0-9a-fA-F]{6}')
-
-    # @unittest.skip
     def test_thumbnail(self):
         # University of Texas: San Antonio, selected by hand in QGIS
         # Coordinates are in EPSG:3857 "Web Mercator"
@@ -604,62 +590,6 @@ def pixelcounts_under_parcel(parcel_wkt_epsg3857, source_raster_path):
     return return_values
 
 
-# def get_classnames_from_raster_attr_table(raster_path):
-#     """Read classnames from a gdal-readable path.
-
-#     Args:
-#         raster_path (string): A GDAL raster path representing a raster.
-
-#     Returns:
-#         classes (dict): A mapping of int lulc codes to its string label.
-
-#     Raises:
-#         AssertionError: When the raster provided does not have an attribute
-#             table.
-#         AssertionError: When the target column name could not be found in the
-#             attribute table.
-#     """
-#     raster = gdal.OpenEx(raster_path)
-#     band = raster.GetRasterBand(1)
-#     attr_table = band.GetDefaultRAT()
-#     if attr_table is None:
-#         raise AssertionError(
-#             "Could not load attribute table. Did you include the sidecar "
-#             ".tif.aux.xml file?")
-
-#     # locate the name column
-#     name_col_idx = -1
-#     target_colname = 'NLCD Land Cover Class'
-#     for col_idx in range(attr_table.GetColumnCount() - 1):
-#         if attr_table.GetNameOfCol(col_idx) == target_colname:
-#             name_col_idx = col_idx
-#             break
-#     if name_col_idx == -1:
-#         raise AssertionError(
-#             f"Could not find column {target_colname} in {raster_path}")
-
-#     color_table = band.GetColorTable()
-
-#     def _to_hex(r, g, b, a):
-#         return f"#{r:02x}{g:02x}{b:02x}"
-
-#     classes = {}
-#     for row_idx in range(attr_table.GetRowCount()):
-#         name = attr_table.GetValueAsString(row_idx, name_col_idx)
-#         if name and name != 'Unclassified':
-#             classes[row_idx] = {
-#                 'name': name,
-#                 'color': _to_hex(*color_table.GetColorEntry(row_idx)),
-#             }
-
-#     return classes
-
-
-# NLCD_COLORS.update(dict(
-#     (k, v['color']) for (k, v) in
-#     get_classnames_from_raster_attr_table(NLCD_RASTER_PATH).items()))
-
-
 def make_thumbnail(pattern_wkt_epsg3857, colors_dict, target_thumbnail_path,
                    working_dir=None):
     working_dir = tempfile.mkdtemp(dir=working_dir, prefix='thumbnail-')
@@ -680,8 +610,6 @@ def make_thumbnail(pattern_wkt_epsg3857, colors_dict, target_thumbnail_path,
 
     rgb_colors = {}
     for lucode, hex_color in colors_dict.items():
-        print(lucode)
-        print(hex_color)
         rgb_colors[lucode] = [
             int(f'0x{"".join(hex_color[1:3])}', 16),
             int(f'0x{"".join(hex_color[3:5])}', 16),
@@ -689,14 +617,12 @@ def make_thumbnail(pattern_wkt_epsg3857, colors_dict, target_thumbnail_path,
         ]
 
     rgb_colors_list = []
-    print(rgb_colors)
     for i in range(0, 256):
         try:
             rgb_colors_list.extend(rgb_colors[i])
         except KeyError:
             rgb_colors_list.extend([0, 0, 0])
 
-    print(rgb_colors_list)
     image.putpalette(rgb_colors_list)
     factor = 30  # taken from the pixelsize so we can just deal in native units
     image = image.resize((image.width * factor,
@@ -794,11 +720,6 @@ def do_work(host, port, outputs_location):
                         }
                     }
                 }
-            # elif job_type == JOBTYPE_LULC_CLASSNAMES:
-            #     data = {
-            #         'result': get_classnames_from_raster_attr_table(
-            #             NLCD_RASTER_PATH)
-            #     }
             elif job_type == JOBTYPE_PATTERN_THUMBNAIL:
                 thumbnails_dir = os.path.join(
                     model_outputs_dir, 'thumbnails')
