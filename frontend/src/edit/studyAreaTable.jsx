@@ -87,7 +87,7 @@ export default function StudyAreaTable(props) {
         </td>
         <td className="parcel-address">{parcel.address}</td>
         <td>
-          <div className="parcel-block">
+          <div className="parcel-block lulc-legend">
             {plot(JSON.parse(parcel.parcel_stats.lulc_stats).base)}
           </div>
         </td>

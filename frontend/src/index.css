@@ -183,11 +183,9 @@ html, body, #root, .App {
   width: 200px;
 }
 
-/*de-saturate to match contrast adjustment in lulcLayer.js*/
 .study-area-table .parcel-block {
   display: flex;
   flex-wrap:  wrap;
-  filter: saturate(40%);
 }
 
 .study-area-table .hidden-row {
@@ -213,13 +211,17 @@ html, body, #root, .App {
   padding: 0.5rem;
   border-left-style: solid;
   border-left-width: 8px;
-  filter: saturate(40%);
 }
 
 .scenario-table .table-note {
   font-style: italic;
   font-size: 0.7rem;
   text-align: center;
+}
+
+/*de-saturate to match contrast adjustment in lulcLayer.js*/
+.lulc-legend {
+  filter: saturate(40%);
 }
 
 #invest-runner {

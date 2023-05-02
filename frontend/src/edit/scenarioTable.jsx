@@ -51,7 +51,7 @@ export default function ScenarioTable(props) {
     if (counts.reduce((x, y) => (x || 0) + (y || 0), 0)) { // skip rows of all 0s
       const cells = [];
       cells.push(
-        <td key={code} className="row-name" style={{
+        <td key={code} className="row-name lulc-legend" style={{
           borderLeftColor: landuseCodes[code].color,
         }}
         >
