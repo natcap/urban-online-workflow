@@ -40,6 +40,7 @@ import {
   labelLayer,
 } from './baseLayers';
 import {
+  hoveredFeatureStyle,
   patternSamplerBoxStyle,
   selectedFeatureStyle,
   studyAreaStyle,
@@ -131,6 +132,20 @@ const selectionLayer = new VectorTileLayer({
 });
 selectionLayer.setZIndex(3);
 
+let hoveredFeature = null;
+const hoveredLayer = new VectorTileLayer({
+  renderMode: 'vector',
+  source: parcelLayer.getSource(),
+  style: (feature) => {
+    // have to compare feature ids, not the feature objects, because tiling
+    // will split some features in to multiple objects with the same id
+    if (hoveredFeature && feature.get('fid') === hoveredFeature.get('fid')) {
+      return hoveredFeatureStyle;
+    }
+  },
+});
+hoveredLayer.setZIndex(3);
+
 const studyAreaSource = new VectorSource({});
 const studyAreaLayer = new VectorLayer({
   source: studyAreaSource,
@@ -154,6 +169,7 @@ const map = new Map({
     lulcTileLayer(BASE_LULC_URL, 'Landcover', 'base'),
     parcelLayer,
     selectionLayer,
+    hoveredLayer,
     studyAreaLayer,
     patternSamplerLayer,
     labelLayer,
@@ -271,13 +287,13 @@ export default function MapComponent(props) {
       );
       feats.forEach((feature) => {
         if (feature.get('fid') === hoveredParcel) {
-          selectedFeature = feature;
+          hoveredFeature = feature;
         }
       });
     } else {
-      selectedFeature = null;
+      hoveredFeature = null;
     }
-    selectionLayer.changed();
+    hoveredLayer.changed();
   }, [hoveredParcel]);
 
   // useEffect with no dependencies: only runs after first render

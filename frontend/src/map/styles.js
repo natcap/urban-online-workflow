@@ -2,6 +2,17 @@ import { Fill, Stroke, Style } from 'ol/style';
 
 const highlightedStrokeColor = 'rgba(3, 186, 252, 0.8)'
 
+// style for parcels while hovering over study area table
+export const hoveredFeatureStyle = new Style({
+  stroke: new Stroke({
+    color: highlightedStrokeColor,
+    width: 5,
+  }),
+  fill: new Fill({
+    color: 'rgba(250, 250, 250, 0.2)',
+  }),
+});
+
 // style for selected features in the parcel layer
 export const selectedFeatureStyle = new Style({
   stroke: new Stroke({
@@ -18,7 +29,7 @@ export const selectedFeatureStyle = new Style({
 export const studyAreaStyle = new Style({
   stroke: new Stroke({
     color: highlightedStrokeColor,
-    width: 4,
+    width: 3,
   }),
   fill: new Fill({
     color: 'rgba(0, 0, 0, 0.0)',
