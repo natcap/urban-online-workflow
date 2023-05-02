@@ -40,8 +40,9 @@ import {
   labelLayer,
 } from './baseLayers';
 import {
-  selectedFeatureStyle,
   patternSamplerBoxStyle,
+  selectedFeatureStyle,
+  studyAreaStyle,
   styleParcel,
 } from './styles';
 
@@ -133,7 +134,7 @@ selectionLayer.setZIndex(3);
 const studyAreaSource = new VectorSource({});
 const studyAreaLayer = new VectorLayer({
   source: studyAreaSource,
-  style: selectedFeatureStyle
+  style: studyAreaStyle
 });
 studyAreaLayer.set('title', 'Study Area');
 studyAreaLayer.setZIndex(3);

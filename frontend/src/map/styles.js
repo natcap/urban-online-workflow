@@ -1,9 +1,23 @@
 import { Fill, Stroke, Style } from 'ol/style';
 
+const highlightedStrokeColor = 'rgba(3, 186, 252, 0.8)'
+
 // style for selected features in the parcel layer
 export const selectedFeatureStyle = new Style({
   stroke: new Stroke({
-    color: 'rgba(51, 153, 204, 0.8)',
+    color: highlightedStrokeColor,
+    width: 3,
+    lineDash: [5, 5],
+  }),
+  fill: new Fill({
+    color: 'rgba(250, 250, 250, 0.2)',
+  }),
+});
+
+// style for parcels in study area
+export const studyAreaStyle = new Style({
+  stroke: new Stroke({
+    color: highlightedStrokeColor,
     width: 4,
   }),
   fill: new Fill({
