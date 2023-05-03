@@ -6,7 +6,7 @@ import {
 } from '@blueprintjs/core';
 
 import { removeParcel } from '../requests';
-import landuseCodes from '../landuseCodes';
+import landuseCodes from '../../../appdata/NLCD_2016.lulcdata.json';
 
 export default function StudyAreaTable(props) {
   const {
@@ -14,6 +14,7 @@ export default function StudyAreaTable(props) {
     refreshStudyArea,
     studyAreaID,
     immutableStudyArea,
+    setHoveredParcel,
   } = props;
   const [highlightedCode, setHighlightedCode] = useState(null);
   const [hiddenRowClass, setHiddenRowClass] = useState('');
@@ -72,6 +73,10 @@ export default function StudyAreaTable(props) {
       <tr
         className={hiddenRowClass}
         key={parcel.parcel_id}
+        onMouseOver={() => setHoveredParcel(parcel.parcel_id)}
+        onFocus={() => setHoveredParcel(parcel.parcel_id)}
+        onMouseOut={() => setHoveredParcel(null)}
+        onBlur={() => setHoveredParcel(null)}
       >
         <td>
           <Button
@@ -82,7 +87,7 @@ export default function StudyAreaTable(props) {
         </td>
         <td className="parcel-address">{parcel.address}</td>
         <td>
-          <div className="parcel-block">
+          <div className="parcel-block lulc-legend">
             {plot(JSON.parse(parcel.parcel_stats.lulc_stats).base)}
           </div>
         </td>

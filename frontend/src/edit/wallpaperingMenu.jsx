@@ -99,7 +99,7 @@ export default function WallpaperingMenu(props) {
         {(selectedPattern)
           ? (
             <img
-              className="thumbnail"
+              className="thumbnail lulc-legend"
               src={selectedPattern.url}
               alt={selectedPattern.label || 'no pattern selected'}
             />
@@ -162,7 +162,7 @@ function PatternCatalogDrawer(props) {
             closeDrawer();
           }}
         >
-          <img className="thumbnail" src={url} alt={label} />
+          <img className="thumbnail lulc-legend" src={url} alt={label} />
         </Button>
         <Label>
           {label}

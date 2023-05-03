@@ -9,7 +9,7 @@ import {
 } from '@blueprintjs/core';
 
 import useInterval from '../hooks/useInterval';
-import landuseCodes from '../landuseCodes';
+import landuseCodes from '../../../appdata/NLCD_2016.lulcdata.json';
 import WallpaperingMenu from './wallpaperingMenu';
 import {
   createScenario,
