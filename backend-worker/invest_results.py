@@ -2,46 +2,11 @@ import logging
 import numpy
 import os
 
-from osgeo import gdal, ogr
+from osgeo import gdal
 import pygeoprocessing
-import shapely.geometry
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
-
-
-def _aggregate_sum(raster_uri, vector_uri=None):
-    """Return a sum aggregated value."""
-
-    nodata = pygeoprocessing.get_raster_info(raster_uri)['nodata'][0]
-
-    raster_sum = 0.0
-    for _, block in pygeoprocessing.iterblocks((raster_uri, 1)):
-        # The float64 dtype in the sum is needed to reduce numerical error in
-        # the sum.  Users calculated the sum with ArcGIS zonal statistics,
-        # noticed a difference and wrote to us about it on the forum.
-        raster_sum += numpy.sum(
-            block[~utils.array_equals_nodata(
-                    block, nodata)], dtype=numpy.float64)
-
-    return raster_sum
-
-
-def _aggregate_mean(raster_uri, vector_uri=None):
-    """Return a mean aggregated value."""
-
-    nodata = pygeoprocessing.get_raster_info(raster_uri)['nodata'][0]
-
-    raster_sum = 0.0
-    for _, block in pygeoprocessing.iterblocks((raster_uri, 1)):
-        # The float64 dtype in the sum is needed to reduce numerical error in
-        # the sum.  Users calculated the sum with ArcGIS zonal statistics,
-        # noticed a difference and wrote to us about it on the forum.
-        raster_sum += numpy.sum(
-            block[~utils.array_equals_nodata(
-                    block, nodata)], dtype=numpy.float64)
-
-    return raster_sum
 
 
 def _read_field_from_vector(vector_path, key_field, value_field):
@@ -93,7 +58,8 @@ def carbon(workspace_dir):
 
     carbon_results = {}
     for output, output_path in carbon_outputs.items():
-        carbon_results[output] = _aggregate_sum(output_path)
+        carbon_results[output] = pygeoprocessing.raster_reduce(
+            lambda total, block: total + numpy.sum(block), (output_path, 1), 0)
 
     return carbon_results
 
@@ -123,21 +89,36 @@ def urban_cooling(workspace_dir):
 def urban_nature_access(workspace_dir):
     """Post processing for urban nature access model.
 
+    Get the total nature access balance and average nature access balance.
+
     Return:
-        nature_access_results (dict) : A python dictionary with keys as the
-            output name and values as the aggregated sum.
+        nature_access_results (dict) : A python dictionary with values for 
+            nature access balance in total and on average for the aggregated
+            area.
+
+            keys:
+                'ntr_bal_tot'
+                'ntr_bal_avg'
     """
-    nature_access_output_dir = os.path.join(workspace_dir, 'intermediate_outputs')
+
+    nature_access_output_dir = os.path.join(workspace_dir, 'output')
     nature_access_outputs = {
-        'c_above_cur': os.path.join(nature_access_output_dir, 'c_above_cur.tif'),
-        'c_below_cur': os.path.join(nature_access_output_dir, 'c_below_cur.tif'),
-        'c_dead_cur': os.path.join(nature_access_output_dir, 'c_dead_cur.tif'),
-        'c_soil_cur': os.path.join(nature_access_output_dir, 'c_soil_cur.tif'),
+        'ntr_bal_tot': os.path.join(
+            nature_access_output_dir, 'urban_nature_balance_totalpop.tif'),
     }
 
     nature_access_results = {}
     for output, output_path in nature_access_outputs.items():
-        nature_access_results[output] = _aggregate_sum(output_path)
+        nature_access_results[output] = pygeoprocessing.raster_reduce(
+            lambda total, block: total + numpy.sum(block), (output_path, 1), 0)
+
+    balance_vector_path = os.path.join(
+        workspace_dir, 'output', 'admin_boundaries.gpkg')
+    value_field = 'SUP_DEMadm_cap'
+    balance_dict = _read_field_from_vector(
+        balance_vector_path, 'FID', value_field)
+    # Currently only aggregating over one large bounding box, so only one entry
+    feat_key = balance_dict.keys()[0]
+    nature_access_results['ntr_bal_avg'] = balance_dict[feat_key]
 
     return nature_access_results
-    pass
