@@ -40,20 +40,18 @@ def _read_field_from_vector(vector_path, key_field, value_field):
 def carbon(workspace_dir):
     """Post processing for carbon model.
 
-    TODO:
-        - How should carbon outputs be aggregated? Per raster, under a vector?
-        - How do we display / communicate how results are aggregated?
 
     Return:
         carbon_results (dict) : A python dictionary with keys as the output
             name and values as the aggregated sum.
     """
-    carbon_output_dir = os.path.join(workspace_dir, 'intermediate_outputs')
+    #carbon_output_dir = os.path.join(workspace_dir, 'intermediate_outputs')
     carbon_outputs = {
-        'c_above_cur': os.path.join(carbon_output_dir, 'c_above_cur.tif'),
-        'c_below_cur': os.path.join(carbon_output_dir, 'c_below_cur.tif'),
-        'c_dead_cur': os.path.join(carbon_output_dir, 'c_dead_cur.tif'),
-        'c_soil_cur': os.path.join(carbon_output_dir, 'c_soil_cur.tif'),
+        'tot_c_cur': os.path.join(workspace_dir, 'tot_c_cur.tif'),
+    #    'c_above_cur': os.path.join(carbon_output_dir, 'c_above_cur.tif'),
+    #    'c_below_cur': os.path.join(carbon_output_dir, 'c_below_cur.tif'),
+    #    'c_dead_cur': os.path.join(carbon_output_dir, 'c_dead_cur.tif'),
+    #    'c_soil_cur': os.path.join(carbon_output_dir, 'c_soil_cur.tif'),
     }
 
     carbon_results = {}
