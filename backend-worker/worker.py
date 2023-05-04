@@ -25,6 +25,7 @@ from natcap.invest import urban_cooling_model
 from natcap.invest import utils
 
 import invest_args
+import invest_results
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
@@ -91,11 +92,13 @@ URBAN_COOLING = 'urban_cooling_model'
 INVEST_MODELS = {
     URBAN_COOLING: {
         "api": urban_cooling_model,
-        "build_args": invest_args.urban_cooling
+        "build_args": invest_args.urban_cooling,
+        "derive_results": invest_results.urban_cooling,
     },
     CARBON: {
         "api": carbon,
-        "build_args": invest_args.carbon
+        "build_args": invest_args.carbon,
+        "derive_results": invest_results.carbon,
     }
 }
 LARGEST_SERVICESHED = 2230  # meters https://github.com/natcap/urban-online-workflow/issues/79
@@ -829,7 +832,7 @@ def do_work(host, port, outputs_location):
 
                 model_meta = INVEST_MODELS[invest_model]
                 lulc_path = job_args['lulc_source_url']
-                
+
                 workspace_dir = os.path.join(
                     model_outputs_dir, f'{invest_model}-{scenario_id}')
 
@@ -844,10 +847,12 @@ def do_work(host, port, outputs_location):
                         lulc_path, workspace_dir)
                     LOGGER.info(f'{invest_model} model arguments: {args_dict}')
                     model_meta['api'].execute(args_dict)
+                    LOGGER.info(f'Post processing {invest_model} model')
+                    model_result_path = model_meta['derived_results'](workspace_dir)
 
                 data = {
                     'result': {
-                        'invest-result': random.randint(1, 10),
+                        'invest-result': model_result_path,
                         'model': job_args['invest_model'],
                     }
                 }

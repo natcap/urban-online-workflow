@@ -129,6 +129,7 @@ class InvestResult(Base):
 
     scenario_id = Column(Integer, ForeignKey("scenarios.scenario_id"), primary_key=True)
     job_id = Column(Integer, ForeignKey("jobs.job_id"), primary_key=True)
-    result = Column(Integer)
+    model_name = Column(String)
+    result = Column(String)
 
     scenario = relationship("Scenario", back_populates="invest_results")

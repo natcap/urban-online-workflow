@@ -1,3 +1,4 @@
+import json
 import logging
 import numpy
 import os
@@ -59,7 +60,11 @@ def carbon(workspace_dir):
         carbon_results[output] = pygeoprocessing.raster_reduce(
             lambda total, block: total + numpy.sum(block), (output_path, 1), 0)
 
-    return carbon_results
+    results_json_path = "derived_results.json"
+    with open(results_json_path, "w") as fp:
+        json.dump(carbon_results, fp)
+
+    return results_json_path
 
 
 def urban_cooling(workspace_dir):
@@ -80,8 +85,11 @@ def urban_cooling(workspace_dir):
     # Currently only aggregating over one large bounding box, so only one entry
     feat_key = avg_tmp_dict.keys()[0]
     urban_cooling_results = {value_field: avg_tmp_dict[feat_key]}
+    results_json_path = "derived_results.json"
+    with open(results_json_path, "w") as fp:
+        json.dump(urban_cooling_results, fp)
 
-    return urban_cooling_results
+    return results_json_path
 
 
 def urban_nature_access(workspace_dir):
@@ -119,4 +127,8 @@ def urban_nature_access(workspace_dir):
     feat_key = balance_dict.keys()[0]
     nature_access_results['ntr_bal_avg'] = balance_dict[feat_key]
 
-    return nature_access_results
+    results_json_path = "derived_results.json"
+    with open(results_json_path, "w") as fp:
+        json.dump(nature_access_results, fp)
+
+    return results_json_path
