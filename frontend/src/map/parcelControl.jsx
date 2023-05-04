@@ -25,6 +25,9 @@ export default function ParcelControl(props) {
 
   useInterval(async () => {
     const status = await getJobStatus(jobID);
+    // We don't care about success vs failure, either way stop requesting
+    // new study area data. Other components handle the missing data 
+    // that comes from failure.
     if (!['pending', 'running'].includes(status)) {
       setJobID(null);
       refreshStudyArea();
@@ -32,7 +35,14 @@ export default function ParcelControl(props) {
   }, (jobID) ? 200 : null); // This server operation should be quick
 
   const handleClick = async (parcel) => {
-    const jid = await addParcel(sessionID, activeStudyAreaID, parcel.parcelID, parcel.address, parcel.coords);
+    const jid = await addParcel(
+      sessionID,
+      activeStudyAreaID,
+      parcel.parcelID,
+      parcel.address,
+      parcel.coords
+    );
+    refreshStudyArea();
     setJobID(jid.job_id);
   };
 
