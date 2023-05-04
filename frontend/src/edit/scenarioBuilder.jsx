@@ -6,6 +6,7 @@ import {
   HTMLSelect,
   Radio,
   RadioGroup,
+  Spinner
 } from '@blueprintjs/core';
 
 import useInterval from '../hooks/useInterval';
@@ -127,9 +128,14 @@ export default function ScenarioBuilder(props) {
             )
         }
       </div>
-      <p className="sidebar-subheading">
-        <span>{scenarioDescription}</span>
-      </p>
+      <div id="scenario-input-label" className="sidebar-subheading">
+        {scenarioDescription}
+        {
+          (jobID)
+            ? <Spinner size="20" />
+            : <div />
+        }
+      </div>
       <InputGroup
         placeholder="name this scenario"
         value={scenarioName}
@@ -137,7 +143,7 @@ export default function ScenarioBuilder(props) {
         rightElement={(
           <Button
             onClick={submitScenario}
-            disabled={scenarioNames.includes(scenarioName) || !scenarioName}
+            disabled={scenarioNames.includes(scenarioName) || !scenarioName || jobID}
           >
             Create
           </Button>

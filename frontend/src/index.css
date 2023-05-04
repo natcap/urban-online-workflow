@@ -91,6 +91,12 @@ html, body, #root, .App {
   font-size: 1.2rem;
 }
 
+#scenario-input-label {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 0.5rem;
+}
+
 .conversion-panel {
   background-color: rgba(240, 240, 240, 1.0);
   filter: drop-shadow(1px 1px 1px grey);
