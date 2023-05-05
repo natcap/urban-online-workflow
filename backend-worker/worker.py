@@ -768,7 +768,7 @@ def do_work(host, port, outputs_location):
                     LOGGER.info(f'{invest_model} model arguments: {args_dict}')
                     model_meta['api'].execute(args_dict)
                     LOGGER.info(f'Post processing {invest_model} model')
-                    model_result_path = model_meta['derived_results'](workspace_dir)
+                    model_result_path = model_meta['derive_results'](workspace_dir)
 
                 data = {
                     'result': {

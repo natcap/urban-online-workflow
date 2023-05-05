@@ -298,7 +298,7 @@ def worker_invest_response(
             db=db, scenario_id=invest_result.server_attrs['scenario_id'],
             job_id=invest_result.server_attrs['job_id'],
             result=invest_result.result['invest-result'],
-            model_name=invest_results.result['model'])
+            model_name=invest_result.result['model'])
     else:
         # Update the job status in the DB to "failed"
         job_update = schemas.JobBase(
@@ -789,7 +789,9 @@ def get_invest_results(job_id: int, scenario_id: int, db: Session = Depends(get_
                 status_code=404, detail="InVEST result not found")
         invest_results_path = invest_db.result
         # Load json from file
-        invest_results = json.loads(invest_results_path)
+        with open(invest_results_path, 'r') as jfp:
+            invest_results = json.loads(jfp.read())
+        LOGGER.info(f"INVEST RESULT RESPONSE: {invest_results}")
         return invest_results
     else:
         return job_db.status

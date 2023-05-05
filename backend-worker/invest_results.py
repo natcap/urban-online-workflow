@@ -60,7 +60,7 @@ def carbon(workspace_dir):
         carbon_results[output] = pygeoprocessing.raster_reduce(
             lambda total, block: total + numpy.sum(block), (output_path, 1), 0)
 
-    results_json_path = "derived_results.json"
+    results_json_path = os.path.join(workspace_dir, "derived_results.json")
     with open(results_json_path, "w") as fp:
         json.dump(carbon_results, fp)
 
@@ -83,9 +83,9 @@ def urban_cooling(workspace_dir):
     value_field = 'avg_tmp_v'
     avg_tmp_dict = _read_field_from_vector(uhi_vector_path, 'FID', value_field)
     # Currently only aggregating over one large bounding box, so only one entry
-    feat_key = avg_tmp_dict.keys()[0]
+    feat_key = list(avg_tmp_dict.keys())[0]
     urban_cooling_results = {value_field: avg_tmp_dict[feat_key]}
-    results_json_path = "derived_results.json"
+    results_json_path = os.path.join(workspace_dir, "derived_results.json")
     with open(results_json_path, "w") as fp:
         json.dump(urban_cooling_results, fp)
 
@@ -127,7 +127,7 @@ def urban_nature_access(workspace_dir):
     feat_key = balance_dict.keys()[0]
     nature_access_results['ntr_bal_avg'] = balance_dict[feat_key]
 
-    results_json_path = "derived_results.json"
+    results_json_path = os.path.join(workspace_dir, "derived_results.json")
     with open(results_json_path, "w") as fp:
         json.dump(nature_access_results, fp)
 
