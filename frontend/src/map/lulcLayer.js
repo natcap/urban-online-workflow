@@ -2,7 +2,7 @@ import GeoTIFF from 'ol/source/GeoTIFF';
 import TileLayer from 'ol/layer/WebGLTile';
 import ImageLayer from 'ol/layer/Image';
 
-import landuseCodes from '../landuseCodes';
+import landuseCodes from '../../../appdata/NLCD_2016.lulcdata.json';
 import { publicUrl } from '../utils';
 
 const colors = Array(256).fill('#000000');
@@ -35,8 +35,8 @@ export function lulcTileLayer(url, title, type, sourceOptions) {
         ['*', ['band', 1], 255],
         colors,
       ],
-      saturation: -0.3,
-      contrast: -0.4,
+      saturation: -0.6,
+      contrast: 0.0,
     },
   });
 }

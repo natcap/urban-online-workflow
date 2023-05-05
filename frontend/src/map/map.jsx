@@ -10,17 +10,15 @@ import { Vector as VectorSource } from 'ol/source';
 import MVT from 'ol/format/MVT';
 import WKT from 'ol/format/WKT';
 import Feature from 'ol/Feature';
-import { 
+import {
   Point,
   LineString,
   LinearRing,
   Polygon,
   MultiPoint,
   MultiLineString,
-  MultiPolygon
+  MultiPolygon,
 } from 'ol/geom';
-import GeometryCollection from 'ol/geom/GeometryCollection';
-import { inflateCoordinatesArray } from "ol/geom/flat/inflate"
 import {
   Translate,
   defaults as defaultInteractions,
@@ -42,8 +40,10 @@ import {
   labelLayer,
 } from './baseLayers';
 import {
-  selectedFeatureStyle,
+  hoveredFeatureStyle,
   patternSamplerBoxStyle,
+  selectedFeatureStyle,
+  studyAreaStyle,
   styleParcel,
 } from './styles';
 
@@ -132,9 +132,24 @@ const selectionLayer = new VectorTileLayer({
 });
 selectionLayer.setZIndex(3);
 
+let hoveredFeature = null;
+const hoveredLayer = new VectorTileLayer({
+  renderMode: 'vector',
+  source: parcelLayer.getSource(),
+  style: (feature) => {
+    // have to compare feature ids, not the feature objects, because tiling
+    // will split some features in to multiple objects with the same id
+    if (hoveredFeature && feature.get('fid') === hoveredFeature.get('fid')) {
+      return hoveredFeatureStyle;
+    }
+  },
+});
+hoveredLayer.setZIndex(3);
+
 const studyAreaSource = new VectorSource({});
 const studyAreaLayer = new VectorLayer({
   source: studyAreaSource,
+  style: studyAreaStyle
 });
 studyAreaLayer.set('title', 'Study Area');
 studyAreaLayer.setZIndex(3);
@@ -154,6 +169,7 @@ const map = new Map({
     lulcTileLayer(BASE_LULC_URL, 'Landcover', 'base'),
     parcelLayer,
     selectionLayer,
+    hoveredLayer,
     studyAreaLayer,
     patternSamplerLayer,
     labelLayer,
@@ -174,6 +190,7 @@ export default function MapComponent(props) {
   const {
     sessionID,
     studyAreaParcels,
+    hoveredParcel,
     activeStudyAreaID,
     refreshStudyArea,
     patternSamplingMode,
@@ -262,6 +279,22 @@ export default function MapComponent(props) {
       },
     );
   };
+
+  useEffect(() => {
+    if (hoveredParcel) {
+      const feats = parcelLayer.getSource().getFeaturesInExtent(
+        map.getView().calculateExtent()
+      );
+      feats.forEach((feature) => {
+        if (feature.get('fid') === hoveredParcel) {
+          hoveredFeature = feature;
+        }
+      });
+    } else {
+      hoveredFeature = null;
+    }
+    hoveredLayer.changed();
+  }, [hoveredParcel]);
 
   // useEffect with no dependencies: only runs after first render
   useEffect(() => {

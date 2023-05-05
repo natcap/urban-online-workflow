@@ -19,6 +19,7 @@ export default function App() {
     id: undefined,
     parcels: [],
   });
+  const [hoveredParcel, setHoveredParcel] = useState(null);
   const [scenarios, setScenarios] = useState([]);
   const [patternSamplingMode, setPatternSamplingMode] = useState(false);
   const [patternSampleWKT, setPatternSampleWKT] = useState(null);
@@ -102,6 +103,7 @@ export default function App() {
             <MapComponent
               sessionID={sessionID}
               studyAreaParcels={studyArea.parcels}
+              hoveredParcel={hoveredParcel}
               activeStudyAreaID={studyArea.id}
               refreshStudyArea={refreshStudyArea}
               patternSamplingMode={patternSamplingMode}
@@ -111,6 +113,7 @@ export default function App() {
             <EditMenu
               sessionID={sessionID}
               studyArea={studyArea}
+              setHoveredParcel={setHoveredParcel}
               refreshStudyArea={refreshStudyArea}
               nameStudyArea={nameStudyArea}
               switchStudyArea={switchStudyArea}

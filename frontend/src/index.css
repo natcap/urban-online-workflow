@@ -219,6 +219,11 @@ html, body, #root, .App {
   text-align: center;
 }
 
+/*de-saturate to match saturation adjustment in lulcLayer.js*/
+.lulc-legend {
+  filter: saturate(40%);
+}
+
 #invest-runner {
   display: flex;
   flex-direction: column;
