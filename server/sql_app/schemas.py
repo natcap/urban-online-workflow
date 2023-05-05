@@ -35,6 +35,17 @@ class PatternUpdate(BaseModel):
     pattern_thumbnail_path: Union[str, None] = None
 
 
+class InvestResult(BaseModel):
+    """Pydantic model used by other Pydantic models."""
+    scenario_id: int
+    job_id: int
+    result: str = None
+    model_name: str
+
+    class Config:
+        orm_mode = True
+
+
 class ScenarioBase(BaseModel):
     """Pydantic model base for Scenarios."""
     name: str
@@ -49,7 +60,7 @@ class Scenario(ScenarioBase):
     lulc_url_base: str
     lulc_stats: Union[str, None] = None
 
-    invest_results: Union[str, None] = None
+    #invest_results: Union[InvestResult, None] = None
 
     class Config:
         orm_mode = True
@@ -210,13 +221,3 @@ class ParcelFill(BaseModel):
     class Config:
         orm_mode = True
 
-
-class InvestResult(BaseModel):
-    """Pydantic model used by other Pydantic models."""
-    scenario_id: int
-    job_id: int
-    result: dict = None
-    name: str
-
-    class Config:
-        orm_mode = True

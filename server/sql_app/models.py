@@ -80,7 +80,7 @@ class Scenario(Base):
     study_area_id = Column(String, ForeignKey("study_area.id"))
 
     study_area = relationship("StudyArea", back_populates="scenarios")
-    invest_results = relationship("InvestResult", back_populates="scenario")
+    #invest_results = relationship("InvestResult", back_populates="scenario")
 
 
 class Pattern(Base):
@@ -132,4 +132,4 @@ class InvestResult(Base):
     model_name = Column(String)
     result = Column(String)
 
-    scenario = relationship("Scenario", back_populates="invest_results")
+    #scenario = relationship("Scenario", back_populates="invest_results")
