@@ -774,27 +774,21 @@ def run_invest(scenario_id: int, db: Session = Depends(get_db)):
     return invest_job_dict
 
 
-@app.get("/invest/result/{job_id}/{scenario_id}")
-def get_invest_results(job_id: int, scenario_id: int, db: Session = Depends(get_db)):
+@app.get("/invest/result/{scenario_id}")
+def get_invest_results(scenario_id: int, db: Session = Depends(get_db)):
     """Return the invest result if the job was successful."""
-    # Check job status and return URL and Stats from table
-    LOGGER.info(f'Job ID: {job_id}')
-    job_db = crud.get_job(db, job_id=job_id)
-    if job_db is None:
-        raise HTTPException(status_code=404, detail="Job not found")
-    if job_db.status == STATUS_SUCCESS:
-        invest_db = crud.get_invest(db, job_id=job_id, scenario_id=scenario_id)
-        if invest_db is None:
-            raise HTTPException(
-                status_code=404, detail="InVEST result not found")
-        invest_results_path = invest_db.result
+    invest_db_list = crud.get_invest(db, scenario_id=scenario_id)
+    if invest_db_list is None:
+        raise HTTPException(
+            status_code=404, detail="InVEST result not found")
+    invest_results = {}
+    for row in invest_db_list:
+        invest_results_path = row.result
         # Load json from file
         with open(invest_results_path, 'r') as jfp:
-            invest_results = json.loads(jfp.read())
+            invest_results[row.model_name] = json.loads(jfp.read())
         LOGGER.info(f"INVEST RESULT RESPONSE: {invest_results}")
-        return invest_results
-    else:
-        return job_db.status
+    return invest_results
 
 
 ### Testing ideas from tutorial ###

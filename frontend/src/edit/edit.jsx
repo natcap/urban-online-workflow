@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import {
   FocusStyleManager,
@@ -12,6 +12,8 @@ import SelectStudyArea from './selectStudyArea';
 import StudyAreaTable from './studyAreaTable';
 import InputStudyAreaName from './inputStudyAreaName';
 import InvestRunner from './investRunner';
+import Results from './results';
+import { getInvestResults } from '../requests';
 
 FocusStyleManager.onlyShowFocusOnTabs();
 
@@ -32,6 +34,20 @@ export default function EditMenu(props) {
   } = props;
 
   const [activeTab, setActiveTab] = useState('create');
+  const [results, setResults] = useState({});
+
+  const setInvestResults = async () => {
+    console.log(scenarios)
+    const modelResults = await Promise.all(
+      scenarios.map(scenario => getInvestResults(scenario.scenario_id))
+    );
+    console.log(modelResults)
+    setResults(modelResults);
+  };
+
+  useEffect(() => {
+    setInvestResults();
+  }, [scenarios]);
 
   return (
     <div className="menu-container">
@@ -41,8 +57,8 @@ export default function EditMenu(props) {
         selectedTabId={activeTab}
       >
         <Tab
-          id="create"
-          title=""
+          id="scenarios"
+          title="scenarios"
           panel={(
             <div>
               {
@@ -99,7 +115,7 @@ export default function EditMenu(props) {
                       <br />
                       <InvestRunner
                         scenarios={scenarios}
-                        refreshScenarios={refreshScenarios}
+                        setInvestResults={setInvestResults}
                       />
                     </>
                   )
@@ -108,6 +124,21 @@ export default function EditMenu(props) {
             </div>
           )}
         />
+        {
+          (results)
+            ? (
+              <Tab
+                id="results"
+                title="results"
+                panel={(
+                  <Results
+                    results={results}
+                  />
+                )}
+              />
+            )
+            : <div />
+        }
       </Tabs>
     </div>
   );

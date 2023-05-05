@@ -321,3 +321,14 @@ export async function runInvest(scenarioID) {
       .catch((error) => console.log(error))
   );
 }
+
+export async function getInvestResults(scenarioID) {
+  return (
+    window.fetch(`${apiBaseURL}/invest/result/${scenarioID}`, {
+      method: 'get',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
+}

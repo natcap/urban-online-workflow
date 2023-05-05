@@ -14,7 +14,7 @@ import {
 export default function InvestRunner(props) {
   const {
     scenarios,
-    refreshScenarios,
+    setInvestResults,
   } = props;
   const [jobIDs, setJobIDs] = useState([]);
   const [progress, setProgress] = useState(0);
@@ -28,12 +28,14 @@ export default function InvestRunner(props) {
       if (['success', 'failed'].includes(status)) {
         pendingJobs.splice(idx, 1);
         setProgress((nJobs - pendingJobs.length) / nJobs);
-        if (status === 'failed') { setProgressState('warning'); }
+        if (status === 'failed') {
+          setProgressState('warning');
+        }
       }
     });
     setJobIDs(pendingJobs);
     if (!pendingJobs.length) {
-      refreshScenarios(); // assuming results are in scenario db
+      setInvestResults();
     }
   }, (jobIDs.length) ? 3000 : null);
 
