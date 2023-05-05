@@ -305,12 +305,13 @@ def get_invest(db: Session, scenario_id: int, job_id: int):
             models.InvestResult.job_id == job_id,
             models.InvestResult.scenario_id == scenario_id).first()
 
-def update_invest(db: Session, scenario_id: int, job_id: int, result: str):
+def update_invest(db: Session, scenario_id: int, job_id: int, result: str, model_name: str):
     """Update an invest result."""
     db_invest = get_invest(db, scenario_id, job_id)
     if not db_invest:
         raise HTTPException(status_code=404, detail="InvestResult not found")
     setattr(db_invest, 'result', result)
+    setattr(db_invest, 'model_name', model_name)
 
     db.add(db_invest)
     db.commit()

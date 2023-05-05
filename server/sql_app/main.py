@@ -268,8 +268,8 @@ def worker_invest_response(
             key/vals
 
             "result": {
-                result: "integer",
-                model: "invest-model-name",
+                "invest-result" (str): path to json file with results,
+                "model": (str): name of the invest model,
                 }
              "status": "success | failed",
              "server_attrs": {
@@ -297,7 +297,8 @@ def worker_invest_response(
         _ = crud.update_invest(
             db=db, scenario_id=invest_result.server_attrs['scenario_id'],
             job_id=invest_result.server_attrs['job_id'],
-            result=invest_result.result['invest-result'])
+            result=invest_result.result['invest-result'],
+            model_name=invest_result.result['model'])
     else:
         # Update the job status in the DB to "failed"
         job_update = schemas.JobBase(
@@ -670,7 +671,7 @@ def remove_parcel(delete_parcel_request: schemas.ParcelDeleteRequest,
 @app.post("/add_parcel/", response_model=schemas.JobResponse)
 def add_parcel(create_parcel_request: schemas.ParcelCreateRequest,
                db: Session = Depends(get_db)):
-    
+
     status = crud.create_parcel(
         db=db,
         parcel_wkt=create_parcel_request.wkt,
@@ -748,7 +749,7 @@ def run_invest(scenario_id: int, db: Session = Depends(get_db)):
             db=db, session_id=session_id, job=job_schema)
 
         invest_schema = schemas.InvestResult(
-            **{"scenario_id": scenario_id, "job_id": job_db.job_id})
+            **{"scenario_id": scenario_id, "job_id": job_db.job_id, "model_name": invest_model})
         invest_db = crud.create_invest_result(
             db=db, invest_result=invest_schema)
 
@@ -786,7 +787,11 @@ def get_invest_results(job_id: int, scenario_id: int, db: Session = Depends(get_
         if invest_db is None:
             raise HTTPException(
                 status_code=404, detail="InVEST result not found")
-        invest_results = invest_db.result
+        invest_results_path = invest_db.result
+        # Load json from file
+        with open(invest_results_path, 'r') as jfp:
+            invest_results = json.loads(jfp.read())
+        LOGGER.info(f"INVEST RESULT RESPONSE: {invest_results}")
         return invest_results
     else:
         return job_db.status
