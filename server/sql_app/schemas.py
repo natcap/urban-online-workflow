@@ -49,6 +49,8 @@ class Scenario(ScenarioBase):
     lulc_url_base: str
     lulc_stats: Union[str, None] = None
 
+    invest_results: Union[str, None] = None
+
     class Config:
         orm_mode = True
 
@@ -214,6 +216,7 @@ class InvestResult(BaseModel):
     scenario_id: int
     job_id: int
     result: int = None
+    name: str
 
     class Config:
         orm_mode = True
