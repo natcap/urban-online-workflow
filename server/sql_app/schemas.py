@@ -215,7 +215,7 @@ class InvestResult(BaseModel):
     """Pydantic model used by other Pydantic models."""
     scenario_id: int
     job_id: int
-    result: int = None
+    result: str = None
     name: str
 
     class Config:
