@@ -764,7 +764,7 @@ def do_work(host, port, outputs_location):
                                              name=invest_model,
                                              logging_level=logging.INFO):
                     args_dict = model_meta['build_args'](
-                        lulc_path, workspace_dir)
+                        lulc_path, workspace_dir, job_args['study_area_wkt'])
                     LOGGER.info(f'{invest_model} model arguments: {args_dict}')
                     model_meta['api'].execute(args_dict)
                     LOGGER.info(f'Post processing {invest_model} model')

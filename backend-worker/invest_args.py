@@ -47,7 +47,7 @@ def get_bioregion(point):
     return region
 
 
-def carbon(lulc_path, workspace_dir):
+def carbon(lulc_path, workspace_dir, study_area_wkt):
     args_dict = {
         "workspace_dir": workspace_dir,
         "calc_sequestration": True,
@@ -71,9 +71,10 @@ def carbon(lulc_path, workspace_dir):
     return args_dict
 
 
-def urban_cooling(lulc_path, workspace_dir):
+def urban_cooling(lulc_path, workspace_dir, study_area_wkt):
     # Parameter values from
     # https://github.com/chrisnootenboom/urban-workflow/blob/master/configs/inputs_config.yaml
+    cooling_distance = 450  # meters
     aoi_vector_path = os.path.join(workspace_dir, 'aoi.geojson')
     args_dict = {
         "workspace_dir": workspace_dir,
@@ -88,21 +89,18 @@ def urban_cooling(lulc_path, workspace_dir):
         "cc_weight_eti": "0.2",
         "cc_weight_shade": "0.6",
         "t_air_average_radius": "600",
-        "green_area_cooling_distance": "450",
+        "green_area_cooling_distance": str(cooling_distance),
         "t_ref": "35",  # TODO: derive from location
         "uhi_max": "3.56"  # TODO: derive from location
     }
 
     lulc_info = pygeoprocessing.get_raster_info(lulc_path)
-    [minx, miny, maxx, maxy] = lulc_info['bounding_box']
 
-    aoi_geom = shapely.geometry.box(minx, miny, maxx, maxy)
+    aoi_geom = shapely.wkt.loads(study_area_wkt).buffer(cooling_distance)
     pygeoprocessing.shapely_geometry_to_vector(
         [aoi_geom], aoi_vector_path, lulc_info['projection_wkt'], 'GEOJSON')
 
-    center = shapely.geometry.Point(
-        (minx + maxx) / 2, (miny + maxy) / 2)
-    bioregion = get_bioregion(center)
+    bioregion = get_bioregion(aoi_geom.centroid)
 
     args_dict['biophysical_table_path'] = os.path.join(
         INVEST_BASE_PATH,
@@ -110,4 +108,3 @@ def urban_cooling(lulc_path, workspace_dir):
         f'ucm_nlcd_{bioregion}.csv')
 
     return args_dict
-

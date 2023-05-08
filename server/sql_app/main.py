@@ -735,6 +735,7 @@ def run_invest(scenario_id: int, db: Session = Depends(get_db)):
     # Get the session_id
     study_area_id = scenario_db.study_area_id
     study_area_db = crud.get_study_area(db, study_area_id)
+    study_area_wkt = _get_study_area_geometry(study_area_db)
     session_id = study_area_db.owner_id
 
     # For each invest model create a new job and add to the queue
@@ -762,6 +763,7 @@ def run_invest(scenario_id: int, db: Session = Depends(get_db)):
             "job_args": {
                 "invest_model": invest_model,
                 "lulc_source_url": scenario_lulc,
+                "study_area_wkt": study_area_wkt,
                 "scenario_id": scenario_id
             }
         }
