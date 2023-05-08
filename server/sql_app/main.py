@@ -725,6 +725,10 @@ def add_parcel(create_parcel_request: schemas.ParcelCreateRequest,
 @app.post("/invest/{scenario_id}")
 def run_invest(scenario_id: int, db: Session = Depends(get_db)):
     """Add invest job to the queue. This runs all InVEST models."""
+    # Results may already exist; no need to re-compute
+    invest_results_db = crud.get_invest(db, scenario_id)
+    LOGGER.info(invest_results_db)
+
     LOGGER.info("Add InVEST runs to queue")
     # Get the scenario LULC for model runs
     scenario_db = crud.get_scenario(db, scenario_id=scenario_id)
@@ -742,33 +746,40 @@ def run_invest(scenario_id: int, db: Session = Depends(get_db)):
     # Also create a new invest_result entry
     invest_job_dict = {}
     for invest_model in INVEST_MODELS:
-        job_schema = schemas.JobBase(
-            **{"name": f"InVEST: {invest_model}",
-               "description": f"executing invest model {invest_model}",
-               "status": STATUS_PENDING})
-        job_db = crud.create_job(
-            db=db, session_id=session_id, job=job_schema)
+        row = [row for row in invest_results_db if row.model_name == invest_model]
+        if row and row[0].results is not None:
+            LOGGER.info(f'results already exist for {invest_model}')
+            invest_job_dict[invest_model] = row.job_id
+        else:
+            job_schema = schemas.JobBase(
+                **{"name": f"InVEST: {invest_model}",
+                   "description": f"executing invest model {invest_model}",
+                   "status": STATUS_PENDING})
+            job_db = crud.create_job(
+                db=db, session_id=session_id, job=job_schema)
 
-        invest_schema = schemas.InvestResult(
-            **{"scenario_id": scenario_id, "job_id": job_db.job_id, "model_name": invest_model})
-        invest_db = crud.create_invest_result(
-            db=db, invest_result=invest_schema)
+            invest_schema = schemas.InvestResult(
+                **{"scenario_id": scenario_id,
+                   "job_id": job_db.job_id,
+                   "model_name": invest_model})
+            invest_db = crud.create_invest_result(
+                db=db, invest_result=invest_schema)
 
-        # Construct worker job and add to the queue
-        worker_task = {
-            "job_type": JOB_TYPES["invest"],
-            "server_attrs": {
-                "job_id": job_db.job_id, "scenario_id": scenario_id,
-            },
-            "job_args": {
-                "invest_model": invest_model,
-                "lulc_source_url": scenario_lulc,
-                "study_area_wkt": study_area_wkt,
-                "scenario_id": scenario_id
+            # Construct worker job and add to the queue
+            worker_task = {
+                "job_type": JOB_TYPES["invest"],
+                "server_attrs": {
+                    "job_id": job_db.job_id, "scenario_id": scenario_id,
+                },
+                "job_args": {
+                    "invest_model": invest_model,
+                    "lulc_source_url": scenario_lulc,
+                    "study_area_wkt": study_area_wkt,
+                    "scenario_id": scenario_id
+                }
             }
-        }
 
-        QUEUE.put_nowait((MEDIUM_PRIORITY, job_db.job_id, worker_task))
+            QUEUE.put_nowait((MEDIUM_PRIORITY, job_db.job_id, worker_task))
 
         invest_job_dict[invest_model] = job_db.job_id
 
@@ -786,6 +797,7 @@ def get_invest_results(scenario_id: int, db: Session = Depends(get_db)):
     invest_results = {}
     for row in invest_db_list:
         invest_results_path = row.result
+        LOGGER.info(invest_results_path)
         # Load json from file
         with open(invest_results_path, 'r') as jfp:
             invest_results[row.model_name] = json.loads(jfp.read())
