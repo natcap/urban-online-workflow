@@ -747,9 +747,9 @@ def run_invest(scenario_id: int, db: Session = Depends(get_db)):
     invest_job_dict = {}
     for invest_model in INVEST_MODELS:
         row = [row for row in invest_results_db if row.model_name == invest_model]
-        if row and row[0].results is not None:
+        if row and row[0].result is not None:
             LOGGER.info(f'results already exist for {invest_model}')
-            invest_job_dict[invest_model] = row.job_id
+            invest_job_dict[invest_model] = row[0].job_id
         else:
             job_schema = schemas.JobBase(
                 **{"name": f"InVEST: {invest_model}",
@@ -780,8 +780,7 @@ def run_invest(scenario_id: int, db: Session = Depends(get_db)):
             }
 
             QUEUE.put_nowait((MEDIUM_PRIORITY, job_db.job_id, worker_task))
-
-        invest_job_dict[invest_model] = job_db.job_id
+            invest_job_dict[invest_model] = job_db.job_id
 
     # Return dictionary of invest model names mapped to job_ids
     return invest_job_dict
