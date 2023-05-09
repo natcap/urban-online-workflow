@@ -281,6 +281,36 @@ class Tests(unittest.TestCase):
         with self.assertRaises(ValueError):
             region = invest_args.get_bioregion(point)
 
+    def test_extract_from_census(self):
+        # University of Texas: San Antonio, selected by hand in QGIS
+        # Coordinates are in EPSG:3857 "Web Mercator"
+        point_over_san_antonio = shapely.geometry.Point(
+            -10965275.57, 3429693.30)
+        parcel = point_over_san_antonio.buffer(100)
+        aoi_vector_path = os.path.join(
+            self.workspace_dir, 'parcel_webmercator.geojson')
+        pygeoprocessing.geoprocessing.shapely_geometry_to_vector(
+            [parcel], aoi_vector_path, _WEB_MERCATOR_SRS.ExportToWkt(),
+            'GeoJSON')
+        census_dict = invest_results._extract_census_from_aoi(aoi_vector_path)
+        expected_dict = {
+            'White (Not Hispanic or Latino)': 727.0,
+            'Black': 710.0,
+            'American Indian': 14.0,
+            'Asian': 5.0,
+            'Hawaiian': 0.0,
+            'Other': 0.0,
+            'Two or more races': 59.0,
+            'Hispanic or Latino': 4130.0,
+            'Household received Food Stamps or SNAP in the past 12 months': 696.0,
+            'Household received Food Stamps or SNAP in the past 12 months | Income in the past 12 months below poverty level': 424.0,
+            'Household received Food Stamps or SNAP in the past 12 months | Income in the past 12 months at or above poverty level': 272.0,
+            'Household did not receive Food Stamps or SNAP in the past 12 months': 745.0,
+            'Household did not receive Food Stamps or SNAP in the past 12 months | Income in the past 12 months below poverty level':199.0,
+            'Household did not receive Food Stamps or SNAP in the past 12 months | Income in the past 12 months at or above poverty level': 546.0
+        }
+        self.assertEqual(census_dict, expected_dict)
+
 
 def _warp_raster_to_web_mercator(source_albers_raster_path,
                                  target_web_mercator_raster_path):

@@ -89,8 +89,9 @@ def _extract_census_from_aoi(aoi_vector_path):
     aoi_gdf = geopandas.read_file(aoi_vector_path)
     census_gdf = geopandas.read_file(CENSUS_VECTOR_PATH)
 
-    tracts_over_aoi = aoi_gdf.sjoin(census_gdf, how='right')
-    tracts = tracts_over_aoi['TRACTCE']
+    tracts_over_aoi = aoi_gdf.sjoin(census_gdf, how='left')
+    LOGGER.debug(tracts_over_aoi)
+    tracts = [int(t) for t in tracts_over_aoi['tract']]
 
     race_data = pandas.read_csv(CENSUS_RACE_PATH)
     poverty_data = pandas.read_csv(CENSUS_POVERTY_PATH)
@@ -121,7 +122,7 @@ def urban_cooling(workspace_dir):
     # Currently only aggregating over one large bounding box, so only one entry
     feat_key = list(avg_tmp_dict.keys())[0]
     urban_cooling_results = {value_field: avg_tmp_dict[feat_key]}
-    census_data = _extract_census_from_aoi(uhi_vector_path)
+    census_data = {'census': _extract_census_from_aoi(uhi_vector_path)}
     results = {**urban_cooling_results, **census_data}
     results_json_path = os.path.join(workspace_dir, "derived_results.json")
     with open(results_json_path, "w") as fp:

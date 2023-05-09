@@ -800,7 +800,7 @@ def get_invest_results(scenario_id: int, db: Session = Depends(get_db)):
         LOGGER.info(invest_results_path)
         # Load json from file
         with open(invest_results_path, 'r') as jfp:
-            invest_results[row.model_name] = json.loads(jfp.read())
+            invest_results.update(json.loads(jfp.read()))
         LOGGER.info(f"INVEST RESULT RESPONSE: {invest_results}")
     return invest_results
 

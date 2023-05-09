@@ -41,8 +41,12 @@ export default function EditMenu(props) {
     const modelResults = await Promise.all(
       scenarios.map(scenario => getInvestResults(scenario.scenario_id))
     );
-    console.log(modelResults)
-    setResults(modelResults);
+    const data = {};
+    scenarios.forEach((scenario, idx) => {
+      data[scenario.name] = modelResults[idx];
+    });
+    console.log(data);
+    setResults(data);
   };
 
   useEffect(() => {
@@ -125,7 +129,7 @@ export default function EditMenu(props) {
           )}
         />
         {
-          (results)
+          (Object.keys(results).length)
             ? (
               <Tab
                 id="results"
@@ -133,6 +137,7 @@ export default function EditMenu(props) {
                 panel={(
                   <Results
                     results={results}
+                    studyAreaName={studyArea.name}
                   />
                 )}
               />
