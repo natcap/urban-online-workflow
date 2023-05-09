@@ -20,7 +20,6 @@ export default function Results(props) {
     results,
     studyAreaName,
   } = props;
-  console.log(results)
 
   const { census } = results.baseline;
   const scenarioNames = Object.keys(results).filter(key => key !== 'baseline');
@@ -33,13 +32,19 @@ export default function Results(props) {
     });
     const temperature = parseFloat(data[name][METRICS['avg_tmp_v']]);
     const tempDirection = (temperature >= 0) ? 'increase' : 'decrease';
+    const carbon = parseFloat(data[name][METRICS['tot_c_cur']]);
+    const carbonDirection = (carbon >= 0) ? 'increase' : 'decrease';
     paragraphs.push(
       <div className="panel" key={name}>
         <p>As a result of the landuse change in scenario <b>{name}</b>,</p>
         <p>
-          maximum daytime <b>temperatures</b> during August are 
+          Maximum daytime <b>temperatures</b> during August are 
           expected to <b>{tempDirection} by {Math.abs(temperature).toFixed(2)} </b> 
           degrees F for areas within {COOLING_DISTANCE} of <b>{studyAreaName}</b>.
+        </p>
+        <br />
+        <p>
+          Carbon storage is expected to <b>{carbonDirection} by {Math.abs(carbon).toFixed(2)}</b> metric tons
         </p>
       </div>
     );
@@ -69,11 +74,9 @@ export default function Results(props) {
 
   return (
     <div>
-      {/*<pre>{JSON.stringify(results, null, 2)}</pre>*/}
       {paragraphs}
       <h2>Demographics of the impacted area</h2>
       <h3>Population by race</h3>
-      {/*<pre>{JSON.stringify(populations, null, 2)}</pre>*/}
       <HTMLTable className="bp4-html-table-condensed">
         <tbody>
           {populations.map(([group, count]) => (
@@ -86,8 +89,6 @@ export default function Results(props) {
       </HTMLTable>
       <h3 id="poverty-heading">Poverty metrics, according to the American Community Survey</h3>
       {povertyPar}
-      {/*<pre>{JSON.stringify(census.poverty, null, 2)}</pre>*/}
-      {/*<pre>{JSON.stringify(data, null, 2)}</pre>*/}
     </div>
   );
 }

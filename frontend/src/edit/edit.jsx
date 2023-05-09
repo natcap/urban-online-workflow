@@ -33,7 +33,7 @@ export default function EditMenu(props) {
     savedStudyAreas,
   } = props;
 
-  const [activeTab, setActiveTab] = useState('create');
+  const [activeTab, setActiveTab] = useState('scenarios');
   const [results, setResults] = useState({});
 
   const setInvestResults = async () => {
@@ -123,6 +123,7 @@ export default function EditMenu(props) {
                       <InvestRunner
                         scenarios={scenarios}
                         setInvestResults={setInvestResults}
+                        setActiveTab={setActiveTab}
                       />
                     </>
                   )

@@ -15,6 +15,7 @@ export default function InvestRunner(props) {
   const {
     scenarios,
     setInvestResults,
+    setActiveTab,
   } = props;
   const [jobIDs, setJobIDs] = useState([]);
   const [progress, setProgress] = useState(0);
@@ -36,6 +37,7 @@ export default function InvestRunner(props) {
     setJobIDs(pendingJobs);
     if (!pendingJobs.length) {
       setInvestResults();
+      setActiveTab('results');
     }
   }, (jobIDs.length) ? 3000 : null);
 
