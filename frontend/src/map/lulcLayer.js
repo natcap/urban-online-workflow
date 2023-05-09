@@ -35,7 +35,7 @@ export function lulcTileLayer(url, title, type, sourceOptions) {
         ['*', ['band', 1], 255],
         colors,
       ],
-      saturation: -0.6,
+      saturation: -0.5,
       contrast: 0.0,
     },
   });

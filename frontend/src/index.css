@@ -227,7 +227,7 @@ html, body, #root, .App {
 
 /*de-saturate to match saturation adjustment in lulcLayer.js*/
 .lulc-legend {
-  filter: saturate(40%);
+  filter: saturate(60%);
 }
 
 #invest-runner {
