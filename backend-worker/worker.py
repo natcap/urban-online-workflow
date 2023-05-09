@@ -294,20 +294,24 @@ class Tests(unittest.TestCase):
             'GeoJSON')
         census_dict = invest_results._extract_census_from_aoi(aoi_vector_path)
         expected_dict = {
-            'White (Not Hispanic or Latino)': 727.0,
-            'Black': 710.0,
-            'American Indian': 14.0,
-            'Asian': 5.0,
-            'Hawaiian': 0.0,
-            'Other': 0.0,
-            'Two or more races': 59.0,
-            'Hispanic or Latino': 4130.0,
-            'Household received Food Stamps or SNAP in the past 12 months': 696.0,
-            'Household received Food Stamps or SNAP in the past 12 months | Income in the past 12 months below poverty level': 424.0,
-            'Household received Food Stamps or SNAP in the past 12 months | Income in the past 12 months at or above poverty level': 272.0,
-            'Household did not receive Food Stamps or SNAP in the past 12 months': 745.0,
-            'Household did not receive Food Stamps or SNAP in the past 12 months | Income in the past 12 months below poverty level':199.0,
-            'Household did not receive Food Stamps or SNAP in the past 12 months | Income in the past 12 months at or above poverty level': 546.0
+            'race': {
+                'White (Not Hispanic or Latino)': 727.0,
+                'Black': 710.0,
+                'American Indian': 14.0,
+                'Asian': 5.0,
+                'Hawaiian': 0.0,
+                'Other': 0.0,
+                'Two or more races': 59.0,
+                'Hispanic or Latino': 4130.0
+            },
+            'poverty': {           
+                'Household received Food Stamps or SNAP in the past 12 months': 696.0,
+                'Household received Food Stamps or SNAP in the past 12 months | Income in the past 12 months below poverty level': 424.0,
+                'Household received Food Stamps or SNAP in the past 12 months | Income in the past 12 months at or above poverty level': 272.0,
+                'Household did not receive Food Stamps or SNAP in the past 12 months': 745.0,
+                'Household did not receive Food Stamps or SNAP in the past 12 months | Income in the past 12 months below poverty level':199.0,
+                'Household did not receive Food Stamps or SNAP in the past 12 months | Income in the past 12 months at or above poverty level': 546.0
+            }
         }
         self.assertEqual(census_dict, expected_dict)
 

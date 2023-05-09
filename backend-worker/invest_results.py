@@ -101,7 +101,7 @@ def _extract_census_from_aoi(aoi_vector_path):
 
     race_dict = race_in_tracts[RACE_VARS].sum().to_dict()
     poverty_dict = poverty_in_tracts[POVERTY_VARS].sum().to_dict()
-    return {**race_dict, **poverty_dict}
+    return {'race': race_dict, 'poverty': poverty_dict}
 
 
 def urban_cooling(workspace_dir):

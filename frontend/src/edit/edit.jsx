@@ -41,12 +41,15 @@ export default function EditMenu(props) {
     const modelResults = await Promise.all(
       scenarios.map(scenario => getInvestResults(scenario.scenario_id))
     );
-    const data = {};
-    scenarios.forEach((scenario, idx) => {
-      data[scenario.name] = modelResults[idx];
-    });
-    console.log(data);
-    setResults(data);
+    // Are there results yet?
+    if (modelResults.every((res) => Object.keys(res).length > 0)) {
+      const data = {};
+      scenarios.forEach((scenario, idx) => {
+        data[scenario.name] = modelResults[idx];
+      });
+      console.log(data);
+      setResults(data);
+    }
   };
 
   useEffect(() => {

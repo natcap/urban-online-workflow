@@ -97,7 +97,7 @@ html, body, #root, .App {
   padding-bottom: 0.5rem;
 }
 
-.conversion-panel {
+.panel {
   background-color: rgba(240, 240, 240, 1.0);
   filter: drop-shadow(1px 1px 1px grey);
   padding: 0.5rem;
@@ -233,4 +233,12 @@ html, body, #root, .App {
 #invest-runner {
   display: flex;
   flex-direction: column;
+}
+
+.hanging-indent {
+  margin-left: 2rem;
+}
+
+#poverty-heading {
+  text-deocoration: underline;
 }

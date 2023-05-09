@@ -105,7 +105,7 @@ export default function ScenarioBuilder(props) {
         <Radio key="wallpaper" value="wallpaper" label="wallpaper" />
         <Radio key="paint" value="paint" label="paint" />
       </RadioGroup>
-      <div className="conversion-panel">
+      <div className="panel">
         {
           (conversionOption === 'paint')
             ? (
