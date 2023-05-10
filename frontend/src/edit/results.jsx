@@ -5,6 +5,8 @@ import {
   HTMLTable,
 } from '@blueprintjs/core';
 
+import landuseCodes from '../../../appdata/NLCD_2016.lulcdata.json';
+
 const METRICS = {
   'avg_tmp_v': 'change in temperature',
   'tot_c_cur': 'change in carbon stored',
@@ -19,13 +21,17 @@ export default function Results(props) {
   const {
     results,
     studyAreaName,
+    scenarioDescriptions,
   } = props;
+  // console.log(scenarioDescriptions);
 
   const [scenarioName, setScenarioName] = useState(null);
   const [temperature, setTemperature] = useState(null);
   const [carbon, setCarbon] = useState(null);
   const [table, setTable] = useState(null);
   const [scenarioNames, setScenarioNames] = useState([]);
+  const [fromLULC, setFromLULC] = useState([]);
+  const [toLULC, setToLULC] = useState([]);
 
   useEffect(() => {
     const data = {};
@@ -36,6 +42,10 @@ export default function Results(props) {
         data[name][label] = results[name][metric] - results['baseline'][metric];
       });
     });
+    const from = scenarioDescriptions['baseline'].map((code) => {
+      return landuseCodes[code].name
+    });
+    setFromLULC(from);
     setTable(data);
     setScenarioNames(names);
     setScenarioName(names[0]);
@@ -45,8 +55,21 @@ export default function Results(props) {
     if (scenarioName) {
       setTemperature(parseFloat(table[scenarioName][METRICS['avg_tmp_v']]));
       setCarbon(parseFloat(table[scenarioName][METRICS['tot_c_cur']]));
+      const to = scenarioDescriptions[scenarioName].map((code) => {
+        return landuseCodes[code].name
+      });
+      setToLULC(to);
     }
   }, [scenarioName]);
+
+  const landcoverDescription = (
+    <p>
+      {(fromLULC.length > 1) ? 'mostly,' : ','}
+      <p className="hanging-indent"><em>{fromLULC.join(', ')}</em></p>
+      to {(toLULC.length > 1) ? 'mostly,' : ','}
+      <p className="hanging-indent"><em>{toLULC.join(', ')}</em></p>
+    </p>
+  );
 
   const tempDirection = (temperature >= 0) ? 'increase' : 'decrease';
   const carbonDirection = (carbon >= 0) ? 'increase' : 'decrease';
@@ -89,6 +112,21 @@ export default function Results(props) {
 
   return (
     <div id="results">
+      <div className="panel" key={scenarioName}>
+        <p>
+          In scenario,
+          <HTMLSelect
+            onChange={(event) => setScenarioName(event.currentTarget.value)}
+            value={scenarioName}
+          >
+            {scenarioNames
+              .map((name) => <option key={name} value={name}>{name}</option>)}
+          </HTMLSelect>
+          <span style={{ 'padding-left': '2rem' }}>landcover changed from</span>
+        </p>
+        {landcoverDescription}
+        {paragraphs}
+      </div>
       {
         (scenarioNames.length > 1)
           ? (
@@ -110,19 +148,6 @@ export default function Results(props) {
             </HTMLTable>
           ) : <div />
       }
-      <div className="panel" key={scenarioName}>
-        <p>
-          As a result of the landuse change in scenario,
-          <HTMLSelect
-            onChange={(event) => setScenarioName(event.currentTarget.value)}
-            value={scenarioName}
-          >
-            {scenarioNames
-              .map((name) => <option key={name} value={name}>{name}</option>)}
-          </HTMLSelect>
-        </p>
-        {paragraphs}
-      </div>
       <h2>Demographics of the impacted area:</h2>
       <h3>Population by race</h3>
       <HTMLTable className="bp4-html-table-condensed">

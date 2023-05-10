@@ -35,6 +35,7 @@ export default function EditMenu(props) {
 
   const [activeTab, setActiveTab] = useState('scenarios');
   const [results, setResults] = useState({});
+  const [scenarioDescriptions, setScenarioDescriptions] = useState({});
 
   const setInvestResults = async () => {
     console.log(scenarios)
@@ -47,13 +48,32 @@ export default function EditMenu(props) {
       scenarios.forEach((scenario, idx) => {
         data[scenario.name] = modelResults[idx];
       });
-      console.log(data);
       setResults(data);
     }
   };
 
   useEffect(() => {
     setInvestResults();
+    const descriptions = {};
+    scenarios.forEach((scenario) => {
+      console.log(JSON.parse(scenario.lulc_stats))
+      const sorted = Object.entries(JSON.parse(scenario.lulc_stats))
+        .sort(([, a], [, b]) => b - a);
+      const sortedClasses = sorted.map((x) => x[0]);
+      const sortedValues = sorted.map((x) => x[1]);
+      console.log(sortedValues)
+      const total = sortedValues.reduce((partial, a) => partial + a, 0);
+      let x = 0;
+      let i = 0;
+      while (x < total / 2) {
+        x += sortedValues[i];
+        i++;
+      }
+      const topClasses = sortedClasses.slice(0, i);
+      console.log(topClasses)
+      descriptions[scenario.name] = topClasses;
+    });
+    setScenarioDescriptions(descriptions);
   }, [scenarios]);
 
   return (
@@ -142,6 +162,7 @@ export default function EditMenu(props) {
                   <Results
                     results={results}
                     studyAreaName={studyArea.name}
+                    scenarioDescriptions={scenarioDescriptions}
                   />
                 )}
               />
