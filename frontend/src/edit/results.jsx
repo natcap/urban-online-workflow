@@ -63,12 +63,16 @@ export default function Results(props) {
   }, [scenarioName]);
 
   const landcoverDescription = (
-    <p>
-      {(fromLULC.length > 1) ? 'mostly,' : ','}
-      <p className="hanging-indent"><em>{fromLULC.join(', ')}</em></p>
-      to {(toLULC.length > 1) ? 'mostly,' : ','}
-      <p className="hanging-indent"><em>{toLULC.join(', ')}</em></p>
-    </p>
+    <>
+      <p>
+        {(fromLULC.length > 1) ? 'mostly ' : ''}
+        <em>{fromLULC.join(', ')}</em>
+      </p>
+      <p>
+        to {(toLULC.length > 1) ? 'mostly ' : ''}
+        <em>{toLULC.join(', ')}</em>
+      </p>
+    </>
   );
 
   const tempDirection = (temperature >= 0) ? 'increase' : 'decrease';
@@ -114,6 +118,7 @@ export default function Results(props) {
     <div id="results">
       <div className="panel" key={scenarioName}>
         <p>
+          <h4>
           In scenario,
           <HTMLSelect
             onChange={(event) => setScenarioName(event.currentTarget.value)}
@@ -123,6 +128,7 @@ export default function Results(props) {
               .map((name) => <option key={name} value={name}>{name}</option>)}
           </HTMLSelect>
           <span style={{ 'padding-left': '2rem' }}>landcover changed from</span>
+          </h4>
         </p>
         {landcoverDescription}
         {paragraphs}
