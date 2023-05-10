@@ -240,5 +240,13 @@ html, body, #root, .App {
 }
 
 #poverty-heading {
-  text-deocoration: underline;
+  text-decoration: underline;
+}
+
+#results .panel {
+  margin-bottom: 1rem;
+}
+
+#results .panel select {
+  margin-left: 1rem;
 }

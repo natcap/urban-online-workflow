@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import {
-  Button,
+  HTMLSelect,
   HTMLTable,
 } from '@blueprintjs/core';
 
 const METRICS = {
-  'avg_tmp_v': 'change in average temperature',
+  'avg_tmp_v': 'change in temperature',
   'tot_c_cur': 'change in carbon stored',
 };
 const COOLING_DISTANCE = '450 meters';
@@ -21,37 +21,52 @@ export default function Results(props) {
     studyAreaName,
   } = props;
 
-  const { census } = results.baseline;
-  const scenarioNames = Object.keys(results).filter(key => key !== 'baseline');
-  const data = {};
-  const paragraphs = [];
-  scenarioNames.forEach((name) => {
-    data[name] = {};
-    Object.entries(METRICS).forEach(([metric, label]) => {
-      data[name][label] = results[name][metric] - results['baseline'][metric];
-    });
-    const temperature = parseFloat(data[name][METRICS['avg_tmp_v']]);
-    const tempDirection = (temperature >= 0) ? 'increase' : 'decrease';
-    const carbon = parseFloat(data[name][METRICS['tot_c_cur']]);
-    const carbonDirection = (carbon >= 0) ? 'increase' : 'decrease';
-    paragraphs.push(
-      <div className="panel" key={name}>
-        <p>As a result of the landuse change in scenario <b>{name}</b>,</p>
-        <p>
-          Maximum daytime <b>temperatures</b> during August are 
-          expected to <b>{tempDirection} by {Math.abs(temperature).toFixed(2)} </b> 
-          degrees F for areas within {COOLING_DISTANCE} of <b>{studyAreaName}</b>.
-        </p>
-        <br />
-        <p>
-          Carbon storage is expected to <b>{carbonDirection} by {Math.abs(carbon).toFixed(2)}</b> metric tons
-        </p>
-      </div>
-    );
-  });
+  const [scenarioName, setScenarioName] = useState(null);
+  const [temperature, setTemperature] = useState(null);
+  const [carbon, setCarbon] = useState(null);
+  const [table, setTable] = useState(null);
+  const [scenarioNames, setScenarioNames] = useState([]);
 
+  useEffect(() => {
+    const data = {};
+    const names = Object.keys(results).filter((key) => key !== 'baseline');
+    names.forEach((name) => {
+      data[name] = {};
+      Object.entries(METRICS).forEach(([metric, label]) => {
+        data[name][label] = results[name][metric] - results['baseline'][metric];
+      });
+    });
+    setTable(data);
+    setScenarioNames(names);
+    setScenarioName(names[0]);
+  }, []);
+
+  useEffect(() => {
+    if (scenarioName) {
+      setTemperature(parseFloat(table[scenarioName][METRICS['avg_tmp_v']]));
+      setCarbon(parseFloat(table[scenarioName][METRICS['tot_c_cur']]));
+    }
+  }, [scenarioName]);
+
+  const tempDirection = (temperature >= 0) ? 'increase' : 'decrease';
+  const carbonDirection = (carbon >= 0) ? 'increase' : 'decrease';
+  const paragraphs = (
+    <>
+      <p>
+        The average daytime high <b>temperature</b> during August is 
+        expected to <b>{tempDirection} by {Math.abs(temperature).toFixed(2)} </b> 
+        degrees F for areas within {COOLING_DISTANCE} of <b>{studyAreaName}</b>.
+      </p>
+      <br />
+      <p>
+        Carbon storage is expected to <b>{carbonDirection} by {Math.abs(carbon).toFixed(2)}</b> metric tons
+      </p>
+    </>
+  );
+
+  const { census } = results.baseline;
   const populations = Object.entries(census.race)
-    .sort(([,a], [,b]) => b - a);
+    .sort(([, a], [, b]) => b - a);
 
   const povertyPar = (
     <div>
@@ -73,9 +88,42 @@ export default function Results(props) {
   );
 
   return (
-    <div>
-      {paragraphs}
-      <h2>Demographics of the impacted area</h2>
+    <div id="results">
+      {
+        (scenarioNames.length > 1)
+          ? (
+            <HTMLTable>
+              <tbody>
+                <tr>
+                  <th key="blank" />
+                  {scenarioNames.map((name) => <th key={name}>{name}</th>)}
+                </tr>
+                {Object.values(METRICS).map((label) => (
+                  <tr key={label}>
+                    <th key="label">{label}</th>
+                    {scenarioNames.map((name) => (
+                      <td key={name}>{table[name][label].toFixed(2)}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </HTMLTable>
+          ) : <div />
+      }
+      <div className="panel" key={scenarioName}>
+        <p>
+          As a result of the landuse change in scenario,
+          <HTMLSelect
+            onChange={(event) => setScenarioName(event.currentTarget.value)}
+            value={scenarioName}
+          >
+            {scenarioNames
+              .map((name) => <option key={name} value={name}>{name}</option>)}
+          </HTMLSelect>
+        </p>
+        {paragraphs}
+      </div>
+      <h2>Demographics of the impacted area:</h2>
       <h3>Population by race</h3>
       <HTMLTable className="bp4-html-table-condensed">
         <tbody>
