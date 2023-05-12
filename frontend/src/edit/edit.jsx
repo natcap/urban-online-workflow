@@ -38,7 +38,6 @@ export default function EditMenu(props) {
   const [scenarioDescriptions, setScenarioDescriptions] = useState({});
 
   const setInvestResults = async () => {
-    console.log(scenarios)
     const modelResults = await Promise.all(
       scenarios.map(scenario => getInvestResults(scenario.scenario_id))
     );
@@ -56,12 +55,10 @@ export default function EditMenu(props) {
     setInvestResults();
     const descriptions = {};
     scenarios.forEach((scenario) => {
-      console.log(JSON.parse(scenario.lulc_stats))
       const sorted = Object.entries(JSON.parse(scenario.lulc_stats))
         .sort(([, a], [, b]) => b - a);
       const sortedClasses = sorted.map((x) => x[0]);
       const sortedValues = sorted.map((x) => x[1]);
-      console.log(sortedValues)
       const total = sortedValues.reduce((partial, a) => partial + a, 0);
       let x = 0;
       let i = 0;
@@ -70,7 +67,6 @@ export default function EditMenu(props) {
         i++;
       }
       const topClasses = sortedClasses.slice(0, i);
-      console.log(topClasses)
       descriptions[scenario.name] = topClasses;
     });
     setScenarioDescriptions(descriptions);

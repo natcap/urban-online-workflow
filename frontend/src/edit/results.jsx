@@ -23,7 +23,6 @@ export default function Results(props) {
     studyAreaName,
     scenarioDescriptions,
   } = props;
-  // console.log(scenarioDescriptions);
 
   const [scenarioName, setScenarioName] = useState(null);
   const [temperature, setTemperature] = useState(null);
@@ -49,7 +48,7 @@ export default function Results(props) {
     setTable(data);
     setScenarioNames(names);
     setScenarioName(names[0]);
-  }, []);
+  }, [results]);
 
   useEffect(() => {
     if (scenarioName) {
@@ -64,12 +63,12 @@ export default function Results(props) {
 
   const landcoverDescription = (
     <>
-      <p>
-        {(fromLULC.length > 1) ? 'mostly ' : ''}
+      <p className="hanging-indent">
+        <b>from: </b>{(fromLULC.length > 1) ? 'mostly ' : ''}
         <em>{fromLULC.join(', ')}</em>
       </p>
-      <p>
-        to {(toLULC.length > 1) ? 'mostly ' : ''}
+      <p className="hanging-indent">
+        <b>to: </b>{(toLULC.length > 1) ? 'mostly ' : ''}
         <em>{toLULC.join(', ')}</em>
       </p>
     </>
@@ -78,17 +77,17 @@ export default function Results(props) {
   const tempDirection = (temperature >= 0) ? 'increase' : 'decrease';
   const carbonDirection = (carbon >= 0) ? 'increase' : 'decrease';
   const paragraphs = (
-    <>
-      <p>
+    <ul>
+      <li>
         The average daytime high <b>temperature</b> during August is 
         expected to <b>{tempDirection} by {Math.abs(temperature).toFixed(2)} </b> 
         degrees F for areas within {COOLING_DISTANCE} of <b>{studyAreaName}</b>.
-      </p>
+      </li>
       <br />
-      <p>
+      <li>
         Carbon storage is expected to <b>{carbonDirection} by {Math.abs(carbon).toFixed(2)}</b> metric tons
-      </p>
-    </>
+      </li>
+    </ul>
   );
 
   const { census } = results.baseline;
@@ -119,18 +118,19 @@ export default function Results(props) {
       <div className="panel" key={scenarioName}>
         <p>
           <h4>
-          In scenario,
-          <HTMLSelect
-            onChange={(event) => setScenarioName(event.currentTarget.value)}
-            value={scenarioName}
-          >
-            {scenarioNames
-              .map((name) => <option key={name} value={name}>{name}</option>)}
-          </HTMLSelect>
-          <span style={{ 'padding-left': '2rem' }}>landcover changed from</span>
+            In scenario,
+            <HTMLSelect
+              onChange={(event) => setScenarioName(event.currentTarget.value)}
+              value={scenarioName}
+            >
+              {scenarioNames
+                .map((name) => <option key={name} value={name}>{name}</option>)}
+            </HTMLSelect>
+            <span style={{ 'padding-left': '2rem' }}>landcover changed,</span>
           </h4>
         </p>
         {landcoverDescription}
+        <hr />
         {paragraphs}
       </div>
       {
