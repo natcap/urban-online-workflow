@@ -32,6 +32,7 @@ import OverlayOp from 'jsts/org/locationtech/jts/operation/overlay/OverlayOp';
 import { Button, Icon } from '@blueprintjs/core';
 
 import ParcelControl from './parcelControl';
+import LegendControl from './legendControl';
 import { lulcTileLayer } from './lulcLayer';
 import LayerPanel from './LayerPanel';
 import {
@@ -46,6 +47,7 @@ import {
   studyAreaStyle,
   styleParcel,
 } from './styles';
+
 
 const BASE_LULC_URL = 'https://storage.googleapis.com/natcap-urban-online-datasets-public/NLCD_2016_epsg3857.tif'
 const GEOTIFF_SOURCE_OPTIONS = {
@@ -200,6 +202,7 @@ export default function MapComponent(props) {
   const [layers, setLayers] = useState([]);
   const [showLayerControl, setShowLayerControl] = useState(false);
   const [selectedParcel, setSelectedParcel] = useState(null);
+  const [hoveredCode, setHoveredCode] = useState(null);
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
 
@@ -315,8 +318,8 @@ export default function MapComponent(props) {
     );
 
     map.on(['click'], async (event) => {
-      // NOTE that a feature's geometry can change with the tile/zoom level and view position
-      // and so its coordinates will change slightly.
+      // NOTE that a feature's geometry can change with the tile/zoom level and
+      // view position and so its coordinates will change slightly.
       parcelLayer.getFeatures(event.pixel).then(async (features) => {
         const geoms = [];
         const feature = features.length ? features[0] : undefined;
@@ -345,6 +348,36 @@ export default function MapComponent(props) {
           });
         }
       });
+    });
+
+    map.on(['pointermove'], async (event) => {
+      // Get the value at hover / pointer location location from lulc layer
+      let baseData = null;
+      let scenarioData = null;
+
+      map.getAllLayers().forEach((layer) => {
+        // Need to check base Landcover vs Scenario layers since scenario
+        // layers will be in front of base Landcover
+        if (layer.get('title') === 'Landcover' && layer.get('type') === 'base') {
+          if (layer.getVisible()) {
+            baseData = layer.getData(event.pixel);
+          }
+        } else if (layer.get('type') === 'scenario') {
+          if (layer.getVisible()) {
+            scenarioData = layer.getData(event.pixel);
+          }
+        }
+      });
+      if (scenarioData) {
+        // Get here if a Scenario LULC is visible
+        setHoveredCode(scenarioData[0].toString());
+      } else if (baseData) {
+        // Base LULC visible but no Scenario LULC visible
+        setHoveredCode(baseData[0].toString());
+      } else {
+        // No scenario LULC or base LULC selected / visible
+        setHoveredCode(null);
+      }
     });
 
     // Some layers have style dependent on zoom level
@@ -444,6 +477,9 @@ export default function MapComponent(props) {
         clearSelection={clearSelection}
         refreshStudyArea={refreshStudyArea}
         immutableStudyArea={Boolean(scenarios.length)}
+      />
+      <LegendControl
+        lulcCode={hoveredCode}
       />
     </div>
   );

@@ -76,6 +76,21 @@ html, body, #root, .App {
   font-weight: 600;
 }
 
+.map-lulc-legend {
+  background-color: rgba(255,255,255,0.9);
+  display: flex;
+  /*height: 1rem;/*
+  /*padding-bottom: 2rem;*/
+  width: 250px;
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  border-radius: 5px;
+  padding: 0.5rem;
+  font-weight: 600;
+  align-items: center;
+}
+
 /*.edit-wallpaper {
   display: flex;
   align-items: baseline;
