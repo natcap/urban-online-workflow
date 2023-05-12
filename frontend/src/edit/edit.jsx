@@ -31,6 +31,7 @@ export default function EditMenu(props) {
     setHoveredParcel,
     switchStudyArea,
     savedStudyAreas,
+    setSelectedScenario,
   } = props;
 
   const [activeTab, setActiveTab] = useState('scenarios');
@@ -159,6 +160,7 @@ export default function EditMenu(props) {
                     results={results}
                     studyAreaName={studyArea.name}
                     scenarioDescriptions={scenarioDescriptions}
+                    setSelectedScenario={setSelectedScenario}
                   />
                 )}
               />

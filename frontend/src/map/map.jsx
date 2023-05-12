@@ -196,6 +196,7 @@ export default function MapComponent(props) {
     patternSamplingMode,
     setPatternSampleWKT,
     scenarios,
+    selectedScenario,
   } = props;
   const [layers, setLayers] = useState([]);
   const [showLayerControl, setShowLayerControl] = useState(false);
@@ -279,6 +280,10 @@ export default function MapComponent(props) {
       },
     );
   };
+
+  useEffect(() => {
+    if (selectedScenario) { switchScenario(selectedScenario); }
+  }, [selectedScenario]);
 
   useEffect(() => {
     if (hoveredParcel) {
@@ -435,6 +440,7 @@ export default function MapComponent(props) {
           setVisibility={setVisibility}
           switchBasemap={switchBasemap}
           switchScenario={switchScenario}
+          selectedScenario={selectedScenario}
         />
       </div>
       <ParcelControl

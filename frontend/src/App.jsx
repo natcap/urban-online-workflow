@@ -23,6 +23,7 @@ export default function App() {
   const [scenarios, setScenarios] = useState([]);
   const [patternSamplingMode, setPatternSamplingMode] = useState(false);
   const [patternSampleWKT, setPatternSampleWKT] = useState(null);
+  const [selectedScenario, setSelectedScenario] = useState(null);
 
   const switchStudyArea = async (id) => {
     let area;
@@ -109,6 +110,7 @@ export default function App() {
               patternSamplingMode={patternSamplingMode}
               setPatternSampleWKT={setPatternSampleWKT}
               scenarios={scenarios}
+              selectedScenario={selectedScenario}
             />
             <EditMenu
               sessionID={sessionID}
@@ -123,6 +125,7 @@ export default function App() {
               patternSamplingMode={patternSamplingMode}
               togglePatternSamplingMode={togglePatternSamplingMode}
               patternSampleWKT={patternSampleWKT}
+              setSelectedScenario={setSelectedScenario}
             />
           </div>
         </div>

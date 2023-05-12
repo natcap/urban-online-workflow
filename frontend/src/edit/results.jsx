@@ -22,6 +22,7 @@ export default function Results(props) {
     results,
     studyAreaName,
     scenarioDescriptions,
+    setSelectedScenario,
   } = props;
 
   const [scenarioName, setScenarioName] = useState(null);
@@ -31,6 +32,11 @@ export default function Results(props) {
   const [scenarioNames, setScenarioNames] = useState([]);
   const [fromLULC, setFromLULC] = useState([]);
   const [toLULC, setToLULC] = useState([]);
+
+  const changeScenario = (name) => {
+    setScenarioName(name);
+    setSelectedScenario(name);
+  };
 
   useEffect(() => {
     const data = {};
@@ -47,7 +53,7 @@ export default function Results(props) {
     setFromLULC(from);
     setTable(data);
     setScenarioNames(names);
-    setScenarioName(names[0]);
+    setScenarioName(names.slice(-1)[0]);
   }, [results]);
 
   useEffect(() => {
@@ -120,7 +126,7 @@ export default function Results(props) {
           <h4>
             In scenario,
             <HTMLSelect
-              onChange={(event) => setScenarioName(event.currentTarget.value)}
+              onChange={(event) => changeScenario(event.currentTarget.value)}
               value={scenarioName}
             >
               {scenarioNames
