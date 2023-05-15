@@ -12,11 +12,13 @@ import landuseCodes from '../../../appdata/NLCD_2016.lulcdata.json';
 const METRICS = {
   avg_tmp_v: {
     label: 'change in temperature',
-    units: 'degrees F',
+    units: `${'\u00b0'}F`,
+    precision: 2,
   },
   tot_c_cur: {
     label: 'change in carbon stored',
     units: 'metric tons',
+    precision: 0,
   },
 };
 const COOLING_DISTANCE = '450 meters';
@@ -52,7 +54,11 @@ export default function Results(props) {
     names.forEach((name) => {
       data[name] = {};
       Object.entries(METRICS).forEach(([metric, obj]) => {
-        data[name][obj.label] = results[name][metric] - results['baseline'][metric];
+        data[name][obj.label] = {
+          value: results[name][metric] - results['baseline'][metric],
+          units: obj.units,
+          precision: obj.precision,
+        };
       });
     });
     const from = scenarioDescriptions['baseline'].map((code) => {
@@ -66,8 +72,8 @@ export default function Results(props) {
 
   useEffect(() => {
     if (scenarioName) {
-      setTemperature(parseFloat(table[scenarioName][METRICS['avg_tmp_v'].label]));
-      setCarbon(parseFloat(table[scenarioName][METRICS['tot_c_cur'].label]));
+      setTemperature(parseFloat(table[scenarioName][METRICS['avg_tmp_v'].label].value));
+      setCarbon(parseFloat(table[scenarioName][METRICS['tot_c_cur'].label].value));
       const to = scenarioDescriptions[scenarioName].map((code) => {
         return landuseCodes[code].name
       });
@@ -94,12 +100,12 @@ export default function Results(props) {
     <ul>
       <li>
         The average daytime high <b>temperature</b> during August is 
-        expected to <b>{tempDirection} by {Math.abs(temperature).toFixed(2)} </b> 
-        degrees F for areas within {COOLING_DISTANCE} of <b>{studyAreaName}</b>.
+        expected to <b>{tempDirection} by {Math.abs(temperature).toFixed(2)} </b>
+        &deg;F for areas within {COOLING_DISTANCE} of <b>{studyAreaName}</b>.
       </li>
       <br />
       <li>
-        Carbon storage is expected to <b>{carbonDirection} by {Math.abs(carbon).toFixed(2)}</b> metric tons
+        Carbon storage is expected to <b>{carbonDirection} by {Math.abs(carbon).toFixed(0)}</b> metric tons
       </li>
     </ul>
   );
@@ -152,23 +158,24 @@ export default function Results(props) {
         (scenarioNames.length > 1)
           ? (
             <div>
-            <p style={{ 'margin-bottom': '0.3rem' }}>
+            <p>
               Each scenario's impact relative to baseline conditions:
             </p>
             <HTMLTable>
               <tbody>
-                <tr>
+                <tr key="header">
                   <th key="blank" />
                   {Object.values(METRICS).map((obj) => (
-                    <th key={obj.label}>{obj.label}<br /><sub><em>{obj.units}</em></sub></th>
+                    <th key={obj.label}>{obj.label}</th>
                   ))}
                 </tr>
                 {scenarioNames.map((name) => (
-                  <tr>
+                  <tr key={name}>
                     <th>{name}</th>
-                    {Object.values(table[name]).map((val) => (
-                      <td className="table-value" key={name}>
-                        {(val > 0) ? `+${val.toFixed(2)}` : val.toFixed(2)}
+                    {Object.values(table[name]).map((obj) => (
+                      <td className="table-value" key={obj.units}>
+                        {(obj.value > 0) ? `+${obj.value.toFixed(obj.precision)}` : obj.value.toFixed(obj.precision)}
+                        <span className="units">{obj.units}</span>
                       </td>
                     ))}
                   </tr>

@@ -266,14 +266,9 @@ html, body, #root, .App {
   margin-left: 1rem;
 }
 
-#results .table-value {
-/*  font-size: 1.2rem;*/
-}
-
 #results th, td {
   vertical-align: bottom;
   padding-right: 3rem;
-/*  margin-right: 4rem;*/
 }
 
 #results table {
@@ -282,6 +277,12 @@ html, body, #root, .App {
 
 #results tr {
   border-bottom: 1px solid lightgray;
+}
+
+.units {
+/*  font-size: 0.8em;*/
+  color: gray;
+  padding-left: 0.5em;
 }
 
 #demographics-header {
