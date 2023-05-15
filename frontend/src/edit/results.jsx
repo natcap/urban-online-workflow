@@ -8,8 +8,14 @@ import {
 import landuseCodes from '../../../appdata/NLCD_2016.lulcdata.json';
 
 const METRICS = {
-  'avg_tmp_v': 'change in temperature',
-  'tot_c_cur': 'change in carbon stored',
+  avg_tmp_v: {
+    label: 'change in temperature',
+    units: 'degrees F',
+  },
+  tot_c_cur: {
+    label: 'change in carbon stored',
+    units: 'metric tons',
+  },
 };
 const COOLING_DISTANCE = '450 meters';
 const HOUSE_SNAP = 'Household received Food Stamps or SNAP in the past 12 months';
@@ -43,8 +49,8 @@ export default function Results(props) {
     const names = Object.keys(results).filter((key) => key !== 'baseline');
     names.forEach((name) => {
       data[name] = {};
-      Object.entries(METRICS).forEach(([metric, label]) => {
-        data[name][label] = results[name][metric] - results['baseline'][metric];
+      Object.entries(METRICS).forEach(([metric, obj]) => {
+        data[name][obj.label] = results[name][metric] - results['baseline'][metric];
       });
     });
     const from = scenarioDescriptions['baseline'].map((code) => {
@@ -58,8 +64,8 @@ export default function Results(props) {
 
   useEffect(() => {
     if (scenarioName) {
-      setTemperature(parseFloat(table[scenarioName][METRICS['avg_tmp_v']]));
-      setCarbon(parseFloat(table[scenarioName][METRICS['tot_c_cur']]));
+      setTemperature(parseFloat(table[scenarioName][METRICS['avg_tmp_v'].label]));
+      setCarbon(parseFloat(table[scenarioName][METRICS['tot_c_cur'].label]));
       const to = scenarioDescriptions[scenarioName].map((code) => {
         return landuseCodes[code].name
       });
@@ -142,22 +148,33 @@ export default function Results(props) {
       {
         (scenarioNames.length > 1)
           ? (
+            <div>
+            <p style={{ 'margin-bottom': '0.3rem' }}>
+              Each scenario's impact relative to baseline conditions:
+            </p>
             <HTMLTable>
               <tbody>
                 <tr>
                   <th key="blank" />
                   {scenarioNames.map((name) => <th key={name}>{name}</th>)}
                 </tr>
-                {Object.values(METRICS).map((label) => (
-                  <tr key={label}>
-                    <th key="label">{label}</th>
-                    {scenarioNames.map((name) => (
-                      <td key={name}>{table[name][label].toFixed(2)}</td>
-                    ))}
+                {Object.values(METRICS).map((obj) => (
+                  <tr key={obj.label}>
+                    <th key={obj.label}>{obj.label}</th>
+                    {scenarioNames.map((name) => {
+                      const temp = table[name][obj.label].toFixed(2);
+                      return (
+                        <td className="table-value" key={name}>
+                          {(temp > 0) ? `+${temp}` : temp}
+                        </td>
+                      );
+                    })}
+                    <td key="units"><em>{obj.units}</em></td>
                   </tr>
                 ))}
               </tbody>
             </HTMLTable>
+            </div>
           ) : <div />
       }
       <h2>Demographics of the impacted area:</h2>

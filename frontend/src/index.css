@@ -250,3 +250,11 @@ html, body, #root, .App {
 #results .panel select {
   margin-left: 1rem;
 }
+
+#results .table-value {
+  font-size: 1.2rem;
+}
+
+#results th, td {
+  vertical-align: bottom;
+}
