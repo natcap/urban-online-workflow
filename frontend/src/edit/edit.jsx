@@ -54,6 +54,9 @@ export default function EditMenu(props) {
 
   useEffect(() => {
     setInvestResults();
+    // It's nice to have a brief text description of the landcover change
+    // for each scenario. Figure out which classes comprise > 50%
+    // of the area changed and just list those.
     const descriptions = {};
     scenarios.forEach((scenario) => {
       const sorted = Object.entries(JSON.parse(scenario.lulc_stats))
