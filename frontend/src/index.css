@@ -267,9 +267,53 @@ html, body, #root, .App {
 }
 
 #results .table-value {
-  font-size: 1.2rem;
+/*  font-size: 1.2rem;*/
 }
 
 #results th, td {
   vertical-align: bottom;
+  padding-right: 3rem;
+/*  margin-right: 4rem;*/
+}
+
+#results table {
+  border-collapse: collapse;
+}
+
+#results tr {
+  border-bottom: 1px solid lightgray;
+}
+
+#demographics-header {
+  display: flex;
+  align-items: center;
+  padding-top: 1.5rem;
+  border-bottom: 1px solid lightgray;
+}
+
+#demographics-header svg {
+  margin-right: 1rem;
+}
+
+#demographics-body {
+  display: flex;
+  flex-direction: row;
+}
+
+#acs-container {
+  background-color: #F5F5F5;
+  margin-left: 2rem;
+  padding-right: 1rem;
+  flex-basis: 0;
+  flex-grow: 1;
+}
+
+#acs-container li {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+#demographics-footer {
+  font-size: 0.8em;
+  float: right;
 }

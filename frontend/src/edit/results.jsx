@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 
 import {
+  Divider,
   HTMLSelect,
   HTMLTable,
+  Icon,
 } from '@blueprintjs/core';
 
 import landuseCodes from '../../../appdata/NLCD_2016.lulcdata.json';
@@ -107,23 +109,24 @@ export default function Results(props) {
     .sort(([, a], [, b]) => b - a);
 
   const povertyPar = (
-    <div>
-      <p>
-        <b>{census.poverty[HOUSE_SNAP]} households received</b> Food Stamps or SNAP in the past 12 months.
-      </p>
+    <ul>
+      <li>
+        <b>{census.poverty[HOUSE_SNAP]} households received</b> Food Stamps or SNAP.
+      </li>
       <p className="hanging-indent">
         Of those households, <b>{census.poverty[`${HOUSE_SNAP} | ${INCOME_BELOW}`]} were below poverty level </b>
         and <b>{census.poverty[`${HOUSE_SNAP} | ${INCOME_ABOVE}`]} were above</b>.
       </p>
-      <p>
-        <b>{census.poverty[HOUSE_NO_SNAP]} households did not receive</b> Food Stamps or SNAP in the past 12 months.
-      </p>
+      <li>
+        <b>{census.poverty[HOUSE_NO_SNAP]} households did not receive</b> Food Stamps or SNAP.
+      </li>
       <p className="hanging-indent">
         Of those households, <b>{census.poverty[`${HOUSE_NO_SNAP} | ${INCOME_BELOW}`]} were below poverty level </b>
         and <b>{census.poverty[`${HOUSE_NO_SNAP} | ${INCOME_ABOVE}`]} were above</b>.
       </p>
-    </div>
+    </ul>
   );
+  console.log(table)
 
   return (
     <div id="results">
@@ -156,20 +159,18 @@ export default function Results(props) {
               <tbody>
                 <tr>
                   <th key="blank" />
-                  {scenarioNames.map((name) => <th key={name}>{name}</th>)}
+                  {Object.values(METRICS).map((obj) => (
+                    <th key={obj.label}>{obj.label}<br /><sub><em>{obj.units}</em></sub></th>
+                  ))}
                 </tr>
-                {Object.values(METRICS).map((obj) => (
-                  <tr key={obj.label}>
-                    <th key={obj.label}>{obj.label}</th>
-                    {scenarioNames.map((name) => {
-                      const temp = table[name][obj.label].toFixed(2);
-                      return (
-                        <td className="table-value" key={name}>
-                          {(temp > 0) ? `+${temp}` : temp}
-                        </td>
-                      );
-                    })}
-                    <td key="units"><em>{obj.units}</em></td>
+                {scenarioNames.map((name) => (
+                  <tr>
+                    <th>{name}</th>
+                    {Object.values(table[name]).map((val) => (
+                      <td className="table-value" key={name}>
+                        {(val > 0) ? `+${val.toFixed(2)}` : val.toFixed(2)}
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
@@ -177,20 +178,32 @@ export default function Results(props) {
             </div>
           ) : <div />
       }
-      <h2>Demographics of the impacted area:</h2>
-      <h3>Population by race</h3>
-      <HTMLTable className="bp4-html-table-condensed">
-        <tbody>
-          {populations.map(([group, count]) => (
-            <tr key={group}>
-              <td key="group">{group}</td>
-              <td key="count">{count}</td>
-            </tr>
-          ))}
-        </tbody>
-      </HTMLTable>
-      <h3 id="poverty-heading">Poverty metrics, according to the American Community Survey</h3>
-      {povertyPar}
+      <h2 id="demographics-header">
+        <Icon icon="people" size="30"/>
+        Demographics of the impacted area:
+      </h2>
+      <div id="demographics-body">
+        <div>
+          <h3>Population by race</h3>
+          <HTMLTable className="bp4-html-table-condensed">
+            <tbody>
+              {populations.map(([group, count]) => (
+                <tr key={group}>
+                  <td key="group">{group}</td>
+                  <td key="count">{count}</td>
+                </tr>
+              ))}
+            </tbody>
+          </HTMLTable>
+        </div>
+        {/*<Divider />*/}
+        <div id="acs-container">
+          {povertyPar}
+        </div>
+      </div>
+      <div id="demographics-footer">
+        <p>Data from the American Community Survey, 2020</p>
+      </div>
     </div>
   );
 }
