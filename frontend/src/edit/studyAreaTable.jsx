@@ -57,7 +57,7 @@ export default function StudyAreaTable(props) {
 
   const rows = [];
   rows.push(
-    <tr>
+    <tr key="header">
       <td>
         <Button
           icon={hiddenRowClass ? 'Maximize' : 'Minimize'}

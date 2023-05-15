@@ -132,24 +132,21 @@ export default function Results(props) {
       </p>
     </ul>
   );
-  console.log(table)
 
   return (
     <div id="results">
       <div className="panel" key={scenarioName}>
-        <p>
-          <h4>
-            In scenario,
-            <HTMLSelect
-              onChange={(event) => changeScenario(event.currentTarget.value)}
-              value={scenarioName}
-            >
-              {scenarioNames
-                .map((name) => <option key={name} value={name}>{name}</option>)}
-            </HTMLSelect>
-            <span style={{ 'padding-left': '2rem' }}>landcover changed,</span>
-          </h4>
-        </p>
+        <h4>
+          In scenario,
+          <HTMLSelect
+            onChange={(event) => changeScenario(event.currentTarget.value)}
+            value={scenarioName || ''}
+          >
+            {scenarioNames
+              .map((name) => <option key={name} value={name}>{name}</option>)}
+          </HTMLSelect>
+          <span style={{ 'paddingLeft': '2rem' }}>landcover changed,</span>
+        </h4>
         {landcoverDescription}
         <hr />
         {paragraphs}
@@ -158,30 +155,30 @@ export default function Results(props) {
         (scenarioNames.length > 1)
           ? (
             <div>
-            <p>
-              Each scenario's impact relative to baseline conditions:
-            </p>
-            <HTMLTable>
-              <tbody>
-                <tr key="header">
-                  <th key="blank" />
-                  {Object.values(METRICS).map((obj) => (
-                    <th key={obj.label}>{obj.label}</th>
-                  ))}
-                </tr>
-                {scenarioNames.map((name) => (
-                  <tr key={name}>
-                    <th>{name}</th>
-                    {Object.values(table[name]).map((obj) => (
-                      <td className="table-value" key={obj.units}>
-                        {(obj.value > 0) ? `+${obj.value.toFixed(obj.precision)}` : obj.value.toFixed(obj.precision)}
-                        <span className="units">{obj.units}</span>
-                      </td>
+              <p>
+                Each scenario's impact relative to baseline conditions:
+              </p>
+              <HTMLTable>
+                <tbody>
+                  <tr key="header">
+                    <th key="blank" />
+                    {Object.values(METRICS).map((obj) => (
+                      <th key={obj.label}>{obj.label}</th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </HTMLTable>
+                  {scenarioNames.map((name) => (
+                    <tr key={name}>
+                      <th>{name}</th>
+                      {Object.values(table[name]).map((obj) => (
+                        <td className="table-value" key={obj.units}>
+                          {(obj.value > 0) ? `+${obj.value.toFixed(obj.precision)}` : obj.value.toFixed(obj.precision)}
+                          <span className="units">{obj.units}</span>
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </HTMLTable>
             </div>
           ) : <div />
       }

@@ -11,7 +11,6 @@ Object.entries(landuseCodes).forEach(([code, data]) => {
 });
 
 export function lulcTileLayer(url, title, type, sourceOptions) {
-  console.log(sourceOptions)
   const source = new GeoTIFF({
     sources: [{
       url: publicUrl(url),
