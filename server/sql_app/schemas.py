@@ -49,7 +49,7 @@ class InvestResult(BaseModel):
 class ScenarioBase(BaseModel):
     """Pydantic model base for Scenarios."""
     name: str
-    operation: Literal["wallpaper", "paint", "crop"]
+    operation: Literal["wallpaper", "fill", "crop"]
 
 
 class Scenario(ScenarioBase):

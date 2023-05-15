@@ -33,7 +33,7 @@ export default function ScenarioBuilder(props) {
   } = props;
 
   const [singleLULC, setSingleLULC] = useState(Object.keys(landuseCodes)[0]);
-  const [conversionOption, setConversionOption] = useState('paint');
+  const [conversionOption, setConversionOption] = useState('fill');
   const [scenarioName, setScenarioName] = useState('');
   const [scenarioID, setScenarioID] = useState(null);
   const [selectedPattern, setSelectedPattern] = useState(null);
@@ -65,7 +65,7 @@ export default function ScenarioBuilder(props) {
         currentScenarioID
       );
     }
-    if (conversionOption === 'paint' && singleLULC) {
+    if (conversionOption === 'fill' && singleLULC) {
       jid = await lulcFill(singleLULC, currentScenarioID);
     }
     setJobID(jid);
@@ -83,10 +83,10 @@ export default function ScenarioBuilder(props) {
       </span>
     );
   }
-  if (conversionOption === 'paint' && singleLULC) {
+  if (conversionOption === 'fill' && singleLULC) {
     scenarioDescription = (
       <span>
-        Create a scenario by <em>painting</em> with <em>{landuseCodes[singleLULC].name}</em>
+        Create a scenario by <em>filling</em> with <em>{landuseCodes[singleLULC].name}</em>
       </span>
     );
   }
@@ -103,11 +103,11 @@ export default function ScenarioBuilder(props) {
         selectedValue={conversionOption}
       >
         <Radio key="wallpaper" value="wallpaper" label="wallpaper" />
-        <Radio key="paint" value="paint" label="paint" />
+        <Radio key="fill" value="fill" label="fill" />
       </RadioGroup>
       <div className="panel">
         {
-          (conversionOption === 'paint')
+          (conversionOption === 'fill')
             ? (
               <HTMLSelect
                 onChange={(event) => setSingleLULC(event.target.value)}
