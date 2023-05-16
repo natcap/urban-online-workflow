@@ -39,7 +39,6 @@ export default function EditMenu(props) {
   const [scenarioDescriptions, setScenarioDescriptions] = useState(null);
 
   const setInvestResults = async () => {
-    console.log(scenarios)
     // Do results exist for these scenarios? We check after the investRunner
     // determines that all jobs completed. We also check anytime the
     // list of scenarios are updated, such as when the study area changes
@@ -47,8 +46,6 @@ export default function EditMenu(props) {
     const modelResults = await Promise.all(
       scenarios.map(scenario => getInvestResults(scenario.scenario_id))
     );
-    console.log(modelResults)
-    // if (modelResults.every((res) => Object.keys(res).length > 0)) {
     const data = {};
     scenarios.forEach((scenario, idx) => {
       if (Object.values(modelResults[idx])[0] !== 'InVEST result not found') {
@@ -56,11 +53,9 @@ export default function EditMenu(props) {
       }
     });
     setResults(data);
-    // }
   };
 
   useEffect(async () => {
-    console.log('scenarios upated')
     if (scenarios.length) {
       // It's nice to have a brief text description of the landcover change
       // for each scenario. Figure out which classes comprise > 50%
@@ -81,17 +76,11 @@ export default function EditMenu(props) {
         const topClasses = sortedClasses.slice(0, i);
         descriptions[scenario.name] = topClasses;
       });
-      console.log(descriptions)
       setScenarioDescriptions(descriptions);
       await setInvestResults();
     }
   }, [scenarios]);
-  // console.log(scenarios.length)
-  // console.log(results)
-  // console.log(Object.keys(results).length)
 
-  console.log(scenarioDescriptions)
-  console.log(results)
   return (
     <div className="menu-container">
       <Tabs

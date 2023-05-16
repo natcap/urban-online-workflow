@@ -37,7 +37,6 @@ export default function InvestRunner(props) {
     });
     setJobIDs(pendingJobs);
     if (!pendingJobs.length) {
-      console.log('results updated from runner')
       setInvestResults();
       setActiveTab('results');
     }
@@ -53,7 +52,6 @@ export default function InvestRunner(props) {
     setJobIDs(jids);
     setNJobs(jids.length);
   };
-  console.log(completeResults)
 
   return (
     <div id="invest-runner">
@@ -65,7 +63,7 @@ export default function InvestRunner(props) {
         Evaluate Impacts
       </Button>
       {
-        (jobIDs.length || progress === 1)
+        (jobIDs.length)
           ? (
             <ProgressBar
               id="progress"
