@@ -255,6 +255,14 @@ html, body, #root, .App {
   font-size: 1.3em;
 }
 
+#invest-runner .bp4-progress-bar {
+  border-radius: 0px 0px;
+}
+
+#invest-runner .bp4-progress-meter {
+ border-radius: 0px 0px; 
+}
+
 .hanging-indent {
   margin-left: 2rem;
 }

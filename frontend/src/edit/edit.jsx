@@ -36,46 +36,62 @@ export default function EditMenu(props) {
 
   const [activeTab, setActiveTab] = useState('scenarios');
   const [results, setResults] = useState({});
-  const [scenarioDescriptions, setScenarioDescriptions] = useState({});
+  const [scenarioDescriptions, setScenarioDescriptions] = useState(null);
 
   const setInvestResults = async () => {
+    console.log(scenarios)
+    // Do results exist for these scenarios? We check after the investRunner
+    // determines that all jobs completed. We also check anytime the
+    // list of scenarios are updated, such as when the study area changes
+    // or new scenario is added.
     const modelResults = await Promise.all(
       scenarios.map(scenario => getInvestResults(scenario.scenario_id))
     );
-    // Are there results yet?
-    if (modelResults.every((res) => Object.keys(res).length > 0)) {
-      const data = {};
-      scenarios.forEach((scenario, idx) => {
+    console.log(modelResults)
+    // if (modelResults.every((res) => Object.keys(res).length > 0)) {
+    const data = {};
+    scenarios.forEach((scenario, idx) => {
+      if (Object.values(modelResults[idx])[0] !== 'InVEST result not found') {
         data[scenario.name] = modelResults[idx];
-      });
-      setResults(data);
-    }
+      }
+    });
+    setResults(data);
+    // }
   };
 
-  useEffect(() => {
-    setInvestResults();
-    // It's nice to have a brief text description of the landcover change
-    // for each scenario. Figure out which classes comprise > 50%
-    // of the area changed and just list those.
-    const descriptions = {};
-    scenarios.forEach((scenario) => {
-      const sorted = Object.entries(JSON.parse(scenario.lulc_stats))
-        .sort(([, a], [, b]) => b - a);
-      const sortedClasses = sorted.map((x) => x[0]);
-      const sortedValues = sorted.map((x) => x[1]);
-      const total = sortedValues.reduce((partial, a) => partial + a, 0);
-      let x = 0;
-      let i = 0;
-      while (x < total / 2) {
-        x += sortedValues[i];
-        i++;
-      }
-      const topClasses = sortedClasses.slice(0, i);
-      descriptions[scenario.name] = topClasses;
-    });
-    setScenarioDescriptions(descriptions);
+  useEffect(async () => {
+    console.log('scenarios upated')
+    if (scenarios.length) {
+      // It's nice to have a brief text description of the landcover change
+      // for each scenario. Figure out which classes comprise > 50%
+      // of the area changed and just list those.
+      const descriptions = {};
+      scenarios.forEach((scenario) => {
+        const sorted = Object.entries(JSON.parse(scenario.lulc_stats))
+          .sort(([, a], [, b]) => b - a);
+        const sortedClasses = sorted.map((x) => x[0]);
+        const sortedValues = sorted.map((x) => x[1]);
+        const total = sortedValues.reduce((partial, a) => partial + a, 0);
+        let x = 0;
+        let i = 0;
+        while (x < total / 2) {
+          x += sortedValues[i];
+          i++;
+        }
+        const topClasses = sortedClasses.slice(0, i);
+        descriptions[scenario.name] = topClasses;
+      });
+      console.log(descriptions)
+      setScenarioDescriptions(descriptions);
+      await setInvestResults();
+    }
   }, [scenarios]);
+  // console.log(scenarios.length)
+  // console.log(results)
+  // console.log(Object.keys(results).length)
 
+  console.log(scenarioDescriptions)
+  console.log(results)
   return (
     <div className="menu-container">
       <Tabs
@@ -141,6 +157,7 @@ export default function EditMenu(props) {
                       />
                       <br />
                       <InvestRunner
+                        completeResults={scenarios.length === Object.keys(results).length}
                         scenarios={scenarios}
                         setInvestResults={setInvestResults}
                         setActiveTab={setActiveTab}
@@ -153,7 +170,7 @@ export default function EditMenu(props) {
           )}
         />
         {
-          (Object.keys(results).length)
+          (Object.keys(results).length && scenarioDescriptions)
             ? (
               <Tab
                 id="results"

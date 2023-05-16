@@ -16,6 +16,7 @@ export default function InvestRunner(props) {
     scenarios,
     setInvestResults,
     setActiveTab,
+    completeResults,
   } = props;
   const [jobIDs, setJobIDs] = useState([]);
   const [progress, setProgress] = useState(0);
@@ -36,6 +37,7 @@ export default function InvestRunner(props) {
     });
     setJobIDs(pendingJobs);
     if (!pendingJobs.length) {
+      console.log('results updated from runner')
       setInvestResults();
       setActiveTab('results');
     }
@@ -51,13 +53,14 @@ export default function InvestRunner(props) {
     setJobIDs(jids);
     setNJobs(jids.length);
   };
+  console.log(completeResults)
 
   return (
     <div id="invest-runner">
       <Button
         onClick={handleClick}
-        disabled={jobIDs.length}
-        intent="primary"
+        disabled={jobIDs.length || completeResults}
+        intent={(completeResults) ? 'success' : 'primary'}
       >
         Evaluate Impacts
       </Button>
@@ -65,6 +68,7 @@ export default function InvestRunner(props) {
         (jobIDs.length || progress === 1)
           ? (
             <ProgressBar
+              id="progress"
               value={progress}
               intent={progressState}
               animate={progress < 1}

@@ -790,7 +790,7 @@ def run_invest(scenario_id: int, db: Session = Depends(get_db)):
 def get_invest_results(scenario_id: int, db: Session = Depends(get_db)):
     """Return the invest result if the job was successful."""
     invest_db_list = crud.get_invest(db, scenario_id=scenario_id)
-    if invest_db_list is None:
+    if len(invest_db_list) == 0:
         raise HTTPException(
             status_code=404, detail="InVEST result not found")
     invest_results = {}
