@@ -247,12 +247,12 @@ html, body, #root, .App {
 #invest-runner {
   display: flex;
   flex-direction: column;
+  margin-left: 2rem;
+  margin-right: 2rem;
 }
 
 #invest-runner button {
-  margin-left: 2rem;
-  margin-right: 2rem;
-/*  border-color: darkred;*/
+  font-size: 1.3em;
 }
 
 .hanging-indent {
@@ -269,6 +269,17 @@ html, body, #root, .App {
 
 #results .panel select {
   margin-left: 1rem;
+}
+
+#results .panel ul {
+  padding-left: 1rem;
+}
+
+#results .panel li {
+  display: flex;
+  list-style-type: none;
+  gap: 1rem;
+  align-items: center;
 }
 
 #results th, td {

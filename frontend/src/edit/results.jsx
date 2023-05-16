@@ -99,13 +99,19 @@ export default function Results(props) {
   const paragraphs = (
     <ul>
       <li>
-        The average daytime high <b>temperature</b> during August is 
-        expected to <b>{tempDirection} by {Math.abs(temperature).toFixed(2)} </b>
-        &deg;F for areas within {COOLING_DISTANCE} of <b>{studyAreaName}</b>.
+        <Icon icon="Flash" />
+        <span>
+          The average daytime high <b>temperature</b> during August is 
+          expected to <b>{tempDirection} by {Math.abs(temperature).toFixed(2)} </b>
+          &deg;F for areas within {COOLING_DISTANCE} of <b>{studyAreaName}</b>.
+        </span>
       </li>
       <br />
       <li>
-        Carbon storage is expected to <b>{carbonDirection} by {Math.abs(carbon).toFixed(0)}</b> metric tons
+        <Icon icon="tree" />
+        <span>
+          Carbon storage is expected to <b>{carbonDirection} by {Math.abs(carbon).toFixed(0)}</b> metric tons
+        </span>
       </li>
     </ul>
   );
