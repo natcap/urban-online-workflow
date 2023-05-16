@@ -219,24 +219,23 @@ html, body, #root, .App {
   padding-bottom: 2rem;
 }
 
-.scenario-table {
+#scenario-table {
   padding-top: 1rem;
+  width: 100%;
 }
 
-.scenario-table .col-name {
-  transform: rotate(310deg);
+#scenario-table .header {
+  font-weight: 500;
 }
 
-.scenario-table .row-name {
-  font-size: 0.7rem;
+#scenario-table .row-name {
   padding: 0.5rem;
   border-left-style: solid;
   border-left-width: 8px;
 }
 
-.scenario-table .table-note {
+#scenario-table .table-note {
   font-style: italic;
-  font-size: 0.7rem;
   text-align: center;
 }
 
@@ -248,6 +247,12 @@ html, body, #root, .App {
 #invest-runner {
   display: flex;
   flex-direction: column;
+}
+
+#invest-runner button {
+  margin-left: 2rem;
+  margin-right: 2rem;
+/*  border-color: darkred;*/
 }
 
 .hanging-indent {

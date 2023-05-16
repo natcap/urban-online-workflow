@@ -57,8 +57,9 @@ export default function InvestRunner(props) {
       <Button
         onClick={handleClick}
         disabled={jobIDs.length}
+        intent="primary"
       >
-        Run InVEST Models
+        Evaluate Impacts
       </Button>
       {
         (jobIDs.length || progress === 1)
