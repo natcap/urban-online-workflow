@@ -462,7 +462,6 @@ export default function MapComponent(props) {
         }),
         url: publicUrl(serviceshedPath),
       });
-      console.log(source)
       serviceshedLayer.setSource(source);
       map.addLayer(serviceshedLayer);
     }
