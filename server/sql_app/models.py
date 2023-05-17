@@ -131,5 +131,6 @@ class InvestResult(Base):
     job_id = Column(Integer, ForeignKey("jobs.job_id"), primary_key=True)
     model_name = Column(String)
     result = Column(String)
+    serviceshed = Column(String)
 
     #scenario = relationship("Scenario", back_populates="invest_results")

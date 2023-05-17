@@ -298,7 +298,8 @@ def worker_invest_response(
             db=db, scenario_id=invest_result.server_attrs['scenario_id'],
             job_id=invest_result.server_attrs['job_id'],
             result=invest_result.result['invest-result'],
-            model_name=invest_result.result['model'])
+            model_name=invest_result.result['model'],
+            serviceshed=invest_result.result['serviceshed'])
     else:
         # Update the job status in the DB to "failed"
         job_update = schemas.JobBase(
@@ -794,14 +795,19 @@ def get_invest_results(scenario_id: int, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=404, detail="InVEST result not found")
     invest_results = {}
+    serviceshed = ''  # For now, only one model has a serviceshed
     for row in invest_db_list:
         invest_results_path = row.result
         LOGGER.info(invest_results_path)
         # Load json from file
         with open(invest_results_path, 'r') as jfp:
             invest_results.update(json.loads(jfp.read()))
-        LOGGER.info(f"INVEST RESULT RESPONSE: {invest_results}")
-    return invest_results
+            if row.serviceshed:
+                serviceshed = row.serviceshed
+    return {
+        'results': invest_results,
+        'serviceshed': serviceshed
+    }
 
 
 ### Testing ideas from tutorial ###
