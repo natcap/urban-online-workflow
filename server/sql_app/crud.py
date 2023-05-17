@@ -299,15 +299,17 @@ def create_invest_result(db: Session, invest_result: schemas.InvestResult):
     db.refresh(db_invest)
     return db_invest
 
-def get_invest(db: Session, scenario_id: int, job_id: int):
-    """Read invest result  by ``scenario_id`` and ``job_id``."""
+def get_invest(db: Session, scenario_id: int):
+    """Read invest results  by ``scenario_id``."""
     return db.query(models.InvestResult).filter(
-            models.InvestResult.job_id == job_id,
-            models.InvestResult.scenario_id == scenario_id).first()
+        models.InvestResult.scenario_id == scenario_id).all()
 
 def update_invest(db: Session, scenario_id: int, job_id: int, result: str, model_name: str):
     """Update an invest result."""
-    db_invest = get_invest(db, scenario_id, job_id)
+    # TODO: is job_id unique in InvestResult? Any need to use scenario_id?
+    db_invest = db.query(models.InvestResult).filter(
+        models.InvestResult.job_id == job_id,
+        models.InvestResult.scenario_id == scenario_id).first()
     if not db_invest:
         raise HTTPException(status_code=404, detail="InvestResult not found")
     setattr(db_invest, 'result', result)

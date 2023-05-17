@@ -34,7 +34,7 @@ export default function ScenarioTable(props) {
     <tr key="header">
       <td key="0_0" className="table-note">Landcover composition by scenario</td>
       {Object.keys(scenarioTable).map(
-        (name) => <td key={name}><div className="header"><span>{name}</span></div></td>
+        (name) => <td key={name}><div className="header">{name}</div></td>
       )}
     </tr>
   );
@@ -71,7 +71,7 @@ export default function ScenarioTable(props) {
   });
 
   return (
-    <HTMLTable bordered striped className="scenario-table">
+    <HTMLTable bordered striped id="scenario-table">
       <tbody>
         {rows}
       </tbody>

@@ -6,6 +6,7 @@ import {
   HTMLSelect,
   Radio,
   RadioGroup,
+  Spinner
 } from '@blueprintjs/core';
 
 import useInterval from '../hooks/useInterval';
@@ -32,7 +33,7 @@ export default function ScenarioBuilder(props) {
   } = props;
 
   const [singleLULC, setSingleLULC] = useState(Object.keys(landuseCodes)[0]);
-  const [conversionOption, setConversionOption] = useState('paint');
+  const [conversionOption, setConversionOption] = useState('fill');
   const [scenarioName, setScenarioName] = useState('');
   const [scenarioID, setScenarioID] = useState(null);
   const [selectedPattern, setSelectedPattern] = useState(null);
@@ -64,7 +65,7 @@ export default function ScenarioBuilder(props) {
         currentScenarioID
       );
     }
-    if (conversionOption === 'paint' && singleLULC) {
+    if (conversionOption === 'fill' && singleLULC) {
       jid = await lulcFill(singleLULC, currentScenarioID);
     }
     setJobID(jid);
@@ -82,10 +83,10 @@ export default function ScenarioBuilder(props) {
       </span>
     );
   }
-  if (conversionOption === 'paint' && singleLULC) {
+  if (conversionOption === 'fill' && singleLULC) {
     scenarioDescription = (
       <span>
-        Create a scenario by <em>painting</em> with <em>{landuseCodes[singleLULC].name}</em>
+        Create a scenario by <em>filling</em> with <em>{landuseCodes[singleLULC].name}</em>
       </span>
     );
   }
@@ -102,11 +103,11 @@ export default function ScenarioBuilder(props) {
         selectedValue={conversionOption}
       >
         <Radio key="wallpaper" value="wallpaper" label="wallpaper" />
-        <Radio key="paint" value="paint" label="paint" />
+        <Radio key="fill" value="fill" label="fill" />
       </RadioGroup>
-      <div className="conversion-panel">
+      <div className="panel">
         {
-          (conversionOption === 'paint')
+          (conversionOption === 'fill')
             ? (
               <HTMLSelect
                 onChange={(event) => setSingleLULC(event.target.value)}
@@ -127,9 +128,14 @@ export default function ScenarioBuilder(props) {
             )
         }
       </div>
-      <p className="sidebar-subheading">
-        <span>{scenarioDescription}</span>
-      </p>
+      <div id="scenario-input-label" className="sidebar-subheading">
+        {scenarioDescription}
+        {
+          (jobID)
+            ? <Spinner size="20" />
+            : <div />
+        }
+      </div>
       <InputGroup
         placeholder="name this scenario"
         value={scenarioName}
@@ -137,7 +143,7 @@ export default function ScenarioBuilder(props) {
         rightElement={(
           <Button
             onClick={submitScenario}
-            disabled={scenarioNames.includes(scenarioName) || !scenarioName}
+            disabled={scenarioNames.includes(scenarioName) || !scenarioName || jobID}
           >
             Create
           </Button>

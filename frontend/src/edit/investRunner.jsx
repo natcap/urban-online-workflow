@@ -14,7 +14,9 @@ import {
 export default function InvestRunner(props) {
   const {
     scenarios,
-    refreshScenarios,
+    setInvestResults,
+    setActiveTab,
+    completeResults,
   } = props;
   const [jobIDs, setJobIDs] = useState([]);
   const [progress, setProgress] = useState(0);
@@ -28,12 +30,15 @@ export default function InvestRunner(props) {
       if (['success', 'failed'].includes(status)) {
         pendingJobs.splice(idx, 1);
         setProgress((nJobs - pendingJobs.length) / nJobs);
-        if (status === 'failed') { setProgressState('warning'); }
+        if (status === 'failed') {
+          setProgressState('warning');
+        }
       }
     });
     setJobIDs(pendingJobs);
     if (!pendingJobs.length) {
-      refreshScenarios(); // assuming results are in scenario db
+      setInvestResults();
+      setActiveTab('results');
     }
   }, (jobIDs.length) ? 3000 : null);
 
@@ -52,14 +57,16 @@ export default function InvestRunner(props) {
     <div id="invest-runner">
       <Button
         onClick={handleClick}
-        disabled={jobIDs.length}
+        disabled={jobIDs.length || completeResults}
+        intent={(completeResults) ? 'success' : 'primary'}
       >
-        Run InVEST Models
+        Evaluate Impacts
       </Button>
       {
-        (jobIDs.length || progress === 1)
+        (jobIDs.length)
           ? (
             <ProgressBar
+              id="progress"
               value={progress}
               intent={progressState}
               animate={progress < 1}

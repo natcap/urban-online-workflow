@@ -725,6 +725,10 @@ def add_parcel(create_parcel_request: schemas.ParcelCreateRequest,
 @app.post("/invest/{scenario_id}")
 def run_invest(scenario_id: int, db: Session = Depends(get_db)):
     """Add invest job to the queue. This runs all InVEST models."""
+    # Results may already exist; no need to re-compute
+    invest_results_db = crud.get_invest(db, scenario_id)
+    LOGGER.info(invest_results_db)
+
     LOGGER.info("Add InVEST runs to queue")
     # Get the scenario LULC for model runs
     scenario_db = crud.get_scenario(db, scenario_id=scenario_id)
@@ -735,66 +739,69 @@ def run_invest(scenario_id: int, db: Session = Depends(get_db)):
     # Get the session_id
     study_area_id = scenario_db.study_area_id
     study_area_db = crud.get_study_area(db, study_area_id)
+    study_area_wkt = _get_study_area_geometry(study_area_db)
     session_id = study_area_db.owner_id
 
     # For each invest model create a new job and add to the queue
     # Also create a new invest_result entry
     invest_job_dict = {}
     for invest_model in INVEST_MODELS:
-        job_schema = schemas.JobBase(
-            **{"name": f"InVEST: {invest_model}",
-               "description": f"executing invest model {invest_model}",
-               "status": STATUS_PENDING})
-        job_db = crud.create_job(
-            db=db, session_id=session_id, job=job_schema)
+        row = [row for row in invest_results_db if row.model_name == invest_model]
+        if row and row[0].result is not None:
+            LOGGER.info(f'results already exist for {invest_model}')
+            invest_job_dict[invest_model] = row[0].job_id
+        else:
+            job_schema = schemas.JobBase(
+                **{"name": f"InVEST: {invest_model}",
+                   "description": f"executing invest model {invest_model}",
+                   "status": STATUS_PENDING})
+            job_db = crud.create_job(
+                db=db, session_id=session_id, job=job_schema)
 
-        invest_schema = schemas.InvestResult(
-            **{"scenario_id": scenario_id, "job_id": job_db.job_id, "model_name": invest_model})
-        invest_db = crud.create_invest_result(
-            db=db, invest_result=invest_schema)
+            invest_schema = schemas.InvestResult(
+                **{"scenario_id": scenario_id,
+                   "job_id": job_db.job_id,
+                   "model_name": invest_model})
+            invest_db = crud.create_invest_result(
+                db=db, invest_result=invest_schema)
 
-        # Construct worker job and add to the queue
-        worker_task = {
-            "job_type": JOB_TYPES["invest"],
-            "server_attrs": {
-                "job_id": job_db.job_id, "scenario_id": scenario_id,
-            },
-            "job_args": {
-                "invest_model": invest_model,
-                "lulc_source_url": scenario_lulc,
-                "scenario_id": scenario_id
+            # Construct worker job and add to the queue
+            worker_task = {
+                "job_type": JOB_TYPES["invest"],
+                "server_attrs": {
+                    "job_id": job_db.job_id, "scenario_id": scenario_id,
+                },
+                "job_args": {
+                    "invest_model": invest_model,
+                    "lulc_source_url": scenario_lulc,
+                    "study_area_wkt": study_area_wkt,
+                    "scenario_id": scenario_id
+                }
             }
-        }
 
-        QUEUE.put_nowait((MEDIUM_PRIORITY, job_db.job_id, worker_task))
-
-        invest_job_dict[invest_model] = job_db.job_id
+            QUEUE.put_nowait((MEDIUM_PRIORITY, job_db.job_id, worker_task))
+            invest_job_dict[invest_model] = job_db.job_id
 
     # Return dictionary of invest model names mapped to job_ids
     return invest_job_dict
 
 
-@app.get("/invest/result/{job_id}/{scenario_id}")
-def get_invest_results(job_id: int, scenario_id: int, db: Session = Depends(get_db)):
+@app.get("/invest/result/{scenario_id}")
+def get_invest_results(scenario_id: int, db: Session = Depends(get_db)):
     """Return the invest result if the job was successful."""
-    # Check job status and return URL and Stats from table
-    LOGGER.info(f'Job ID: {job_id}')
-    job_db = crud.get_job(db, job_id=job_id)
-    if job_db is None:
-        raise HTTPException(status_code=404, detail="Job not found")
-    if job_db.status == STATUS_SUCCESS:
-        invest_db = crud.get_invest(db, job_id=job_id, scenario_id=scenario_id)
-        if invest_db is None:
-            raise HTTPException(
-                status_code=404, detail="InVEST result not found")
-        invest_results_path = invest_db.result
+    invest_db_list = crud.get_invest(db, scenario_id=scenario_id)
+    if len(invest_db_list) == 0:
+        raise HTTPException(
+            status_code=404, detail="InVEST result not found")
+    invest_results = {}
+    for row in invest_db_list:
+        invest_results_path = row.result
+        LOGGER.info(invest_results_path)
         # Load json from file
         with open(invest_results_path, 'r') as jfp:
-            invest_results = json.loads(jfp.read())
+            invest_results.update(json.loads(jfp.read()))
         LOGGER.info(f"INVEST RESULT RESPONSE: {invest_results}")
-        return invest_results
-    else:
-        return job_db.status
+    return invest_results
 
 
 ### Testing ideas from tutorial ###

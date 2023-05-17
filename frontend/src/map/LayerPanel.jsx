@@ -32,24 +32,29 @@ export default function LayerPanel(props) {
     show,
     switchBasemap,
     switchScenario,
+    selectedScenario,
   } = props;
 
-  const [selectedScenario, setSelectedScenario] = useState(null);
-  const [selectedBasemap, setSelectedBasemap] = useState(null);
+  const [scenario, setScenario] = useState(null);
+  const [basemap, setBasemap] = useState(null);
 
   useEffect(() => {
     layers.forEach(([type, title, isVisible]) => {
       if (type === 'base') {
         if (isVisible) {
-          setSelectedBasemap(title);
+          setBasemap(title);
         }
       } else if (type === 'scenario') {
         if (isVisible) {
-          setSelectedScenario(title);
+          setScenario(title);
         }
       }
     });
   }, [layers]);
+
+  useEffect(() => {
+    if (selectedScenario) { setScenario(selectedScenario); }
+  }, [selectedScenario]);
 
   if (!show) {
     return null;
@@ -58,13 +63,13 @@ export default function LayerPanel(props) {
   const handleChangeBasemap = (event) => {
     const title = event.target.value;
     switchBasemap(title);
-    setSelectedBasemap(title);
+    setBasemap(title);
   };
 
   const handleChangeScenario = (event) => {
     const title = event.target.value;
     switchScenario(title);
-    setSelectedScenario(title);
+    setScenario(title);
   };
 
   const checkboxes = [];
@@ -123,7 +128,7 @@ export default function LayerPanel(props) {
       <RadioGroup
         id="basemaps-group"
         onChange={handleChangeBasemap}
-        selectedValue={selectedBasemap}
+        selectedValue={basemap}
       >
         {basemaps}
       </RadioGroup>
@@ -134,7 +139,7 @@ export default function LayerPanel(props) {
               {scenarioGroupCheckbox}
               <RadioGroup
                 onChange={handleChangeScenario}
-                selectedValue={selectedScenario}
+                selectedValue={scenario}
               >
                 {scenarios}
               </RadioGroup>

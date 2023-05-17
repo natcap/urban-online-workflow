@@ -106,7 +106,13 @@ html, body, #root, .App {
   font-size: 1.2rem;
 }
 
-.conversion-panel {
+#scenario-input-label {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 0.5rem;
+}
+
+.panel {
   background-color: rgba(240, 240, 240, 1.0);
   filter: drop-shadow(1px 1px 1px grey);
   padding: 0.5rem;
@@ -213,33 +219,126 @@ html, body, #root, .App {
   padding-bottom: 2rem;
 }
 
-.scenario-table {
+#scenario-table {
   padding-top: 1rem;
+  width: 100%;
 }
 
-.scenario-table .col-name {
-  transform: rotate(310deg);
+#scenario-table .header {
+  font-weight: 500;
 }
 
-.scenario-table .row-name {
-  font-size: 0.7rem;
+#scenario-table .row-name {
   padding: 0.5rem;
   border-left-style: solid;
   border-left-width: 8px;
 }
 
-.scenario-table .table-note {
+#scenario-table .table-note {
   font-style: italic;
-  font-size: 0.7rem;
   text-align: center;
 }
 
 /*de-saturate to match saturation adjustment in lulcLayer.js*/
 .lulc-legend {
-  filter: saturate(40%);
+  filter: saturate(60%);
 }
 
 #invest-runner {
   display: flex;
   flex-direction: column;
+  margin-left: 2rem;
+  margin-right: 2rem;
+}
+
+#invest-runner button {
+  font-size: 1.3em;
+}
+
+#invest-runner .bp4-progress-bar {
+  border-radius: 0px 0px;
+}
+
+#invest-runner .bp4-progress-meter {
+ border-radius: 0px 0px; 
+}
+
+.hanging-indent {
+  margin-left: 2rem;
+}
+
+#poverty-heading {
+  text-decoration: underline;
+}
+
+#results .panel {
+  margin-bottom: 1rem;
+}
+
+#results .panel select {
+  margin-left: 1rem;
+}
+
+#results .panel ul {
+  padding-left: 1rem;
+}
+
+#results .panel li {
+  display: flex;
+  list-style-type: none;
+  gap: 1rem;
+  align-items: center;
+}
+
+#results th, td {
+  vertical-align: bottom;
+  padding-right: 3rem;
+}
+
+#results table {
+  border-collapse: collapse;
+}
+
+#results tr {
+  border-bottom: 1px solid lightgray;
+}
+
+.units {
+/*  font-size: 0.8em;*/
+  color: gray;
+  padding-left: 0.5em;
+}
+
+#demographics-header {
+  display: flex;
+  align-items: center;
+  padding-top: 1.5rem;
+  border-bottom: 1px solid lightgray;
+}
+
+#demographics-header svg {
+  margin-right: 1rem;
+}
+
+#demographics-body {
+  display: flex;
+  flex-direction: row;
+}
+
+#acs-container {
+  background-color: #F5F5F5;
+  margin-left: 2rem;
+  padding-right: 1rem;
+  flex-basis: 0;
+  flex-grow: 1;
+}
+
+#acs-container li {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+#demographics-footer {
+  font-size: 0.8em;
+  float: right;
 }

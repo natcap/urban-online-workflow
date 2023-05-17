@@ -57,7 +57,7 @@ export default function StudyAreaTable(props) {
 
   const rows = [];
   rows.push(
-    <tr>
+    <tr key="header">
       <td>
         <Button
           icon={hiddenRowClass ? 'Maximize' : 'Minimize'}
@@ -69,6 +69,7 @@ export default function StudyAreaTable(props) {
     </tr>,
   );
   parcelArray.forEach((parcel) => {
+    const lulcData = JSON.parse(parcel.parcel_stats.lulc_stats);
     rows.push(
       <tr
         className={hiddenRowClass}
@@ -87,9 +88,15 @@ export default function StudyAreaTable(props) {
         </td>
         <td className="parcel-address">{parcel.address}</td>
         <td>
-          <div className="parcel-block lulc-legend">
-            {plot(JSON.parse(parcel.parcel_stats.lulc_stats).base)}
-          </div>
+          {
+            (lulcData)
+              ? (
+                <div className="parcel-block lulc-legend">
+                  {plot(lulcData.base)}
+                </div>
+              )
+              : <div />
+          }
         </td>
       </tr>,
     );
