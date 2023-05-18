@@ -32,6 +32,7 @@ export default function EditMenu(props) {
     switchStudyArea,
     savedStudyAreas,
     setSelectedScenario,
+    setServiceshedPath,
   } = props;
 
   const [activeTab, setActiveTab] = useState('scenarios');
@@ -49,7 +50,10 @@ export default function EditMenu(props) {
     const data = {};
     scenarios.forEach((scenario, idx) => {
       if (Object.values(modelResults[idx])[0] !== 'InVEST result not found') {
-        data[scenario.name] = modelResults[idx];
+        data[scenario.name] = modelResults[idx]['results'];
+        if (modelResults[idx]['serviceshed']) {
+          setServiceshedPath(modelResults[idx]['serviceshed']);
+        }
       }
     });
     setResults(data);

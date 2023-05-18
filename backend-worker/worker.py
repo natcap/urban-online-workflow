@@ -804,10 +804,16 @@ def do_work(host, port, outputs_location):
                     LOGGER.info(f'Post processing {invest_model} model')
                     model_result_path = model_meta['derive_results'](workspace_dir)
 
+                try:
+                    # For now, we only expect this to work for urban-cooling
+                    serviceshed = args_dict['aoi_vector_path']
+                except KeyError:
+                    serviceshed = ''
                 data = {
                     'result': {
                         'invest-result': model_result_path,
                         'model': job_args['invest_model'],
+                        'serviceshed': serviceshed
                     }
                 }
             else:

@@ -7,6 +7,7 @@ import { Vector as VectorLayer } from 'ol/layer';
 import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
 import { Vector as VectorSource } from 'ol/source';
+import GeoJSON from 'ol/format/GeoJSON';
 import MVT from 'ol/format/MVT';
 import WKT from 'ol/format/WKT';
 import Feature from 'ol/Feature';
@@ -44,9 +45,12 @@ import {
   hoveredFeatureStyle,
   patternSamplerBoxStyle,
   selectedFeatureStyle,
+  serviceshedStyle,
   studyAreaStyle,
   styleParcel,
 } from './styles';
+
+import { publicUrl } from '../utils';
 
 
 const BASE_LULC_URL = 'https://storage.googleapis.com/natcap-urban-online-datasets-public/NLCD_2016_epsg3857.tif'
@@ -161,6 +165,11 @@ scenarioLayerGroup.set('type', 'scenario-group');
 scenarioLayerGroup.set('title', 'Scenarios:'); // displays in LayerPanel
 scenarioLayerGroup.setZIndex(1);
 
+const serviceshedLayer = new VectorLayer({
+  style: serviceshedStyle
+});
+serviceshedLayer.setZIndex(3);
+
 // Set a default basemap to be visible
 satelliteLayer.setVisible(true);
 
@@ -176,6 +185,7 @@ const map = new Map({
     patternSamplerLayer,
     labelLayer,
     scenarioLayerGroup,
+    serviceshedLayer,
   ],
   view: new View({
     center: [-10964048.932711, 3429505.23069662], // San Antonio, TX EPSG:3857
@@ -199,6 +209,7 @@ export default function MapComponent(props) {
     setPatternSampleWKT,
     scenarios,
     selectedScenario,
+    serviceshedPath,
   } = props;
   const [layers, setLayers] = useState([]);
   const [showLayerControl, setShowLayerControl] = useState(false);
@@ -441,6 +452,20 @@ export default function MapComponent(props) {
       map.addLayer(scenarioLayerGroup);
     }
   }, [scenarios]);
+
+  useEffect(() => {
+    map.removeLayer(serviceshedLayer);
+    if (serviceshedPath) {
+      const source = new VectorSource({
+        format: new GeoJSON({
+          dataProjection: 'EPSG:3857'
+        }),
+        url: publicUrl(serviceshedPath),
+      });
+      serviceshedLayer.setSource(source);
+      map.addLayer(serviceshedLayer);
+    }
+  }, [serviceshedPath]);
 
   // toggle pattern sampler visibility according to the pattern sampling mode
   useEffect(() => {

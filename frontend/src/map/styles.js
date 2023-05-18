@@ -46,6 +46,14 @@ export const patternSamplerBoxStyle = new Style({
   }),
 });
 
+export const serviceshedStyle = new Style({
+  stroke: new Stroke({
+    color: 'rgba(255, 255, 255, 0.8)',
+    width: 3,
+    lineDash: [5, 5],
+  })
+});
+
 // dynamic style function for parcels
 export function styleParcel(zoom) {
   const style = new Style({

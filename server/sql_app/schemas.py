@@ -41,6 +41,7 @@ class InvestResult(BaseModel):
     job_id: int
     result: str = None
     model_name: str
+    serviceshed: str = None
 
     class Config:
         orm_mode = True

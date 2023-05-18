@@ -304,9 +304,9 @@ def get_invest(db: Session, scenario_id: int):
     return db.query(models.InvestResult).filter(
         models.InvestResult.scenario_id == scenario_id).all()
 
-def update_invest(db: Session, scenario_id: int, job_id: int, result: str, model_name: str):
+def update_invest(db: Session, scenario_id: int, job_id: int,
+                  result: str, model_name: str, serviceshed: str):
     """Update an invest result."""
-    # TODO: is job_id unique in InvestResult? Any need to use scenario_id?
     db_invest = db.query(models.InvestResult).filter(
         models.InvestResult.job_id == job_id,
         models.InvestResult.scenario_id == scenario_id).first()
@@ -314,6 +314,7 @@ def update_invest(db: Session, scenario_id: int, job_id: int, result: str, model
         raise HTTPException(status_code=404, detail="InvestResult not found")
     setattr(db_invest, 'result', result)
     setattr(db_invest, 'model_name', model_name)
+    setattr(db_invest, 'serviceshed', serviceshed)
 
     db.add(db_invest)
     db.commit()
