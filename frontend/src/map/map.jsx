@@ -484,7 +484,10 @@ export default function MapComponent(props) {
   }, [patternSamplingMode]);
 
   return (
-    <div className="map-container">
+    <div
+      className="map-container"
+      onMouseOut={() => setHoveredCode(null)}
+    >
       <div ref={mapElementRef} className="map-viewport" />
       <div className="layers-control">
         <Button
