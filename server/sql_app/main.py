@@ -798,12 +798,12 @@ def get_invest_results(scenario_id: int, db: Session = Depends(get_db)):
     serviceshed = ''  # For now, only one model has a serviceshed
     for row in invest_db_list:
         invest_results_path = row.result
-        LOGGER.info(invest_results_path)
-        # Load json from file
-        with open(invest_results_path, 'r') as jfp:
-            invest_results.update(json.loads(jfp.read()))
-            if row.serviceshed:
-                serviceshed = row.serviceshed
+        LOGGER.debug(invest_results_path)
+        if invest_results_path:
+            with open(invest_results_path, 'r') as jfp:
+                invest_results.update(json.loads(jfp.read()))
+        if row.serviceshed:
+            serviceshed = row.serviceshed
     return {
         'results': invest_results,
         'serviceshed': serviceshed
