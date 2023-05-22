@@ -7,12 +7,12 @@ import {
 
 import landuseCodes from '../../../appdata/NLCD_2016.lulcdata.json';
 
-function sqkm(count) {
+function acres(count) {
   if (!parseInt(count)) {
     return '';
   }
-  const num = count * 0.030 * 0.030;
-  return num.toFixed(2);
+  const acres = (count * 30 * 30) / 4047; // square-meters to acres
+  return acres.toFixed(1);
 }
 
 export default function ScenarioTable(props) {
@@ -41,7 +41,6 @@ export default function ScenarioTable(props) {
 
   const rows = [];
   rows.push(scenarioHeader);
-  let firstRow = true;
   Object.keys(landuseCodes).forEach((code) => {
     const counts = [];
     Object.entries(scenarioTable).forEach(([name, table]) => {
@@ -59,14 +58,13 @@ export default function ScenarioTable(props) {
         </td>
       );
       cells.push(...counts.map((c, idx) => {
-        let content = <span>{sqkm(c)}</span>;
-        if (c && firstRow) {
-          content = <span>{sqkm(c)} km<sup>2</sup></span>;
+        let content = '';
+        if (c) {
+          content = <span>{acres(c)} acres</span>;
         }
         return <td key={idx}>{content}</td>;
       }));
       rows.push(<tr key={code}>{cells}</tr>);
-      firstRow = false;
     }
   });
 

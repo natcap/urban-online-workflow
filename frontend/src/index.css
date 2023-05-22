@@ -231,7 +231,7 @@ html, body, #root, .App {
 #scenario-table .row-name {
   padding: 0.5rem;
   border-left-style: solid;
-  border-left-width: 8px;
+  border-left-width: 12px;
 }
 
 #scenario-table .table-note {

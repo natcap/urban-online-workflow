@@ -91,7 +91,8 @@ def urban_cooling(lulc_path, workspace_dir, study_area_wkt):
         "t_air_average_radius": "600",
         "green_area_cooling_distance": str(cooling_distance),
         "t_ref": "35",  # TODO: derive from location
-        "uhi_max": "3.56"  # TODO: derive from location
+        "uhi_max": "11"  # TODO: derive from location
+        # "uhi_max": "3.56"  # TODO: derive from location
     }
 
     lulc_info = pygeoprocessing.get_raster_info(lulc_path)

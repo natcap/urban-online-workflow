@@ -451,6 +451,7 @@ export default function MapComponent(props) {
       scenarioLayerGroup.setLayers(new Collection(scenarioLayers));
       map.addLayer(scenarioLayerGroup);
     }
+    clearSelection();
   }, [scenarios]);
 
   useEffect(() => {
@@ -484,7 +485,10 @@ export default function MapComponent(props) {
   }, [patternSamplingMode]);
 
   return (
-    <div className="map-container">
+    <div
+      className="map-container"
+      onMouseOut={() => setHoveredCode(null)}
+    >
       <div ref={mapElementRef} className="map-viewport" />
       <div className="layers-control">
         <Button
