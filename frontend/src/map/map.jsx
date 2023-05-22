@@ -262,7 +262,6 @@ export default function MapComponent(props) {
   const clearSelection = () => {
     // It feels kinda weird to have selectedFeature outside
     // React scope, but it works.
-    console.log('clear selection')
     selectedFeature = null;
     selectionLayer.changed();
     setSelectedParcel(null);

@@ -49,7 +49,6 @@ export default function Results(props) {
   };
 
   useEffect(() => {
-    console.log(results)
     const data = {};
     const names = Object.keys(results).filter((key) => key !== 'baseline');
     names.forEach((name) => {

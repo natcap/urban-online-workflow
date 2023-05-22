@@ -37,7 +37,6 @@ export default function InvestRunner(props) {
     });
     setJobIDs(pendingJobs);
     if (!pendingJobs.length) {
-      console.log('getting results')
       setInvestResults();
       setActiveTab('results');
     }
@@ -50,7 +49,6 @@ export default function InvestRunner(props) {
       scenarios.map((scenario) => runInvest(scenario.scenario_id))
     );
     const jids = jobs.map((j) => Object.values(j)).flat();
-    console.log(jids.length)
     setJobIDs(jids);
     setNJobs(jids.length);
   };
