@@ -12,7 +12,8 @@ if (process.env.MODE === 'docker') {
 
 const CONFIG = {
   plugins: [react()],
-  envDir: envDir,
+  // envDir: envDir,
+  sourcemap: 'inline',
   test: {
     globals: true,
     environment: 'happy-dom',

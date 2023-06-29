@@ -59,7 +59,7 @@ export default function EditMenu(props) {
     setResults(data);
   };
 
-  useEffect(async () => {
+  useEffect(() => {
     if (scenarios.length) {
       // It's nice to have a brief text description of the landcover change
       // for each scenario. Figure out which classes comprise > 50%
@@ -81,7 +81,9 @@ export default function EditMenu(props) {
         descriptions[scenario.name] = topClasses;
       });
       setScenarioDescriptions(descriptions);
-      await setInvestResults();
+      (async () => {
+        await setInvestResults();
+      })();
     }
   }, [scenarios]);
 
