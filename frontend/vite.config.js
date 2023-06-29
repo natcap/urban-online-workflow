@@ -12,15 +12,10 @@ if (process.env.MODE === 'docker') {
 
 const CONFIG = {
   plugins: [react()],
-  // envDir: envDir,
-  sourcemap: 'inline',
+  envDir: envDir,
   test: {
     globals: true,
     environment: 'happy-dom',
-    coverage: { // https://github.com/bcoe/c8
-      all: true,
-      src: 'src',
-    },
   },
 };
 
