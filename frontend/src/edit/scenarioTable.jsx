@@ -20,12 +20,14 @@ export default function ScenarioTable(props) {
 
   const [scenarioTable, setScenarioTable] = useState(null);
 
-  useEffect(async () => {
-    const table = {};
-    scenarios.forEach((scene) => {
-      table[scene.name] = JSON.parse(scene.lulc_stats);
-    });
-    setScenarioTable(table);
+  useEffect(() => {
+    (async () => {
+      const table = {};
+      scenarios.forEach((scene) => {
+        table[scene.name] = JSON.parse(scene.lulc_stats);
+      });
+      setScenarioTable(table);
+    })();
   }, [scenarios]);
 
   if (!scenarioTable) { return <div />; }
