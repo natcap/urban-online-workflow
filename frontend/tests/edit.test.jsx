@@ -75,3 +75,17 @@ test('scenarios exist', async () => {
   const investBtn = await screen.getByRole('button', { name: /Evaluate Impacts/ });
   expect(investBtn).toBeEnabled();
 });
+
+// test('rename study area', async () => {
+//   const user = userEvent.setup();
+//   const screen = render(<App />);
+//   const areaSelect = await screen.findByLabelText('Study Area');
+//   expect(areaSelect).toHaveDisplayValue('Untitled');
+
+//   const renameField = await screen.findByRole('textbox', 'Untitled');
+//   await user.clear(renameField);
+//   const name = 'foo';
+//   await user.type(renameField, name);
+//   await user.click(screen.getByRole('button', { name: 'Rename' }));
+//   await waitFor(() => expect(areaSelect).toHaveDisplayValue(name));
+// });

@@ -493,6 +493,7 @@ export default function MapComponent(props) {
       <div className="layers-control">
         <Button
           onClick={toggleLayerControl}
+          aria-label="open map layers panel"
         >
           <Icon icon="layers" />
         </Button>
