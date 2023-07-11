@@ -36,6 +36,7 @@
     "eslint-plugin-react": "^7.28.0",
     "eslint-plugin-react-hooks": "^4.3.0",
     "happy-dom": "^9.20.3",
+    "jsdom": "^22.1.0",
     "puppeteer": "^20.7.4",
     "vite": "^4.3.9",
     "vitest": "^0.32.2"

@@ -15,7 +15,7 @@ const CONFIG = {
   envDir: envDir,
   test: {
     globals: true,
-    environment: 'happy-dom',
+    environment: 'jsdom',
   },
 };
 

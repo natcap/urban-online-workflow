@@ -47,7 +47,6 @@ export default function EditMenu(props) {
     const modelResults = await Promise.all(
       scenarios.map(scenario => getInvestResults(scenario.scenario_id))
     );
-    console.log(modelResults)
     const data = {};
     scenarios.forEach((scenario, idx) => {
       if (Object.values(modelResults[idx])[0] !== 'InVEST result not found') {
@@ -57,7 +56,6 @@ export default function EditMenu(props) {
         }
       }
     });
-    console.log(data)
     setResults(data);
   };
 

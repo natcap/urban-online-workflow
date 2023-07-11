@@ -5,6 +5,8 @@ import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom/extend-expect';
 
 import TileLayer from 'ol/layer/Tile';
+import VectorTileLayer from 'ol/layer/VectorTile';
+import Source from 'ol/source/Source';
 
 import App from '../src/App';
 
@@ -26,18 +28,21 @@ vi.mock('../src/requests', () => {
   };
 });
 
-vi.mock('../src/map/lulcLayer', () => {
+// avoid loading LULCs by using a generic Source
+vi.mock('ol/source/GeoTIFF', () => {
   return {
-    lulcTileLayer: () => new TileLayer()
+    default: Source
   };
 });
 
+// avoid requests to third-party tile servers
 vi.mock('../src/map/baseLayers', () => {
   return {
     satelliteLayer: new TileLayer(),
     lightMapLayer: new TileLayer(),
     streetMapLayer: new TileLayer(),
     labelLayer: new TileLayer(),
+    parcelLayer: new VectorTileLayer(),
   };
 });
 
@@ -45,7 +50,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-test('run models', async () => {
+test('results panel is linked to map layers', async () => {
   const user = userEvent.setup();
   const screen = render(<App />);
 
@@ -54,10 +59,21 @@ test('run models', async () => {
   const resultsTab = await screen.findByRole('tab', { name: 'results' });
   expect(resultsTab).toBeEnabled();
 
-  // const scenarioSelect = await within(resultsTab).findByRole('option');
-  // await user.selectOptions(scenarioSelect, 'b1');
+  // Scenarios layers should be enabled
   const layersBtn = await screen.findByRole('button', { name: 'open map layers panel' });
   await user.click(layersBtn);
-  const scenarioLayer = await screen.findByRole('checkbox', { name: 'b1' });
-  expect(scenarioLayer).toBeChecked();
+  const scenarioCheckbox = await screen.getByRole('checkbox', { name: /scenarios/i });
+  expect(scenarioCheckbox).toBeChecked();
+
+  // select box in results panel should update the map layers
+  const resultsDiv = screen.getByTestId('results');
+  let scenarioSelect = await within(resultsDiv).findByLabelText('select scenario');
+  await user.selectOptions(scenarioSelect, 'a1');
+  const radioA = await screen.findByRole('radio', { name: 'a1' });
+  expect(radioA).toBeChecked();
+  // This query for select is redundant, but selectOptions does not trigger w/o it
+  scenarioSelect = await within(resultsDiv).findByLabelText('select scenario');
+  await user.selectOptions(scenarioSelect, 'b1');
+  const radioB = await screen.findByRole('radio', { name: 'b1' });
+  expect(radioB).toBeChecked();
 });
