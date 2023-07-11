@@ -1,0 +1,27 @@
+{
+    "results": {
+        "avg_tmp_v": 44.73067062207524,
+        "census": {
+            "race": {
+                "White (Not Hispanic or Latino)": 857,
+                "Black": 112,
+                "American Indian": 0,
+                "Asian": 32,
+                "Hawaiian": 0,
+                "Other": 134,
+                "Two or more races": 19,
+                "Hispanic or Latino": 9100
+            },
+            "poverty": {
+                "Household received Food Stamps or SNAP in the past 12 months": 556,
+                "Household received Food Stamps or SNAP in the past 12 months | Income in the past 12 months below poverty level": 334,
+                "Household received Food Stamps or SNAP in the past 12 months | Income in the past 12 months at or above poverty level": 222,
+                "Household did not receive Food Stamps or SNAP in the past 12 months": 2532,
+                "Household did not receive Food Stamps or SNAP in the past 12 months | Income in the past 12 months below poverty level": 404,
+                "Household did not receive Food Stamps or SNAP in the past 12 months | Income in the past 12 months at or above poverty level": 2128
+            }
+        },
+        "tot_c_cur": 513148.3125
+    },
+    "serviceshed": "/opt/appdata/model_outputs/urban_cooling_model-14/aoi.geojson"
+}
