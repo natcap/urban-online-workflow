@@ -1,6 +1,6 @@
 name: Run Frontend Tests
 
-on: [push, workflow_dispatch]
+on: [push, workflow_dispatch, pull_request]
 
 defaults:
   run:
@@ -31,12 +31,6 @@ jobs:
         if: steps.nodemodules-cache.outputs.cache-hit != 'true'
         working-directory: frontend
         run: yarn install
-
-      - name: Create .env file
-        working-directory: frontend
-        run: |
-          echo VITE_MAPBOX_API_KEY=${{ secrets.VITE_MAPBOX_API_KEY }} >> .env
-          echo VITE_DAVES_MAPBOX_TOKEN=${{ secrets.VITE_DAVES_MAPBOX_TOKEN }} >> .env
 
       - name: Run tests
         working-directory: frontend
