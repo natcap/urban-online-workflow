@@ -8,7 +8,7 @@
     "build": "vite build",
     "serve": "vite preview",
     "test": "vitest run --dir tests --coverage",
-    "test-e2e": "vitest run tests/pptr.test.js"
+    "test-e2e": "vitest run --dir tests-e2e"
   },
   "dependencies": {
     "@blueprintjs/core": "^4.4.0",
