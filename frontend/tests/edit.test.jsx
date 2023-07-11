@@ -1,4 +1,4 @@
-import { test, expect } from 'vitest';
+import { test, expect, vi } from 'vitest';
 import React from 'react';
 import { render, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -7,6 +7,13 @@ import '@testing-library/jest-dom/extend-expect';
 import Edit from '../src/edit/edit';
 import STUDY_AREA from './fixtures/studyArea.json';
 import SCENARIOS from './fixtures/scenarios.json';
+import INVEST_RESULT from './fixtures/investResult.json';
+
+vi.mock('../src/requests', () => {
+  return {
+    getInvestResults: () => INVEST_RESULT,
+  };
+});
 
 function renderEdit(studyArea, scenarios, patternSamplingMode = false) {
   const screen = render(
