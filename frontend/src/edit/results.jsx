@@ -140,11 +140,12 @@ export default function Results(props) {
   );
 
   return (
-    <div id="results">
+    <div id="results" data-testid="results">
       <div className="panel" key={scenarioName}>
         <h4>
           In scenario,
           <HTMLSelect
+            aria-label="select scenario"
             onChange={(event) => changeScenario(event.currentTarget.value)}
             value={scenarioName || ''}
           >

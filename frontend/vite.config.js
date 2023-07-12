@@ -15,11 +15,7 @@ const CONFIG = {
   envDir: envDir,
   test: {
     globals: true,
-    environment: 'happy-dom',
-    coverage: { // https://github.com/bcoe/c8
-      all: true,
-      src: 'src',
-    },
+    environment: 'jsdom',
   },
 };
 

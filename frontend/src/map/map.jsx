@@ -40,6 +40,7 @@ import {
   satelliteLayer,
   streetMapLayer,
   labelLayer,
+  parcelLayer,
 } from './baseLayers';
 import {
   hoveredFeatureStyle,
@@ -108,21 +109,6 @@ const wktFormat = new WKT();
 const translate = new Translate({
   layers: [patternSamplerLayer],
 });
-
-const parcelLayer = new VectorTileLayer({
-  source: new VectorTileSource({
-    format: new MVT(),
-    // access API key loaded from your private .env file using dotenv package
-    // https://vitejs.dev/guide/env-and-mode.html#env-files
-    // REGRID docs suggest getting this url by first requesting
-    // https://tiles.regrid.com/api/v1/parcels?token=<token>&format=mvt
-    // but I don't see why we need to do that every time.
-    url: `https://tiles.regrid.com/api/v1/parcels/{z}/{x}/{y}.mvt?token=${import.meta.env.VITE_REGRID_TOKEN}`
-  }),
-  minZoom: 15, // don't display this layer below zoom level 14
-});
-parcelLayer.set('title', 'Parcels');
-parcelLayer.setZIndex(2);
 
 let selectedFeature = null;
 const selectionLayer = new VectorTileLayer({
@@ -493,6 +479,7 @@ export default function MapComponent(props) {
       <div className="layers-control">
         <Button
           onClick={toggleLayerControl}
+          aria-label="open map layers panel"
         >
           <Icon icon="layers" />
         </Button>

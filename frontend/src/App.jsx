@@ -64,33 +64,37 @@ export default function App() {
     setPatternSamplingMode((mode) => !mode);
   };
 
-  useEffect(async () => {
-    let SID = localStorage.getItem('sessionID');
-    if (SID) {
-      const session = await getSession(SID);
-      if (session && session.id) {
-        setSessionID(SID);
-        return;
+  useEffect(() => {
+    (async () => {
+      let SID = localStorage.getItem('sessionID');
+      if (SID) {
+        const session = await getSession(SID);
+        if (session && session.id) {
+          setSessionID(SID);
+          return;
+        }
       }
-    }
-    SID = await createSession();
-    setSessionID(SID);
-    localStorage.setItem('sessionID', SID);
+      SID = await createSession();
+      setSessionID(SID);
+      localStorage.setItem('sessionID', SID);
+    })();
   }, []);
 
-  useEffect(async () => {
-    if (sessionID) {
-      const studyAreas = await getStudyAreas(sessionID);
-      const areas = studyAreas.filter((area) => (
-        area.parcels.length > 0
-      ));
-      if (areas.length) {
-        setSavedStudyAreas(areas);
-        await switchStudyArea(areas[0].id); // TODO: switch to most recently created
-      } else {
-        await switchStudyArea(undefined); // undefined id creates new study area
+  useEffect(() => {
+    (async () => {
+      if (sessionID) {
+        const studyAreas = await getStudyAreas(sessionID);
+        const areas = studyAreas.filter((area) => (
+          area.parcels.length > 0
+        ));
+        if (areas.length) {
+          setSavedStudyAreas(areas);
+          await switchStudyArea(areas[0].id); // TODO: switch to most recently created
+        } else {
+          await switchStudyArea(undefined); // undefined id creates new study area
+        }
       }
-    }
+    })();
   }, [sessionID]);
 
   useEffect(() => {
