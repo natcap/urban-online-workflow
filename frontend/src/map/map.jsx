@@ -53,7 +53,6 @@ import {
 
 import { publicUrl } from '../utils';
 
-
 const BASE_LULC_URL = 'https://storage.googleapis.com/natcap-urban-online-datasets-public/NLCD_2016_epsg3857.tif'
 const GEOTIFF_SOURCE_OPTIONS = {
   allowFullFile: true,
@@ -64,7 +63,8 @@ const GEOTIFF_SOURCE_OPTIONS = {
     // capitalize 'Range'.
     // 'range': 'bytes=0-3356',
   }
-}
+};
+const SCENARIO_LAYER_GROUP_NAME = 'Scenarios';
 
 // JSTS utilities
 const ol3parser = new OL3Parser();
@@ -148,7 +148,7 @@ studyAreaLayer.setZIndex(3);
 
 const scenarioLayerGroup = new LayerGroup({});
 scenarioLayerGroup.set('type', 'scenario-group');
-scenarioLayerGroup.set('title', 'Scenarios:'); // displays in LayerPanel
+scenarioLayerGroup.set('title', SCENARIO_LAYER_GROUP_NAME);
 scenarioLayerGroup.setZIndex(1);
 
 const serviceshedLayer = new VectorLayer({
@@ -467,7 +467,7 @@ export default function MapComponent(props) {
   useEffect(() => {
     if (patternSamplerLayer) {
       if (patternSamplingMode) {
-        setVisibility('Scenarios:', false);
+        setVisibility(SCENARIO_LAYER_GROUP_NAME, false);
         switchBasemap('Landcover');
         // when pattern sampling mode is turned on,
         // recenter the sampler box in the current view
