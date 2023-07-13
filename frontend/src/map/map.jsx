@@ -211,7 +211,7 @@ export default function MapComponent(props) {
    * @return {undefined}
    */
   const setVisibility = (title, visible) => {
-    // Specically use getLayers instead of getAllLayers
+    // Use getLayers instead of getAllLayers
     // so that this can work for Layers and LayerGroups.
     // But note this will not reach Layers w/in Groups.
     map.getLayers().forEach(lyr => {
@@ -219,7 +219,12 @@ export default function MapComponent(props) {
         lyr.setVisible(visible);
       }
     });
+    setMapLayers();
   };
+
+  // const toggleLayer = (title) => {
+  //   set
+  // }
 
   const toggleLayerControl = () => {
     if (showLayerControl) {
@@ -235,6 +240,7 @@ export default function MapComponent(props) {
         layer.setVisible(layer.get('title') === title);
       }
     });
+    setMapLayers();
   };
 
   const switchScenario = (title) => {
@@ -243,6 +249,7 @@ export default function MapComponent(props) {
         layer.setVisible(layer.get('title') === title)
       }
     });
+    setMapLayers();
   };
 
   const clearSelection = () => {
@@ -458,6 +465,7 @@ export default function MapComponent(props) {
   useEffect(() => {
     if (patternSamplerLayer) {
       if (patternSamplingMode) {
+        setVisibility('Scenarios:', false);
         switchBasemap('Landcover');
         // when pattern sampling mode is turned on,
         // recenter the sampler box in the current view

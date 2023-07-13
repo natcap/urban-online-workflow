@@ -7,20 +7,19 @@ import {
 } from '@blueprintjs/core';
 
 function LayerCheckbox(props) {
-  const { label, setVisibility, className } = props;
-  const [checked, setChecked] = useState(true);
-
-  const handleChange = (event) => {
-    setChecked(event.target.checked);
-    setVisibility(label, event.target.checked);
-  };
+  const {
+    label,
+    className,
+    checked,
+    toggle
+  } = props;
 
   return (
     <Checkbox
       className={className}
       checked={checked}
       label={label}
-      onChange={handleChange}
+      onChange={toggle}
     />
   );
 }
@@ -102,7 +101,8 @@ export default function LayerPanel(props) {
           className="subheader"
           key={title}
           label={title}
-          setVisibility={setVisibility}
+          checked={isVisible}
+          toggle={() => setVisibility(title, !isVisible)}
         />
       );
     } else {
@@ -110,7 +110,8 @@ export default function LayerPanel(props) {
         <LayerCheckbox
           key={title}
           label={title}
-          setVisibility={setVisibility}
+          checked={isVisible}
+          toggle={() => setVisibility(title, !isVisible)}
         />
       );
     }
@@ -119,19 +120,6 @@ export default function LayerPanel(props) {
   return (
     <div className="layers-panel">
       {checkboxes}
-      <p
-        htmlFor="basemaps-group"
-        className="subheader"
-      >
-        Basemaps:
-      </p>
-      <RadioGroup
-        id="basemaps-group"
-        onChange={handleChangeBasemap}
-        selectedValue={basemap}
-      >
-        {basemaps}
-      </RadioGroup>
       {
         (scenarios.length)
           ? (
@@ -147,6 +135,19 @@ export default function LayerPanel(props) {
           )
           : <div />
       }
+      <p
+        htmlFor="basemaps-group"
+        className="subheader"
+      >
+        Basemaps:
+      </p>
+      <RadioGroup
+        id="basemaps-group"
+        onChange={handleChangeBasemap}
+        selectedValue={basemap}
+      >
+        {basemaps}
+      </RadioGroup>
     </div>
   );
 }
