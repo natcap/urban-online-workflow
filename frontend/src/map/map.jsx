@@ -204,6 +204,30 @@ export default function MapComponent(props) {
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
 
+  /** State updater for map layers.
+   *
+   * Map layers are managed by the map object rather than react state,
+   * but some data is used by react components so we move those
+   * attributes into react state here.
+   * */
+  const setMapLayers = () => {
+    const lyrs = map.getAllLayers().map(lyr => (
+      [lyr.get('type'), lyr.get('title'), lyr.getVisible()]
+    ));
+    // LayerGroups are excluded from getAllLayers, but
+    // we want to include the Group in the LayerPanel
+    // in addition to it's children, as toggling the Group
+    // is a convenient way to show/hide all children.
+    lyrs.push(
+      [
+        scenarioLayerGroup.get('type'),
+        scenarioLayerGroup.get('title'),
+        scenarioLayerGroup.getVisible(),
+      ],
+    );
+    setLayers(lyrs);
+  };
+
   /**
    * Click handler for layers controlled by checkboxes (not radios).
    * @param  {string}  title - title of layer to show/hide
@@ -220,18 +244,6 @@ export default function MapComponent(props) {
       }
     });
     setMapLayers();
-  };
-
-  // const toggleLayer = (title) => {
-  //   set
-  // }
-
-  const toggleLayerControl = () => {
-    if (showLayerControl) {
-      setShowLayerControl(false);
-    } else {
-      setShowLayerControl(true);
-    }
   };
 
   const switchBasemap = (title) => {
@@ -252,30 +264,20 @@ export default function MapComponent(props) {
     setMapLayers();
   };
 
+  const toggleLayerControl = () => {
+    if (showLayerControl) {
+      setShowLayerControl(false);
+    } else {
+      setShowLayerControl(true);
+    }
+  };
+
   const clearSelection = () => {
     // It feels kinda weird to have selectedFeature outside
     // React scope, but it works.
     selectedFeature = null;
     selectionLayer.changed();
     setSelectedParcel(null);
-  };
-
-  const setMapLayers = () => {
-    const lyrs = map.getAllLayers().map(lyr => (
-      [lyr.get('type'), lyr.get('title'), lyr.getVisible()]
-    ));
-    // LayerGroups are excluded from getAllLayers, but
-    // we want to include the Group in the LayerPanel
-    // in addition to it's children, as toggling the Group
-    // is a convenient way to show/hide all children.
-    lyrs.push(
-      [
-        scenarioLayerGroup.get('type'),
-        scenarioLayerGroup.get('title'),
-        scenarioLayerGroup.getVisible()
-      ]
-    );
-    setLayers(lyrs);
   };
 
   const zoomToStudyArea = () => {
