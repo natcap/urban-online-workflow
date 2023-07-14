@@ -1,6 +1,6 @@
 import { test, expect, vi } from 'vitest';
 import React from 'react';
-import { render, waitFor, within } from '@testing-library/react';
+import { render, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom/extend-expect';
 
@@ -25,6 +25,7 @@ vi.mock('../src/requests', () => {
     getJobStatus: () => 'success',
     runInvest: () => JOBS,
     getInvestResults: () => INVEST_RESULT,
+    getPatterns: () => null,
   };
 });
 
@@ -50,12 +51,15 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+function renderAppWithResults() {
+  const screen = render(<App />);
+  return screen;
+}
+
 test('results panel is linked to map layers', async () => {
   const user = userEvent.setup();
-  const screen = render(<App />);
+  const screen = renderAppWithResults();
 
-  const runBtn = await screen.findByRole('button', { name: 'Evaluate Impacts' });
-  await user.click(runBtn);
   const resultsTab = await screen.findByRole('tab', { name: 'results' });
   expect(resultsTab).toBeEnabled();
 
@@ -76,4 +80,25 @@ test('results panel is linked to map layers', async () => {
   await user.selectOptions(scenarioSelect, 'b1');
   const radioB = await screen.findByRole('radio', { name: 'b1' });
   expect(radioB).toBeChecked();
+});
+
+test('wallpapering toggle is linked to map layers', async () => {
+  const user = userEvent.setup();
+  const screen = renderAppWithResults();
+
+  // Scenarios layers should be enabled
+  const layersBtn = await screen.findByRole('button', { name: 'open map layers panel' });
+  await user.click(layersBtn);
+  const scenarioCheckbox = await screen.getByRole('checkbox', { name: /scenarios/i });
+  expect(scenarioCheckbox).toBeChecked();
+
+  const wallpaperRadio = await screen.findByRole('radio', { name: 'wallpaper' });
+  await user.click(wallpaperRadio);
+  const wallpaperSwitch = await screen.findByRole('checkbox', { name: 'Create new pattern' });
+  await user.click(wallpaperSwitch);
+
+  // During wallpapering, turn off scenarios in order to display base LULC
+  expect(scenarioCheckbox).not.toBeChecked();
+  const basemapRadio = await screen.findByRole('radio', { name: 'Landcover' });
+  expect(basemapRadio).toBeChecked();
 });

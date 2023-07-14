@@ -53,7 +53,6 @@ import {
 
 import { publicUrl } from '../utils';
 
-
 const BASE_LULC_URL = 'https://storage.googleapis.com/natcap-urban-online-datasets-public/NLCD_2016_epsg3857.tif'
 const GEOTIFF_SOURCE_OPTIONS = {
   allowFullFile: true,
@@ -64,7 +63,8 @@ const GEOTIFF_SOURCE_OPTIONS = {
     // capitalize 'Range'.
     // 'range': 'bytes=0-3356',
   }
-}
+};
+const SCENARIO_LAYER_GROUP_NAME = 'Scenarios';
 
 // JSTS utilities
 const ol3parser = new OL3Parser();
@@ -148,7 +148,7 @@ studyAreaLayer.setZIndex(3);
 
 const scenarioLayerGroup = new LayerGroup({});
 scenarioLayerGroup.set('type', 'scenario-group');
-scenarioLayerGroup.set('title', 'Scenarios:'); // displays in LayerPanel
+scenarioLayerGroup.set('title', SCENARIO_LAYER_GROUP_NAME);
 scenarioLayerGroup.setZIndex(1);
 
 const serviceshedLayer = new VectorLayer({
@@ -204,55 +204,12 @@ export default function MapComponent(props) {
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
 
-  /**
-   * Click handler for layers controlled by checkboxes (not radios).
-   * @param  {string}  title - title of layer to show/hide
-   * @param  {Boolean} visible
-   * @return {undefined}
-   */
-  const setVisibility = (title, visible) => {
-    // Specically use getLayers instead of getAllLayers
-    // so that this can work for Layers and LayerGroups.
-    // But note this will not reach Layers w/in Groups.
-    map.getLayers().forEach(lyr => {
-      if (lyr.get('title') === title) {
-        lyr.setVisible(visible);
-      }
-    });
-  };
-
-  const toggleLayerControl = () => {
-    if (showLayerControl) {
-      setShowLayerControl(false);
-    } else {
-      setShowLayerControl(true);
-    }
-  };
-
-  const switchBasemap = (title) => {
-    map.getAllLayers().forEach((layer) => {
-      if (layer.get('type') === 'base') {
-        layer.setVisible(layer.get('title') === title);
-      }
-    });
-  };
-
-  const switchScenario = (title) => {
-    map.getAllLayers().forEach((layer) => {
-      if (layer.get('type') === 'scenario') {
-        layer.setVisible(layer.get('title') === title)
-      }
-    });
-  };
-
-  const clearSelection = () => {
-    // It feels kinda weird to have selectedFeature outside
-    // React scope, but it works.
-    selectedFeature = null;
-    selectionLayer.changed();
-    setSelectedParcel(null);
-  };
-
+  /** State updater for map layers.
+   *
+   * Map layers are managed by the map object rather than react state,
+   * but some data is used by react components so we move those
+   * attributes into react state here.
+   * */
   const setMapLayers = () => {
     const lyrs = map.getAllLayers().map(lyr => (
       [lyr.get('type'), lyr.get('title'), lyr.getVisible()]
@@ -265,10 +222,62 @@ export default function MapComponent(props) {
       [
         scenarioLayerGroup.get('type'),
         scenarioLayerGroup.get('title'),
-        scenarioLayerGroup.getVisible()
-      ]
+        scenarioLayerGroup.getVisible(),
+      ],
     );
     setLayers(lyrs);
+  };
+
+  /**
+   * Click handler for layers controlled by checkboxes (not radios).
+   * @param  {string}  title - title of layer to show/hide
+   * @param  {Boolean} visible
+   * @return {undefined}
+   */
+  const setVisibility = (title, visible) => {
+    // Use getLayers instead of getAllLayers
+    // so that this can work for Layers and LayerGroups.
+    // But note this will not reach Layers w/in Groups.
+    map.getLayers().forEach(lyr => {
+      if (lyr.get('title') === title) {
+        lyr.setVisible(visible);
+      }
+    });
+    setMapLayers();
+  };
+
+  const switchBasemap = (title) => {
+    map.getAllLayers().forEach((layer) => {
+      if (layer.get('type') === 'base') {
+        layer.setVisible(layer.get('title') === title);
+      }
+    });
+    setMapLayers();
+  };
+
+  const switchScenario = (title) => {
+    map.getAllLayers().forEach((layer) => {
+      if (layer.get('type') === 'scenario') {
+        layer.setVisible(layer.get('title') === title)
+      }
+    });
+    setMapLayers();
+  };
+
+  const toggleLayerControl = () => {
+    if (showLayerControl) {
+      setShowLayerControl(false);
+    } else {
+      setShowLayerControl(true);
+    }
+  };
+
+  const clearSelection = () => {
+    // It feels kinda weird to have selectedFeature outside
+    // React scope, but it works.
+    selectedFeature = null;
+    selectionLayer.changed();
+    setSelectedParcel(null);
   };
 
   const zoomToStudyArea = () => {
@@ -458,6 +467,7 @@ export default function MapComponent(props) {
   useEffect(() => {
     if (patternSamplerLayer) {
       if (patternSamplingMode) {
+        setVisibility(SCENARIO_LAYER_GROUP_NAME, false);
         switchBasemap('Landcover');
         // when pattern sampling mode is turned on,
         // recenter the sampler box in the current view

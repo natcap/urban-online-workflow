@@ -47,8 +47,10 @@ export default function WallpaperingMenu(props) {
     return newPatterns;
   };
 
-  useEffect(async () => {
-    await updatePatterns();
+  useEffect(() => {
+    (async () => {
+      await updatePatterns();
+    })();
   }, []);
 
   useInterval(async () => {
