@@ -1,0 +1,18 @@
+{
+  "11": { "name": "Open Water", "color": "#3690eb" },
+  "12": { "name": "Perennial Ice/Snow", "color": "#d1def8" },
+  "21": { "name": "Developed, Open Space", "color": "#EBC7E6" },
+  "22": { "name": "Developed, Low Intensity", "color": "#BFACE2" },
+  "23": { "name": "Developed, Medium Intensity", "color": "#A084DC" },
+  "24": { "name": "Developed, High Intensity", "color": "#645CBB" },
+  "31": { "name": "Barren Land (Rock/Sand/Clay)", "color": "#b3ac9f" },
+  "41": { "name": "Deciduous Forest", "color": "#A6BB8D" },
+  "43": { "name": "Mixed Forest", "color": "#61876E" },
+  "42": { "name": "Evergreen Forest", "color": "#3C6255" },
+  "52": { "name": "Shrub/Scrub", "color": "#EAE7B1" },
+  "71": { "name": "Grassland/Herbaceous", "color": "#FFD95A" },
+  "81": { "name": "Pasture/Hay", "color": "#f7bb14" },
+  "82": { "name": "Cultivated Crops", "color": "#C07F00" },
+  "90": { "name": "Woody Wetlands", "color": "#89ccb2" },
+  "95": { "name": "Emergent Herbaceous Wetlands", "color": "#4393ab" }
+}

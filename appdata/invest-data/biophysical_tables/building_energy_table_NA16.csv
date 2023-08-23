@@ -1,0 +1,9 @@
+,lucode,building type,kwh_per_cdd,kwh_per_hdd,cost_per_kwh,bioregion,bio_desc
+120,80,residential 75,1.35,1.65,0.706666667,NA16,Cascades Mountain Forests & Valleys (NA16)
+121,81,residential 75,1.35,1.65,0.706666667,NA16,Cascades Mountain Forests & Valleys (NA16)
+122,82,commercial 75,27.0,33.0,0.8325,NA16,Cascades Mountain Forests & Valleys (NA16)
+123,83,industrial 75,27.0,33.0,0.62,NA16,Cascades Mountain Forests & Valleys (NA16)
+124,84,mixed use 75,1.35,1.65,0.769583333,NA16,Cascades Mountain Forests & Valleys (NA16)
+125,85,mixed use 75,1.35,1.65,0.769583333,NA16,Cascades Mountain Forests & Valleys (NA16)
+126,86,commercial 75,27.0,33.0,0.8325,NA16,Cascades Mountain Forests & Valleys (NA16)
+127,88,commercial 100,36.0,44.0,0.8325,NA16,Cascades Mountain Forests & Valleys (NA16)

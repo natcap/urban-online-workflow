@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import {
   Checkbox,
@@ -7,19 +7,19 @@ import {
 } from '@blueprintjs/core';
 
 function LayerCheckbox(props) {
-  const { layer, label, setVisibility } = props;
-  const [checked, setChecked] = useState(true);
-
-  const handleChange = (event) => {
-    setChecked(event.target.checked);
-    setVisibility(layer, event.target.checked);
-  };
+  const {
+    label,
+    className,
+    checked,
+    toggle
+  } = props;
 
   return (
     <Checkbox
+      className={className}
       checked={checked}
       label={label}
-      onChange={handleChange}
+      onChange={toggle}
     />
   );
 }
@@ -30,8 +30,30 @@ export default function LayerPanel(props) {
     setVisibility,
     show,
     switchBasemap,
-    basemap,
+    switchScenario,
+    selectedScenario,
   } = props;
+
+  const [scenario, setScenario] = useState(null);
+  const [basemap, setBasemap] = useState(null);
+
+  useEffect(() => {
+    layers.forEach(([type, title, isVisible]) => {
+      if (type === 'base') {
+        if (isVisible) {
+          setBasemap(title);
+        }
+      } else if (type === 'scenario') {
+        if (isVisible) {
+          setScenario(title);
+        }
+      }
+    });
+  }, [layers]);
+
+  useEffect(() => {
+    if (selectedScenario) { setScenario(selectedScenario); }
+  }, [selectedScenario]);
 
   if (!show) {
     return null;
@@ -40,42 +62,91 @@ export default function LayerPanel(props) {
   const handleChangeBasemap = (event) => {
     const title = event.target.value;
     switchBasemap(title);
+    setBasemap(title);
+  };
+
+  const handleChangeScenario = (event) => {
+    const title = event.target.value;
+    switchScenario(title);
+    setScenario(title);
   };
 
   const checkboxes = [];
-  const radios = [];
-  layers.forEach((layer) => {
-    if (layer.get('title') === undefined) {
+  const basemaps = [];
+  const scenarios = [];
+  let scenarioGroupCheckbox;
+  layers.forEach(([type, title, isVisible]) => {
+    if (!title) {
       return;
     }
-    if (layer.get('type') === 'base') {
-      const title = layer.get('title');
-      radios.push(
+    if (type === 'scenario') {
+      scenarios.push(
         <Radio
           key={title}
           label={title}
           value={title}
         />
       );
+    } else if (type === 'base') {
+      basemaps.push(
+        <Radio
+          key={title}
+          label={title}
+          value={title}
+        />
+      );
+    } else if (type === 'scenario-group') {
+      scenarioGroupCheckbox = (
+        <LayerCheckbox
+          className="subheader"
+          key={title}
+          label={title}
+          checked={isVisible}
+          toggle={() => setVisibility(title, !isVisible)}
+        />
+      );
     } else {
       checkboxes.push(
         <LayerCheckbox
-          key={layer.get('title')}
-          layer={layer}
-          label={layer.get('title')}
-          setVisibility={setVisibility}
+          key={title}
+          label={title}
+          checked={isVisible}
+          toggle={() => setVisibility(title, !isVisible)}
         />
       );
     }
   });
+
   return (
     <div className="layers-panel">
       {checkboxes}
+      {
+        (scenarios.length)
+          ? (
+            <>
+              {scenarioGroupCheckbox}
+              <RadioGroup
+                onChange={handleChangeScenario}
+                selectedValue={scenario}
+              >
+                {scenarios}
+              </RadioGroup>
+            </>
+          )
+          : <div />
+      }
+      <p
+        htmlFor="basemaps-group"
+        className="subheader"
+      >
+        Basemaps:
+      </p>
       <RadioGroup
+        id="basemaps-group"
         onChange={handleChangeBasemap}
         selectedValue={basemap}
       >
-        {radios}
+        {basemaps}
       </RadioGroup>
     </div>
   );

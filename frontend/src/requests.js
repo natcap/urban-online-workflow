@@ -1,19 +1,7 @@
+import patternsTable from './edit/patternsTable'; // TODO: this is temp
+
 const apiBaseURL = 'http://127.0.0.1:8000';
 
-/**
- * Convert an array of coordinate pairs to WKT representation.
- *
- * @param  {array[array[number]]} coords - an array of two-element arrays
- *  representing [lon, lat] coordinate pairs that outline a polygon
- * @return {string} Well-Known Text representation of the polygon
- */
-function polygonCoordsToWKT(coords) {
-  return `POLYGON((${
-    coords.map(
-      (lonLat) => `${lonLat[0]} ${lonLat[1]}`,
-    ).join(', ')
-  }))`;
-}
 
 /**
  * Create a new session and return its id.
@@ -33,14 +21,30 @@ export async function createSession() {
 }
 
 /**
- * Get all scenarios associated with a given session.
+ * Get an existing session.
  *
- * @param  {integer} sessionID - id of the session to get scenarios for
- * @return {array[object]} array of scenario objects
+ * @return {object}
  */
-export async function getScenarios(sessionID) {
+export async function getSession(sessionID) {
   return (
-    window.fetch(`${apiBaseURL}/scenarios/${sessionID}`, {
+    window.fetch(`${apiBaseURL}/session/${sessionID}`, {
+      method: 'get',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
+}
+
+/**
+ * Get all study areas associated with a given session.
+ *
+ * @param  {integer} sessionID - id of the session to get study areas for
+ * @return {array[object]} array of study area objects
+ */
+export async function getStudyAreas(sessionID) {
+  return (
+    window.fetch(`${apiBaseURL}/study_areas/${sessionID}`, {
       method: 'get',
     })
       .then((response) => response.json())
@@ -49,14 +53,67 @@ export async function getScenarios(sessionID) {
 }
 
 /**
- * Get a scenario from its id.
+ * Get a study area.
  *
- * @param  {integer} id - id of the scenario to retrieve
- * @return {object} scenario object
+ * @param  {integer} sessionID - id of the session to get study areas for
+ * @return {array[object]} array of study area objects
  */
-export async function getScenario(id) {
+export async function getStudyArea(sessionID, studyAreaID) {
   return (
-    window.fetch(`${apiBaseURL}/scenario/${id}`, {
+    window.fetch(`${apiBaseURL}/study_area/${sessionID}/${studyAreaID}`, {
+      method: 'get',
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
+}
+
+/**
+ * Create a new study area
+ *
+ * @return {object} schemas.StudyArea
+ */
+export async function createStudyArea(sessionID, name) {
+  return (
+    window.fetch(`${apiBaseURL}/study_area/${sessionID}`, {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name }),
+    })
+      .then((response) => response.json())
+      .then((json) => json)
+      .catch((error) => console.log(error))
+  );
+}
+
+/**
+ * Update a study area.
+ *
+ * @param {integer} sessionID - id of the session to get study areas for
+ * @param {object} studyArea - as defined by schemas.StudyArea
+ * @return {array[object]} array of study area objects
+ */
+export async function updateStudyArea(sessionID, studyArea) {
+  return (
+    window.fetch(`${apiBaseURL}/study_area/${sessionID}`, {
+      method: 'put',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(studyArea),
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
+}
+
+/**
+ * Get all scenarios for a study area.
+ *
+ * @param  {integer} studyAreaID - id of the study area
+ * @return {array} of scenario objects
+ */
+export async function getScenarios(studyAreaID) {
+  return (
+    window.fetch(`${apiBaseURL}/scenario/${studyAreaID}`, {
       method: 'get',
     })
       .then((response) => response.json())
@@ -67,17 +124,22 @@ export async function getScenario(id) {
 /**
  * Create a new scenario.
  *
- * @param  {integer} sessionID - id of the current session
+ * @param  {integer} studyAreaID - id of the active study area
  * @param  {string} name - name to give the new scenario
  * @param  {string} description - description of the new scenario
+ * @param  {string} operation - 'wallpaper' or 'parcel_fill'
  * @return {integer} scenario id
  */
-export async function makeScenario(sessionID, name, description) {
+export async function createScenario(studyAreaID, name, operation) {
+  const payload = JSON.stringify({
+    name: name,
+    operation: operation,
+  });
   return (
-    window.fetch(`${apiBaseURL}/scenario/${sessionID}`, {
+    window.fetch(`${apiBaseURL}/scenario/${studyAreaID}`, {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name, description: description }),
+      body: payload,
     })
       .then((response) => response.json())
       .then((json) => json.scenario_id)
@@ -103,41 +165,20 @@ export async function getJobStatus(jobID) {
 }
 
 /**
- * Get results of a job if it's succeeded, or its status otherwise.
- *
- * @param  {integer} jobID - id of the job to check
- * @param  {integer} scenarioID - id of the scenario associated with the job
- * @return {object} results object if job has succeeded, otherwise an object
- *  with a 'status' attribute (one of 'pending', 'running', 'failed')
- */
-export async function getJobResults(jobID, scenarioID) {
-  return (
-    window.fetch(`${apiBaseURL}/scenario/result/${jobID}/${scenarioID}`, {
-      method: 'get',
-    })
-      .then((response) => response.json())
-      .catch((error) => console.log(error))
-  );
-}
-
-/**
  * Apply a wallpaper pattern to a given polygon.
  *
- * @param  {array[array[number]]} targetCoords - an array of two-element arrays
- *  representing [lon, lat] coordinate pairs outlining the polygon to wallpaper
  * @param  {integer} patternID - id of the pattern to apply to the area
  * @param  {integer} scenarioID - id of the scenario to associate with this
  *  lulc modification
  * @return {integer} id of the job that will create the modified LULC raster
  */
-export async function doWallpaper(targetCoords, patternID, scenarioID) {
+export async function lulcWallpaper(patternID, scenarioID) {
   return (
     window.fetch(`${apiBaseURL}/wallpaper`, {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         scenario_id: scenarioID,
-        target_parcel_wkt: polygonCoordsToWKT(targetCoords),
         pattern_id: patternID,
       }),
     })
@@ -150,21 +191,18 @@ export async function doWallpaper(targetCoords, patternID, scenarioID) {
 /**
  * Fill a given polygon with one LULC class.
  *
- * @param  {array[array[number]]} targetCoords - an array of two-element arrays
- *  representing [lon, lat] coordinate pairs outlining the polygon to fill
  * @param  {integer} lulcCode - code of the LULC class to fill the polygon with
  * @param  {integer} scenarioID - id of the scenario to associate with this
  *  lulc modification
  * @return {integer} id of the job that will create the modified LULC raster
  */
-export async function convertToSingleLULC(targetCoords, lulcCode, scenarioID) {
+export async function lulcFill(lulcCode, scenarioID) {
   return (
-    window.fetch(`${apiBaseURL}/parcel_fill`, {
+    window.fetch(`${apiBaseURL}/lulc_fill`, {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         scenario_id: scenarioID,
-        target_parcel_wkt: polygonCoordsToWKT(targetCoords),
         lulc_class: lulcCode,
       }),
     })
@@ -175,41 +213,61 @@ export async function convertToSingleLULC(targetCoords, lulcCode, scenarioID) {
 }
 
 /**
- * Get stats about the baseline LULC on a given parcel.
+ * Crop the LULC to create a 'baseline' scenario
  *
- * @param  {array[array[number]]} targetCoords - an array of two-element arrays
- *  representing [lon, lat] coordinate pairs outlining the parcel to query
- * @return {[object]} ? - fill in when this endpoint is working
+ * @param  {integer} scenarioID - id of the scenario to associate with this
+ *  lulc modification
+ * @return {integer} id of the job that will create the modified LULC raster
  */
-export async function getLulcTableForParcel(sessionID, parcelCoords) {
-  // In general, this table will be built as part of a
-  // wallpapering action, but there is the case where we
-  // want to see this table for a parcel we select, before
-  // doing any wallpapering. The values will come from the
-  // baseline LULC.
-
-  // TODO: re-instate this real fetch once the endpoint is ready,
-  // https://github.com/natcap/urban-online-workflow/issues/42
-
+export async function lulcCrop(scenarioID) {
   return (
-    window.fetch(`${apiBaseURL}/stats_under_parcel`, {
+    window.fetch(`${apiBaseURL}/lulc_crop/${scenarioID}`, {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then((response) => response.json())
+      .then((json) => json.job_id)
+      .catch((error) => console.log(error))
+  );
+}
+
+/**
+ * Add parcel to a study area.
+ */
+export async function addParcel(sessionID, studyAreaID, parcelID, address, wkt) {
+  return (
+    window.fetch(`${apiBaseURL}/add_parcel`, {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         session_id: sessionID,
-        target_parcel_wkt: polygonCoordsToWKT(parcelCoords),
+        study_area_id: studyAreaID,
+        parcel_id: parcelID,
+        address: address,
+        wkt: wkt,
       }),
     })
       .then((response) => response.json())
-      .then((json) => console.log(json))
       .catch((error) => console.log(error))
   );
-  // const lulcTable = {
-  //   'Developed, Open Space': 24,
-  //   'Developed, Low Intensity': 8,
-  //   'Shrub/Scrub': 4,
-  // };
-  // return Promise.resolve(lulcTable);
+}
+
+/**
+ * Remove parcel from a study area.
+ */
+export async function removeParcel(parcelID, studyAreaID) {
+  return (
+    window.fetch(`${apiBaseURL}/remove_parcel`, {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        parcel_id: parcelID,
+        study_area_id: studyAreaID
+      }),
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
 }
 
 /**
@@ -225,6 +283,7 @@ export async function getPatterns() {
       .then((response) => response.json())
       .catch((error) => console.log(error))
   );
+  // return Promise.resolve(patternsTable);
 }
 
 /**
@@ -248,7 +307,28 @@ export async function createPattern(wkt, label, sessionID) {
       }),
     })
       .then((response) => response.json())
-      .then((json) => json.pattern_id)
+      .catch((error) => console.log(error))
+  );
+}
+
+export async function runInvest(scenarioID) {
+  return (
+    window.fetch(`${apiBaseURL}/invest/${scenarioID}`, {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
+}
+
+export async function getInvestResults(scenarioID) {
+  return (
+    window.fetch(`${apiBaseURL}/invest/result/${scenarioID}`, {
+      method: 'get',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then((response) => response.json())
       .catch((error) => console.log(error))
   );
 }

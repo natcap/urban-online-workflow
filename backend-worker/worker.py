@@ -3,6 +3,7 @@ import json
 import logging
 import math
 import os
+import random
 import shutil
 import tempfile
 import time
@@ -19,25 +20,39 @@ from osgeo import ogr
 from osgeo import osr
 from PIL import Image
 
+from natcap.invest import carbon
+from natcap.invest import urban_cooling_model
+from natcap.invest import utils
+
+import invest_args
+import invest_results
+
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
 
-POLLING_INTERVAL_S = 1
+
+POLLING_INTERVAL_S = 3
+
 DEFAULT_GTIFF_CREATION_TUPLE_OPTIONS = ('GTIFF', (
     'TILED=YES', 'BIGTIFF=YES', 'COMPRESS=LZW',
     'BLOCKXSIZE=256', 'BLOCKYSIZE=256'))
-NLCD_NODATA = -1
-NLCD_DTYPE = gdal.GDT_UInt16
+
 _WEB_MERCATOR_SRS = osr.SpatialReference()
 _WEB_MERCATOR_SRS.ImportFromEPSG(3857)
 _WEB_MERCATOR_SRS.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+WEB_MERCATOR_SRS_WKT = _WEB_MERCATOR_SRS.ExportToWkt()
 _ALBERS_EQUAL_AREA_SRS = osr.SpatialReference()
+_ALBERS_EQUAL_AREA_SRS.ImportFromProj4(  # more terse than WKT
+    '+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0 '
+    '+datum=WGS84 +units=m +no_defs')
+_ALBERS_EQUAL_AREA_SRS.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
 
+NLCD_FILENAME = 'NLCD_2016_epsg3857.tif'
 NLCD_RASTER_PATHS = {
-    'vsigs': '/vsigs/natcap-urban-online-datasets/NLCD_2016.tif',
-    'docker': '/opt/appdata/NLCD_2016.tif',
+    'vsigs': f'/vsigs/natcap-urban-online-datasets-public/{NLCD_FILENAME}',
+    'docker': f'/opt/appdata/{NLCD_FILENAME}',
     'local': os.path.join(os.path.dirname(__file__), '..', 'appdata',
-                          'NLCD_2016.tif')
+                          NLCD_FILENAME)
 }
 _NLCD_RASTER_INFO = None
 for NLCD_RASTER_PATH in NLCD_RASTER_PATHS.values():
@@ -46,35 +61,74 @@ for NLCD_RASTER_PATH in NLCD_RASTER_PATHS.values():
     except ValueError:
         LOGGER.info(f"Could not open raster path {NLCD_RASTER_PATH}")
 if _NLCD_RASTER_INFO is None:
-    raise AssertionError("Could not open NLCD_2016.tif at any known locations")
+    raise AssertionError(
+        f"Could not open {NLCD_FILENAME} at any known locations")
 LOGGER.info(f"Using NLCD at {NLCD_RASTER_PATH}")
+NLCD_COLOR_TABLE_PATH = os.path.join(
+    os.path.dirname(NLCD_RASTER_PATH), 'NLCD_2016.lulcdata.json')
+
+with open(NLCD_COLOR_TABLE_PATH, 'r') as file:
+    table = json.loads(file.read())
+NLCD_COLORS = {int(lulc_code): data['color'] for lulc_code, data
+               in table.items()}
 
 NLCD_SRS_WKT = _NLCD_RASTER_INFO['projection_wkt']
-_ALBERS_EQUAL_AREA_SRS.ImportFromWkt(NLCD_SRS_WKT)
-_ALBERS_EQUAL_AREA_SRS.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+_NLCD_SRS = osr.SpatialReference()
+_NLCD_SRS.ImportFromWkt(NLCD_SRS_WKT)
+assert _NLCD_SRS.IsSame(_WEB_MERCATOR_SRS), (
+    "NLCD must have been reprojected to web mercator")
+
+NLCD_NODATA = _NLCD_RASTER_INFO['nodata'][0]
+NLCD_DTYPE = _NLCD_RASTER_INFO['datatype']
 WEB_MERCATOR_TO_ALBERS_EQ_AREA = osr.CreateCoordinateTransformation(
     _WEB_MERCATOR_SRS, _ALBERS_EQUAL_AREA_SRS)
 ALBERS_EQ_AREA_TO_WEB_MERCATOR = osr.CreateCoordinateTransformation(
     _ALBERS_EQUAL_AREA_SRS, _WEB_MERCATOR_SRS)
+OGR_GEOMETRY_TYPES = {
+    'Polygon': ogr.wkbPolygon,
+    'MultiPolygon': ogr.wkbMultiPolygon,
+}
 
 # NLCD raster attributes copied in by hand from gdalinfo
 NLCD_ORIGIN_X, _, _, NLCD_ORIGIN_Y, _, _ = _NLCD_RASTER_INFO['geotransform']
 PIXELSIZE_X, PIXELSIZE_Y = _NLCD_RASTER_INFO['pixel_size']
-NLCD_COLORS = {}  # update this dict later in file once function is defined.
+
+CARBON = 'carbon'
+URBAN_COOLING = 'urban_cooling_model'
+INVEST_MODELS = {
+    URBAN_COOLING: {
+        "api": urban_cooling_model,
+        "build_args": invest_args.urban_cooling,
+        "derive_results": invest_results.urban_cooling,
+    },
+    CARBON: {
+        "api": carbon,
+        "build_args": invest_args.carbon,
+        "derive_results": invest_results.carbon,
+    }
+}
+LARGEST_SERVICESHED = 2230  # meters https://github.com/natcap/urban-online-workflow/issues/79
+
+# Quiet logging
+logging.getLogger(f'pygeoprocessing').setLevel(logging.WARNING)
+logging.getLogger(f'taskgraph').setLevel(logging.WARNING)
+
 
 STATUS_SUCCESS = 'success'
-STATUS_FAILURE = 'failed'
-JOBTYPE_FILL = 'parcel_fill'
+STATUS_FAILED = 'failed'
+JOBTYPE_FILL = 'lulc_fill'
 JOBTYPE_WALLPAPER = 'wallpaper'
+JOBTYPE_CROP = 'lulc_crop'
 JOBTYPE_PARCEL_STATS = 'stats_under_parcel'
-JOBTYPE_LULC_CLASSNAMES = 'raster_classnames'
 JOBTYPE_PATTERN_THUMBNAIL = 'pattern_thumbnail'
+JOBTYPE_INVEST = 'invest'
 ENDPOINTS = {
     JOBTYPE_FILL: 'scenario',
     JOBTYPE_WALLPAPER: 'scenario',
+    JOBTYPE_CROP: 'scenario',
     JOBTYPE_PARCEL_STATS: 'parcel_stats',
-    JOBTYPE_LULC_CLASSNAMES: 'raster_classnames',  # TODO: fixme!
     JOBTYPE_PATTERN_THUMBNAIL: 'pattern',
+    JOBTYPE_INVEST: 'invest',
 }
 
 
@@ -97,9 +151,8 @@ class Tests(unittest.TestCase):
             os.path.join(self.workspace_dir, 'parcel.fgb'),
             _WEB_MERCATOR_SRS.ExportToWkt(), 'FlatGeoBuf')
 
-        nlud_path = 'appdata/nlud.tif'
         pixelcounts = pixelcounts_under_parcel(
-            parcel.wkt, nlud_path)
+            parcel.wkt, NLCD_RASTER_PATH)
 
         expected_values = {
             262: 40,
@@ -167,8 +220,7 @@ class Tests(unittest.TestCase):
         target_raster_path = os.path.join(
             self.workspace_dir, 'wallpapered_raster.tif')
 
-        nlud_path = 'appdata/nlud.tif'
-        wallpaper_parcel(parcel.wkt, pattern.wkt, nlud_path,
+        wallpaper_parcel(parcel.wkt, pattern.wkt, NLCD_RASTER_PATH,
                          target_raster_path, self.workspace_dir)
 
     def test_wallpaper_nlcd(self):
@@ -196,31 +248,13 @@ class Tests(unittest.TestCase):
         target_raster_path = os.path.join(
             self.workspace_dir, 'wallpapered_raster.tif')
 
-        nlcd_path = 'appdata/NLCD_2016.tif'
-        wallpaper_parcel(parcel.wkt, pattern.wkt, nlcd_path,
+        wallpaper_parcel(parcel.wkt, pattern.wkt, NLCD_RASTER_PATH,
                          target_raster_path, self.workspace_dir)
 
         thumbnail = os.path.join('thumbnail_pattern.png')
         make_thumbnail(pattern.wkt, NLCD_COLORS, thumbnail, self.workspace_dir)
 
-        # This is useful for debugging
-        #import pdb; pdb.set_trace()  # print(self.workspace_dir)
-
-    def test_classnames(self):
-        classes = get_classnames_from_raster_attr_table(NLCD_RASTER_PATH)
-
-        # See https://www.mrlc.gov/data/legends/national-land-cover-database-class-legend-and-description
-        # for a list of classes in NLCD.
-        # 20 classes total 4 are specific to Alaska and so not in our dataset.
-        self.assertEqual(len(classes), 16)
-        for _, attrs in classes.items():
-            self.assertRegexpMatches(attrs['color'], '#[0-9a-fA-F]{6}')
-
-    @unittest.skip
     def test_thumbnail(self):
-
-        gtiff_path = os.path.join(self.workspace_dir, 'raster.tif')
-
         # University of Texas: San Antonio, selected by hand in QGIS
         # Coordinates are in EPSG:3857 "Web Mercator"
         point_over_san_antonio = shapely.geometry.Point(
@@ -228,18 +262,77 @@ class Tests(unittest.TestCase):
 
         # Raster units are in meters (mercator)
         parcel = point_over_san_antonio.buffer(100)
+
+        thumbnail = os.path.join(self.workspace_dir, 'thumbnail.png')
+        make_thumbnail(parcel.wkt, NLCD_COLORS, thumbnail)
+
+    def test_get_bioregion(self):
+        # University of Texas: San Antonio, selected by hand in QGIS
+        # Coordinates are in EPSG:3857 "Web Mercator"
+        point_over_san_antonio = shapely.geometry.Point(
+            -10965275.57, 3429693.30)
+        region = invest_args.get_bioregion(point_over_san_antonio)
+        self.assertEqual(region, 'NA28')
+
+    def test_get_bioregion_out_of_bounds(self):
+        # Outside North America; flip of San Antonio coords
+        point = shapely.geometry.Point(
+            10965275.57, -3429693.30)
+        with self.assertRaises(ValueError):
+            region = invest_args.get_bioregion(point)
+
+    def test_extract_from_census(self):
+        # University of Texas: San Antonio, selected by hand in QGIS
+        # Coordinates are in EPSG:3857 "Web Mercator"
+        point_over_san_antonio = shapely.geometry.Point(
+            -10965275.57, 3429693.30)
+        parcel = point_over_san_antonio.buffer(100)
+        aoi_vector_path = os.path.join(
+            self.workspace_dir, 'parcel_webmercator.geojson')
         pygeoprocessing.geoprocessing.shapely_geometry_to_vector(
-            [point_over_san_antonio, parcel],
-            os.path.join(self.workspace_dir, 'parcel.shp'),
-            _WEB_MERCATOR_SRS.ExportToWkt(), 'ESRI Shapefile')
+            [parcel], aoi_vector_path, _WEB_MERCATOR_SRS.ExportToWkt(),
+            'GeoJSON')
+        census_dict = invest_results._extract_census_from_aoi(aoi_vector_path)
+        expected_dict = {
+            'race': {
+                'White (Not Hispanic or Latino)': 727.0,
+                'Black': 710.0,
+                'American Indian': 14.0,
+                'Asian': 5.0,
+                'Hawaiian': 0.0,
+                'Other': 0.0,
+                'Two or more races': 59.0,
+                'Hispanic or Latino': 4130.0
+            },
+            'poverty': {           
+                'Household received Food Stamps or SNAP in the past 12 months': 696.0,
+                'Household received Food Stamps or SNAP in the past 12 months | Income in the past 12 months below poverty level': 424.0,
+                'Household received Food Stamps or SNAP in the past 12 months | Income in the past 12 months at or above poverty level': 272.0,
+                'Household did not receive Food Stamps or SNAP in the past 12 months': 745.0,
+                'Household did not receive Food Stamps or SNAP in the past 12 months | Income in the past 12 months below poverty level':199.0,
+                'Household did not receive Food Stamps or SNAP in the past 12 months | Income in the past 12 months at or above poverty level': 546.0
+            }
+        }
+        self.assertEqual(census_dict, expected_dict)
 
-        _create_new_lulc(parcel.wkt, gtiff_path)
 
-        thumbnail = os.path.join('thumbnail.png')
-        colors = dict(
-            (k, v['color']) for (k, v) in
-            get_classnames_from_raster_attr_table(NLCD_RASTER_PATH).items())
-        make_thumbnail(gtiff_path, colors, thumbnail)
+def _warp_raster_to_web_mercator(source_albers_raster_path,
+                                 target_web_mercator_raster_path):
+    """Warp an Albers Equal Area-projected raster to Web Mercator.
+
+    Args:
+        source_albers_raster_path (str): The source raster, assumed to be in
+            Albers Equal Area.
+        target_web_mercator_raster_path (str): The target raster path, which
+            will be projected in Web Mercator.
+
+    Returns:
+        ``None``
+    """
+    pygeoprocessing.geoprocessing.warp_raster(
+        source_albers_raster_path, (PIXELSIZE_X, PIXELSIZE_Y),
+        target_web_mercator_raster_path, 'near',
+        target_projection_wkt=WEB_MERCATOR_SRS_WKT)
 
 
 def _reproject_to_nlud(parcel_wkt_epsg3857):
@@ -264,21 +357,22 @@ def _reproject_to_nlud(parcel_wkt_epsg3857):
     return parcel_geom
 
 
-def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path):
+def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path,
+                     include_pixel_values=False):
     """Create an LULC raster in the NLCD projection covering the parcel.
 
     Args:
         parcel_wkt_epsg3857 (str): The parcel WKT in EPSG:3857 (Web Mercator)
         target_local_gtiff_path (str): Where the target raster should be saved
+        include_pixel_values=False (bool): Whether to include the underlying
+            raster's pixel values in the new, cropped LULC.
 
     Returns:
         ``None``
     """
-    parcel_geom = _reproject_to_nlud(parcel_wkt_epsg3857)
+    parcel_geom = shapely.wkt.loads(parcel_wkt_epsg3857)
     parcel_min_x, parcel_min_y, parcel_max_x, parcel_max_y = parcel_geom.bounds
-    buffer_dist = abs(min(parcel_max_x - parcel_min_x,
-                          parcel_max_y - parcel_min_y))
-    buffered_parcel_geom = parcel_geom.buffer(buffer_dist)
+    buffered_parcel_geom = parcel_geom.buffer(LARGEST_SERVICESHED)
     buf_minx, buf_miny, buf_maxx, buf_maxy = buffered_parcel_geom.bounds
 
     # Round "up" to the nearest pixel, sort of the pixel-math version of
@@ -288,26 +382,34 @@ def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path):
     buf_maxx += PIXELSIZE_X - abs((buf_maxx - NLCD_ORIGIN_X) % PIXELSIZE_X)
     buf_maxy += PIXELSIZE_Y - abs((buf_maxy - NLCD_ORIGIN_Y) % PIXELSIZE_Y)
 
-    n_cols = abs(int(math.ceil((buf_maxx - buf_minx) / PIXELSIZE_X)))
-    n_rows = abs(int(math.ceil((buf_maxy - buf_miny) / PIXELSIZE_Y)))
+    pygeoprocessing.geoprocessing.warp_raster(
+        NLCD_RASTER_PATH, (PIXELSIZE_X, PIXELSIZE_Y),
+        target_local_gtiff_path,
+        resample_method='near',
+        target_bb=[buf_minx, buf_miny, buf_maxx, buf_maxy])
 
-    raster_driver = gdal.GetDriverByName('GTIFF')
-    target_raster = raster_driver.Create(
-        target_local_gtiff_path, n_cols, n_rows, 1, gdal.GDT_Byte,
-        options=DEFAULT_GTIFF_CREATION_TUPLE_OPTIONS[1])
-    target_raster.SetProjection(NLCD_SRS_WKT)
-    target_raster.SetGeoTransform(
-        [buf_minx, PIXELSIZE_X, 0, buf_maxy, 0, PIXELSIZE_Y])
-    band = target_raster.GetRasterBand(1)
-    band.SetNoDataValue(NLCD_NODATA)
-    band.Fill(NLCD_NODATA)
-    target_raster = None
-    band = None
+    if not include_pixel_values:
+        raster = gdal.OpenEx(target_local_gtiff_path, gdal.GA_Update)
+        band = raster.GetRasterBand(1)
+        nodata = band.GetNoDataValue()
+        if nodata is not None:
+            band.Fill(nodata)
+        else:
+            LOGGER.warning("NLCD does not have a defined nodata value; "
+                           "cannot fill with None.")
+        band = None
+        raster = None
 
 
 def fill_parcel(parcel_wkt_epsg3857, fill_lulc_class,
                 target_lulc_path, working_dir=None):
     """Fill (rasterize) a parcel with a landcover code.
+
+    This function writes a new raster that:
+
+        * Is aligned to the grid of the source lulc
+        * Is filled with nodata except for the parcel
+        * Is filled with ``fill_lulc_class`` where the parcel is present
 
     Args:
         parcel_wkt_epsg3857 (str): The WKT of the parcel to fill,
@@ -320,12 +422,14 @@ def fill_parcel(parcel_wkt_epsg3857, fill_lulc_class,
     Returns:
         ``None``
     """
-    parcel_geom = _reproject_to_nlud(parcel_wkt_epsg3857)
+    parcel_geom = shapely.wkt.loads(parcel_wkt_epsg3857)
     working_dir = tempfile.mkdtemp(prefix='fill-parcel-', dir=working_dir)
 
     parcel_vector_path = os.path.join(working_dir, 'parcel.fgb')
     pygeoprocessing.geoprocessing.shapely_geometry_to_vector(
-        [parcel_geom], parcel_vector_path, NLCD_SRS_WKT, 'FlatGeoBuf')
+        [parcel_geom], parcel_vector_path, NLCD_SRS_WKT, 'FlatGeoBuf',
+        ogr_geom_type=OGR_GEOMETRY_TYPES[parcel_geom.type]
+    )
 
     _create_new_lulc(parcel_wkt_epsg3857, target_lulc_path)
     pygeoprocessing.geoprocessing.rasterize(
@@ -345,11 +449,11 @@ def wallpaper_parcel(parcel_wkt_epsg3857, pattern_wkt_epsg3857,
 
     Args:
         parcel_wkt_epsg3857 (str): The WKT of the parcel to wallpaper over,
-            projrected in EPSG:3857 (Web Mercator)
+            projected in EPSG:3857 (Web Mercator)
         pattern_wkt_epsg3857 (str): The WKT of the pattern geometry, projected
             in EPSG:3857 (Web Mercator)
         source_nlud_raster_path (str): The GDAL-compatible URI to the source
-            NLCD raster, projected in Albers Equal Area.
+            NLCD raster, projected in Web Mercator.
         target_raster_path (str): Where the output raster should be written on
             disk.
         working_dir (str): Where temporary files should be stored.  If
@@ -370,17 +474,17 @@ def wallpaper_parcel(parcel_wkt_epsg3857, pattern_wkt_epsg3857,
     nlud_under_parcel_path = os.path.join(working_dir, 'nlud_under_parcel.tif')
     pygeoprocessing.geoprocessing.warp_raster(
         source_nlud_raster_path, nlud_raster_info['pixel_size'],
-        nlud_under_parcel_path, 'nearest',
+        nlud_under_parcel_path, 'near',
         target_bb=parcel_raster_info['bounding_box'])
     nlud_under_parcel_raster_info = pygeoprocessing.get_raster_info(
         nlud_under_parcel_path)
 
     nlud_under_pattern_path = os.path.join(
         working_dir, 'nlud_under_pattern.tif')
-    pattern_bbox = _reproject_to_nlud(pattern_wkt_epsg3857).bounds
+    pattern_bbox = shapely.wkt.loads(pattern_wkt_epsg3857).bounds
     pygeoprocessing.geoprocessing.warp_raster(
         source_nlud_raster_path, nlud_raster_info['pixel_size'],
-        nlud_under_pattern_path, 'nearest',
+        nlud_under_pattern_path, 'near',
         target_bb=pattern_bbox)
     wallpaper_array = pygeoprocessing.raster_to_numpy_array(
         nlud_under_pattern_path)
@@ -459,7 +563,7 @@ def pixelcounts_under_parcel(parcel_wkt_epsg3857, source_raster_path):
     geotransform = source_raster.GetGeoTransform()
     inv_geotransform = gdal.InvGeoTransform(geotransform)
 
-    parcel = _reproject_to_nlud(parcel_wkt_epsg3857)
+    parcel = shapely.wkt.loads(parcel_wkt_epsg3857)
     # Convert lon/lat degrees to x/y pixel for the dataset
     minx, miny, maxx, maxy = parcel.bounds
     _x0, _y0 = gdal.ApplyGeoTransform(inv_geotransform, minx, miny)
@@ -470,7 +574,9 @@ def pixelcounts_under_parcel(parcel_wkt_epsg3857, source_raster_path):
     pygeoprocessing.geoprocessing.shapely_geometry_to_vector(
         [parcel],
         os.path.join('parcel_loaded.fgb'),
-        _WEB_MERCATOR_SRS.ExportToWkt(), 'FlatGeoBuf')
+        WEB_MERCATOR_SRS_WKT, 'FlatGeoBuf',
+        ogr_geom_type=OGR_GEOMETRY_TYPES[parcel.type],
+    )
 
     # "Round up" to the next pixel
     x0 = math.floor(x0)
@@ -495,7 +601,7 @@ def pixelcounts_under_parcel(parcel_wkt_epsg3857, source_raster_path):
     vector_driver = ogr.GetDriverByName('MEMORY')
     vector = vector_driver.CreateDataSource('parcel')
     parcel_layer = vector.CreateLayer(
-        'parcel_layer', _ALBERS_EQUAL_AREA_SRS, ogr.wkbPolygon)
+        'parcel_layer', _WEB_MERCATOR_SRS, ogr.wkbPolygon)
     parcel_layer.StartTransaction()
     feature = ogr.Feature(parcel_layer.GetLayerDefn())
     feature.SetGeometry(ogr.CreateGeometryFromWkt(parcel.wkt))
@@ -512,71 +618,16 @@ def pixelcounts_under_parcel(parcel_wkt_epsg3857, source_raster_path):
         array[parcel_mask == 1], return_counts=True)
 
     return_values = {}
-    for lulc_code, pixel_count in zip(values_under_parcel, counts):
-        # cast lulc_codes to int from numpy_int16 for future json dump call
-        # which does not allow numpy types for keys
-        return_values[int(lulc_code)] = pixel_count
+    # cast lulc_codes and counts to list for future json dump call
+    # which does not allow numpy types for keys
+    for lulc_code, pixel_count in zip(
+            values_under_parcel.tolist(), counts.tolist()):
+        return_values[lulc_code] = pixel_count
 
     return return_values
 
 
-def get_classnames_from_raster_attr_table(raster_path):
-    """Read classnames from a gdal-readable path.
-
-    Args:
-        raster_path (string): A GDAL raster path representing a raster.
-
-    Returns:
-        classes (dict): A mapping of int lulc codes to its string label.
-
-    Raises:
-        AssertionError: When the raster provided does not have an attribute
-            table.
-        AssertionError: When the target column name could not be found in the
-            attribute table.
-    """
-    raster = gdal.OpenEx(raster_path)
-    band = raster.GetRasterBand(1)
-    attr_table = band.GetDefaultRAT()
-    if attr_table is None:
-        raise AssertionError(
-            "Could not load attribute table. Did you include the sidecar "
-            ".tif.aux.xml file?")
-
-    # locate the name column
-    name_col_idx = -1
-    target_colname = 'NLCD Land Cover Class'
-    for col_idx in range(attr_table.GetColumnCount() - 1):
-        if attr_table.GetNameOfCol(col_idx) == target_colname:
-            name_col_idx = col_idx
-            break
-    if name_col_idx == -1:
-        raise AssertionError(
-            f"Could not find column {target_colname} in {raster_path}")
-
-    color_table = band.GetColorTable()
-
-    def _to_hex(r, g, b, a):
-        return f"#{r:02x}{g:02x}{b:02x}"
-
-    classes = {}
-    for row_idx in range(attr_table.GetRowCount()):
-        name = attr_table.GetValueAsString(row_idx, name_col_idx)
-        if name and name != 'Unclassified':
-            classes[row_idx] = {
-                'name': name,
-                'color': _to_hex(*color_table.GetColorEntry(row_idx)),
-            }
-
-    return classes
-
-
-NLCD_COLORS.update(dict(
-    (k, v['color']) for (k, v) in
-    get_classnames_from_raster_attr_table(NLCD_RASTER_PATH).items()))
-
-
-def make_thumbnail(pattern_wkt_epsg3857, colors_dict, target_thumnail_path,
+def make_thumbnail(pattern_wkt_epsg3857, colors_dict, target_thumbnail_path,
                    working_dir=None):
     working_dir = tempfile.mkdtemp(dir=working_dir, prefix='thumbnail-')
     thumbnail_gtiff_path = os.path.join(working_dir, 'pattern.tif')
@@ -585,15 +636,14 @@ def make_thumbnail(pattern_wkt_epsg3857, colors_dict, target_thumnail_path,
     # just a small bit of the surrounding context.
     pygeoprocessing.geoprocessing.warp_raster(
         NLCD_RASTER_PATH, _NLCD_RASTER_INFO['pixel_size'],
-        thumbnail_gtiff_path, 'nearest',
-        target_bb=_reproject_to_nlud(pattern_wkt_epsg3857).buffer(
+        thumbnail_gtiff_path, 'near',
+        target_bb=shapely.wkt.loads(pattern_wkt_epsg3857).buffer(
             PIXELSIZE_X/2).bounds
     )
 
     raw_image = Image.open(thumbnail_gtiff_path)
     # 'P' mode indicates palletted color
     image = raw_image.convert('P')
-    print(numpy.asarray(image))
 
     rgb_colors = {}
     for lucode, hex_color in colors_dict.items():
@@ -614,7 +664,7 @@ def make_thumbnail(pattern_wkt_epsg3857, colors_dict, target_thumnail_path,
     factor = 30  # taken from the pixelsize so we can just deal in native units
     image = image.resize((image.width * factor,
                           image.height * factor))
-    image.save(target_thumnail_path)
+    image.save(target_thumbnail_path)
     shutil.rmtree(working_dir, ignore_errors=True)
 
 
@@ -622,12 +672,14 @@ def do_work(host, port, outputs_location):
     job_queue_url = f'http://{host}:{port}/jobsqueue/'
     LOGGER.info(f'Starting worker, queueing {job_queue_url}')
     LOGGER.info(f'Polling the queue every {POLLING_INTERVAL_S}s if no work')
+
     while True:
         response = requests.get(job_queue_url)
         # if there is no work on the queue, expecting response.json()==None
         if not response.json():
             time.sleep(POLLING_INTERVAL_S)
             continue
+        LOGGER.info("Response received; loading job details")
 
         # response.json() returns a stringified json object, so need to load
         # it into a python dict
@@ -637,6 +689,7 @@ def do_work(host, port, outputs_location):
         job_type = response_json['job_type']
         job_args = response_json['job_args']
 
+        #TODO: could this be moved outside of while loop?
         # Make sure the appropriate directory is created
         scenarios_dir = os.path.join(outputs_location, 'scenarios')
         model_outputs_dir = os.path.join(outputs_location, 'model_outputs')
@@ -644,20 +697,29 @@ def do_work(host, port, outputs_location):
             if not os.path.exists(path):
                 os.makedirs(path)
 
+        LOGGER.info(f"Starting job {job_id}:{job_type}")
         try:
-            if job_type in {JOBTYPE_FILL, JOBTYPE_WALLPAPER}:
+            if job_type in {JOBTYPE_FILL, JOBTYPE_WALLPAPER, JOBTYPE_CROP}:
                 scenario_id = server_args['scenario_id']
                 workspace = os.path.join(scenarios_dir, str(scenario_id))
                 result_path = os.path.join(
                     workspace, f'{scenario_id}_{job_type}.tif')
                 os.makedirs(workspace, exist_ok=True)
 
+                if job_type == JOBTYPE_CROP:
+                    _create_new_lulc(
+                        parcel_wkt_epsg3857=job_args['target_parcel_wkt'],
+                        target_local_gtiff_path=result_path,
+                        include_pixel_values=True
+                    )
+                    LOGGER.info(f"Baseline study area written to {result_path}")
                 if job_type == JOBTYPE_FILL:
                     fill_parcel(
                         parcel_wkt_epsg3857=job_args['target_parcel_wkt'],
                         fill_lulc_class=job_args['lulc_class'],
                         target_lulc_path=result_path
                     )
+                    LOGGER.info(f"Filled study area written to {result_path}")
                 elif job_type == JOBTYPE_WALLPAPER:
                     wallpaper_temp_dir = tempfile.mkdtemp(
                         dir=workspace, prefix='wallpaper-')
@@ -668,6 +730,7 @@ def do_work(host, port, outputs_location):
                         target_raster_path=result_path,
                         working_dir=wallpaper_temp_dir
                     )
+                    LOGGER.info(f"Wallpapered study area written to {result_path}")
                     try:
                         shutil.rmtree(wallpaper_temp_dir)
                     except OSError as e:
@@ -677,16 +740,10 @@ def do_work(host, port, outputs_location):
                 data = {
                     'result': {
                         'lulc_path': result_path,
-                        'lulc_stats': {
-                            'base': pixelcounts_under_parcel(
-                                job_args['target_parcel_wkt'],
-                                job_args['lulc_source_url']
-                            ),
-                            'result': pixelcounts_under_parcel(
-                                job_args['target_parcel_wkt'],
-                                result_path
-                            ),
-                        }
+                        'lulc_stats': pixelcounts_under_parcel(
+                            job_args['target_parcel_wkt'],
+                            result_path
+                        ),
                     },
                 }
             elif job_type == JOBTYPE_PARCEL_STATS:
@@ -699,11 +756,6 @@ def do_work(host, port, outputs_location):
                             ),
                         }
                     }
-                }
-            elif job_type == JOBTYPE_LULC_CLASSNAMES:
-                data = {
-                    'result': get_classnames_from_raster_attr_table(
-                        NLCD_RASTER_PATH)
                 }
             elif job_type == JOBTYPE_PATTERN_THUMBNAIL:
                 thumbnails_dir = os.path.join(
@@ -720,10 +772,48 @@ def do_work(host, port, outputs_location):
                     target_thumbnail_path=thumbnail_path,
                     working_dir=thumbnails_dir
                 )
+                LOGGER.info(f"Thumbnail written to {thumbnail_path}")
 
                 data = {
                     'result': {
                         'pattern_thumbnail_path': thumbnail_path,
+                    }
+                }
+            elif job_type == JOBTYPE_INVEST:
+                invest_model = job_args['invest_model']
+                scenario_id = job_args['scenario_id']
+                LOGGER.info(f"Run InVEST model: {job_args['invest_model']}")
+
+                model_meta = INVEST_MODELS[invest_model]
+                lulc_path = job_args['lulc_source_url']
+
+                workspace_dir = os.path.join(
+                    model_outputs_dir, f'{invest_model}-{scenario_id}')
+
+                # Ultimately we may not need prepare_workspace, but it is
+                # convenient for 1) creating the workspace as a location to
+                # write dynamically-created input files like an AOI vector, and
+                # 2) having invest log to a file.
+                with utils.prepare_workspace(workspace_dir,
+                                             name=invest_model,
+                                             logging_level=logging.INFO):
+                    args_dict = model_meta['build_args'](
+                        lulc_path, workspace_dir, job_args['study_area_wkt'])
+                    LOGGER.info(f'{invest_model} model arguments: {args_dict}')
+                    model_meta['api'].execute(args_dict)
+                    LOGGER.info(f'Post processing {invest_model} model')
+                    model_result_path = model_meta['derive_results'](workspace_dir)
+
+                try:
+                    # For now, we only expect this to work for urban-cooling
+                    serviceshed = args_dict['aoi_vector_path']
+                except KeyError:
+                    serviceshed = ''
+                data = {
+                    'result': {
+                        'invest-result': model_result_path,
+                        'model': job_args['invest_model'],
+                        'serviceshed': serviceshed
                     }
                 }
             else:
@@ -731,10 +821,13 @@ def do_work(host, port, outputs_location):
             status = STATUS_SUCCESS
         except Exception as error:
             LOGGER.exception(f'{job_type} failed: {error}')
-            status = STATUS_FAILURE
+            status = STATUS_FAILED
             result_path = None
-            data = {}  # data doesn't matter in a failure
+            data = {
+                'result': STATUS_FAILED
+            }  # data must validate against schema even in fail
         finally:
+            LOGGER.info(f"Job {job_id}: {job_type} finished with {status}")
             data['server_attrs'] = server_args
             data['status'] = status
             requests.post(
@@ -751,6 +844,7 @@ def main():
     parser.add_argument('output_dir')
 
     args = parser.parse_args()
+    LOGGER.info(f'parser args: {args}')
     do_work(
         host=args.queue_host,
         port=args.queue_port,

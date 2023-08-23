@@ -1,5 +1,6 @@
 """CRUD: Create, Read, Update, and Delete"""
 import asyncio
+import json
 import logging
 import sys
 import time
@@ -7,6 +8,7 @@ import uuid
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import exc
 
 from . import models
 from . import schemas
@@ -32,10 +34,6 @@ def get_session(db: Session, session_id: str):
     """Read a single session by ``session_id``."""
     return db.query(models.Session).filter(
             models.Session.session_id == session_id).first()
-
-def get_sessions(db: Session, skip: int = 0, limit: int = 100):
-    """Read multiple sessions."""
-    return db.query(models.Session).offset(skip).limit(limit).all()
 
 def create_session(db: Session):
     """Create session using UUID as unique ID."""
@@ -69,23 +67,65 @@ def create_session(db: Session):
     db.refresh(db_session)
     return db_session
 
-def create_scenario(db: Session, scenario: schemas.Scenario, session_id: str):
-    """Create scenario linking with ``session_id``."""
-    db_scenario = models.Scenario(**scenario.dict(), owner_id=session_id)
+
+def create_study_area(
+        db: Session, session_id: str, name: str):
+    """Create a study area entry."""
+    LOGGER.debug("Create study area")
+    db_study_area = models.StudyArea(owner_id=session_id, name=name)
+    db.add(db_study_area)
+    db.commit()
+    db.refresh(db_study_area)
+    return db_study_area
+
+
+def update_study_area(db: Session, study_area: schemas.StudyArea):
+    """Update a study area entry."""
+    db_study_area = get_study_area(db, study_area.id)
+    if not db_study_area:
+        raise HTTPException(status_code=404, detail="Study area not found")
+    data = study_area.dict(exclude_unset=True)
+    for key, value in data.items():
+        setattr(db_study_area, key, value)
+
+    db.add(db_study_area)
+    db.commit()
+    db.refresh(db_study_area)
+    return db_study_area
+
+
+def get_study_area(db: Session, study_area_id: int):
+    """Read study area from id."""
+    return db.query(models.StudyArea).filter(
+            models.StudyArea.id == study_area_id).first()
+
+
+def get_study_areas(db: Session, session_id: str):
+    """Read all study areas for session id."""
+    return db.query(models.StudyArea).filter(
+            models.StudyArea.owner_id == session_id).all()
+
+
+def create_scenario(db: Session, scenario: schemas.Scenario, study_area_id: int):
+    """Create scenario linking with ``study_area_id``."""
+    db_scenario = models.Scenario(**scenario.dict(), study_area_id=study_area_id)
     db.add(db_scenario)
     db.commit()
     db.refresh(db_scenario)
     return db_scenario
+
 
 def get_scenario(db: Session, scenario_id: int):
     """Read a single scenario by ID."""
     return db.query(models.Scenario).filter(
             models.Scenario.scenario_id == scenario_id).first()
 
-def get_scenarios(db: Session, session_id: str):
+
+def get_scenarios(db: Session, study_area_id: int):
     """Read all scenarios."""
     return db.query(models.Scenario).filter(
-            models.Scenario.owner_id == session_id).all()
+            models.Scenario.study_area_id == study_area_id).all()
+
 
 def update_scenario(db: Session, scenario: schemas.Scenario, scenario_id: int):
     """Update a scenario."""
@@ -112,23 +152,60 @@ def delete_scenario(db: Session, scenario_id: int):
     db.commit()
     return STATUS_SUCCESS
 
-def create_parcel_stats(db: Session, parcel_wkt: schemas.ParcelStatsBase, job_id: int):
+
+def create_parcel_stats(db: Session, parcel_id: int, parcel_wkt: str, job_id: int):
     """Create a stats entry in parcel stats table."""
-    db_parcel_stats = models.ParcelStats(target_parcel_wkt=parcel_wkt, job_id=job_id)
+    db_parcel_stats = models.ParcelStats(
+        parcel_id=parcel_id, target_parcel_wkt=parcel_wkt, job_id=job_id)
     db.add(db_parcel_stats)
     db.commit()
     db.refresh(db_parcel_stats)
     return db_parcel_stats
+
+
+def create_parcel(db: Session, study_area_id: int,
+                  parcel_id: int, address: str, parcel_wkt: str):
+    """Create an entry in parcel table."""
+    db_parcel = models.Parcel(
+        study_area_id=study_area_id,
+        parcel_id=parcel_id,
+        address=address,
+        wkt=parcel_wkt)
+    try:
+        db.add(db_parcel)
+        db.commit()
+        db.refresh(db_parcel)
+        return STATUS_SUCCESS
+    except exc.IntegrityError:
+        db.rollback()
+        return STATUS_FAIL
+
+
+def delete_parcel(db: Session, parcel_id: int, study_area_id: int):
+    """Delete an entry in parcel table."""
+    row = db.query(models.Parcel).filter(
+            models.Parcel.parcel_id == parcel_id,
+            models.Parcel.study_area_id == study_area_id).first()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Parcel not found")
+
+    db.delete(row)
+    db.commit()
+    return STATUS_SUCCESS
+
 
 def get_parcel_stats(db: Session, stats_id: int):
     """Read a single stats entry by ID."""
     return db.query(models.ParcelStats).filter(
             models.ParcelStats.stats_id == stats_id).first()
 
-def get_parcel_stats_by_job(db: Session, job_id: int):
-    """Read a single stats entry by job ID."""
+
+def get_parcel_stats_by_id(db: Session, id: int):
+    """Read a single stats entry by wkt."""
     return db.query(models.ParcelStats).filter(
-            models.ParcelStats.job_id == job_id).first()
+            models.ParcelStats.parcel_id == id).first()
+
 
 def update_parcel_stats(
         db: Session, parcel_stats: schemas.ParcelStatsUpdate, stats_id: int):
@@ -192,5 +269,54 @@ def get_pattern(db: Session, pattern_id: int):
             models.Pattern.pattern_id == pattern_id).first()
 
 def get_patterns(db: Session):
-    """Read all patterns."""
-    return db.query(models.Pattern).all()
+    """Read all patterns that have a thumbnail."""
+    # This currently is NOT filtering out entries where thumbnail path is NULL
+    # and I'm not quite sure why.
+    return db.query(models.Pattern).filter(
+            models.Pattern.pattern_thumbnail_path.is_not(None)).all()
+
+def update_pattern(
+        db: Session, pattern: schemas.PatternUpdate, pattern_id: int):
+    """Update a patterns entry."""
+    db_pattern = get_pattern(db, pattern_id)
+
+    if not db_pattern:
+        raise HTTPException(status_code=404, detail="Pattern not found")
+    pattern_data = pattern.dict(exclude_unset=True)
+    for key, value in pattern_data.items():
+        setattr(db_pattern, key, value)
+
+    db.add(db_pattern)
+    db.commit()
+    db.refresh(db_pattern)
+    return STATUS_SUCCESS
+
+def create_invest_result(db: Session, invest_result: schemas.InvestResult):
+    """Create a invest entry in the invest_results table."""
+    db_invest = models.InvestResult(**invest_result.dict())
+    db.add(db_invest)
+    db.commit()
+    db.refresh(db_invest)
+    return db_invest
+
+def get_invest(db: Session, scenario_id: int):
+    """Read invest results  by ``scenario_id``."""
+    return db.query(models.InvestResult).filter(
+        models.InvestResult.scenario_id == scenario_id).all()
+
+def update_invest(db: Session, scenario_id: int, job_id: int,
+                  result: str, model_name: str, serviceshed: str):
+    """Update an invest result."""
+    db_invest = db.query(models.InvestResult).filter(
+        models.InvestResult.job_id == job_id,
+        models.InvestResult.scenario_id == scenario_id).first()
+    if not db_invest:
+        raise HTTPException(status_code=404, detail="InvestResult not found")
+    setattr(db_invest, 'result', result)
+    setattr(db_invest, 'model_name', model_name)
+    setattr(db_invest, 'serviceshed', serviceshed)
+
+    db.add(db_invest)
+    db.commit()
+    db.refresh(db_invest)
+    return STATUS_SUCCESS

@@ -47,9 +47,23 @@ class Session(Base):
     # When you access 'User.[jobs|scenarios|patterns]', SQLA will actually
     # go and fetch the jobs from the db in the corresponding table and
     # populate them here.
-    scenarios = relationship("Scenario", back_populates="owner")
+    study_areas = relationship("StudyArea", back_populates="owner")
     patterns = relationship("Pattern", back_populates="owner")
     jobs = relationship("Job", back_populates="owner")
+
+
+class StudyArea(Base):
+    """SQLAlchemy model for study areas."""
+    __tablename__ = "study_area"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String)
+    # each study area has an associated session owner
+    owner_id = Column(String, ForeignKey("sessions.session_id"))
+
+    owner = relationship("Session", back_populates="study_areas")
+    scenarios = relationship("Scenario", back_populates="study_area")
+    parcels = relationship("Parcel", back_populates="study_area")
 
 
 class Scenario(Base):
@@ -58,16 +72,15 @@ class Scenario(Base):
 
     scenario_id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
-    description = Column(String)
-    wkt = Column(String)
     lulc_url_result = Column(String)
     lulc_stats = Column(String)
-    lulc_url_base = Column(String, default="NLCD_2016.tif")
-    # each scenario has an associated session owner
-    owner_id = Column(String, ForeignKey("sessions.session_id"))
+    lulc_url_base = Column(String, default="NLCD_2016_epsg3857.tif")
+    operation = Column(String)
+    # each scenario has an associated study area owner
+    study_area_id = Column(String, ForeignKey("study_area.id"))
 
-    #parcel_stats = relationship("ParcelStats", back_populates="owner")
-    owner = relationship("Session", back_populates="scenarios")
+    study_area = relationship("StudyArea", back_populates="scenarios")
+    #invest_results = relationship("InvestResult", back_populates="scenario")
 
 
 class Pattern(Base):
@@ -77,21 +90,47 @@ class Pattern(Base):
     pattern_id = Column(Integer, primary_key=True, index=True)
     label = Column(String, index=True)
     wkt = Column(String)
+    pattern_thumbnail_path = Column(String)
     # each pattern has an associated session owner
     owner_id = Column(String, ForeignKey("sessions.session_id"))
 
     owner = relationship("Session", back_populates="patterns")
 
 
+# TODO: It may make sense for this table to be global,
+# rather than in context of a Session/User.
 class ParcelStats(Base):
     """SQLAlchemy model for storing lulc stats under parcels."""
     __tablename__ = "parcel_stats"
 
-    stats_id = Column(Integer, primary_key=True, index=True)
+    stats_id = Column(Integer, index=True, primary_key=True)
+    parcel_id = Column(Integer)
     target_parcel_wkt = Column(String)
     lulc_stats = Column(String)
-    #TODO: I'm not sure if parcel stats not associated with a scenario
-    # should be related to another table...
     job_id = Column(Integer, ForeignKey("jobs.job_id"))
 
-    #owner = relationship("Job", back_populates="parcel_stats")
+
+class Parcel(Base):
+    """SQLAlchemy model for parcels."""
+    __tablename__ = "parcel"
+
+    study_area_id = Column(String, ForeignKey("study_area.id"), primary_key=True)
+    parcel_id = Column(Integer, ForeignKey("parcel_stats.parcel_id"), primary_key=True)
+    wkt = Column(String)
+    address = Column(String)
+
+    study_area = relationship("StudyArea", back_populates="parcels")
+    parcel_stats = relationship("ParcelStats", uselist=False)
+
+
+class InvestResult(Base):
+    """SQLAlchemy model for InVEST results."""
+    __tablename__ = "invest_results"
+
+    scenario_id = Column(Integer, ForeignKey("scenarios.scenario_id"), primary_key=True)
+    job_id = Column(Integer, ForeignKey("jobs.job_id"), primary_key=True)
+    model_name = Column(String)
+    result = Column(String)
+    serviceshed = Column(String)
+
+    #scenario = relationship("Scenario", back_populates="invest_results")
