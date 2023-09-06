@@ -134,3 +134,23 @@ class InvestResult(Base):
     serviceshed = Column(String)
 
     #scenario = relationship("Scenario", back_populates="invest_results")
+
+
+class LulcCrosswalk(Base):
+    """Lookup table for landuse-landcover codes and labels."""
+    __tablename__ = "lulc_crosswalk"
+
+    lucode = Column(Integer, primary_key=True)
+    code = Column(Integer)
+    nlud = Column(Integer)
+    nlud_tier_1 = Column(String)
+    nlud_tier_2 = Column(String)
+    nlud_tier_3 = Column(String)
+    nlud_colors = Column(String)
+    nlcd = Column(Integer)
+    nlcd_lulc = Column(String)
+    nlcd_colors = Column(String)
+    tree = Column(Integer)
+    tree_canopy_cover = Column(String)
+    tree_colors = Column(String)
+

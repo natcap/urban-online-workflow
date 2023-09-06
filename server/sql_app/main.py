@@ -1,3 +1,4 @@
+import csv
 import json
 import logging
 import os
@@ -9,11 +10,11 @@ import shapely.wkt
 
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.testclient import TestClient
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
 from sqlalchemy.orm import Session
+from sqlalchemy import event
 
 from . import crud, models, schemas
 from .database import SessionLocal, engine
@@ -30,6 +31,7 @@ LOGGER = logging.getLogger(__name__)
 # When gathering URL result for frontend request build the URL with this:
 WORKING_ENV = "/opt/appdata"
 BASE_LULC = "NLCD_2016_epsg3857.tif"
+LULC_CSV_PATH = os.path.join(WORKING_ENV, 'lulc_crosswalk.csv')
 
 # Create a queue that we will use to store our "workload".
 QUEUE = queue.PriorityQueue()
@@ -62,12 +64,28 @@ JOB_TYPES = {
     "stats_under_parcel": "stats_under_parcel",
 }
 
-models.Base.metadata.create_all(bind=engine)
+
+def insert_lulc_data(target, connection, **kw):
+    LOGGER.info('importing LULC Crosswalk table')
+    # https://docs.sqlalchemy.org/en/20/_modules/examples/performance/bulk_inserts.html
+    with open(LULC_CSV_PATH, 'r') as file:
+        reader = csv.DictReader(file)
+        connection.execute(
+            models.LulcCrosswalk.__table__.insert(),
+            [row for row in reader]
+        )
+
+
+# create_all() will check if tables already exist before creating them.
+# if this table did not exist, populate it from the CSV.
+event.listen(models.LulcCrosswalk.__table__, 'after_create', insert_lulc_data)
+
 # Normally you would probably initialize your db (create tables, etc) with
 # Alembic. Would also use Alembic for "migrations" (that's its main job).
 # A "migration" is the set of steps needed whenever you change the structure
 # of your SQLA models, add a new attribute, etc. to replicate those changes
 # in the db, add a new column, a new table, etc.
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 origins = ["http://localhost:3000"]
@@ -495,7 +513,7 @@ def create_pattern(session_id: str, pattern: schemas.PatternBase,
         },
         "job_args": {
             "pattern_wkt": pattern_db.wkt,
-            "lulc_source_url": os.path.join(WORKING_ENV,BASE_LULC),
+            "lulc_source_url": os.path.join(WORKING_ENV, BASE_LULC),
         }
     }
 
