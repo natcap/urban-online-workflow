@@ -332,3 +332,47 @@ export async function getInvestResults(scenarioID) {
       .catch((error) => console.log(error))
   );
 }
+
+export async function getNLUDTier2() {
+  return (
+    window.fetch(`${apiBaseURL}/lucodes/nlude_tier_2`, {
+      method: 'get',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
+}
+
+export async function getNLUDTier3(tier2) {
+  return (
+    window.fetch(`${apiBaseURL}/lucodes/nlude_tier_3/${tier2}`, {
+      method: 'get',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
+}
+
+export async function getNLCD(tier2, tier3) {
+  return (
+    window.fetch(`${apiBaseURL}/lucodes/nlcd/${tier2}/${tier3}`, {
+      method: 'get',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
+}
+
+export async function getLucode(tier2, tier3, nlcd, tree) {
+  return (
+    window.fetch(`${apiBaseURL}/lucodes/lucode/${tier2}/${tier3}/${nlcd}/${tree}`, {
+      method: 'get',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
+}

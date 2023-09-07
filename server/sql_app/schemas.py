@@ -221,4 +221,3 @@ class ParcelFill(BaseModel):
 
     class Config:
         orm_mode = True
-

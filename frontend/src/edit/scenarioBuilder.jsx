@@ -38,6 +38,7 @@ export default function ScenarioBuilder(props) {
   const [scenarioID, setScenarioID] = useState(null);
   const [selectedPattern, setSelectedPattern] = useState(null);
   const [jobID, setJobID] = useState(null);
+  const [nlud2Options, setNLUD2Options] = useState([]);
 
   useInterval(async () => {
     // There are sometimes two jobs submitted concurrently.

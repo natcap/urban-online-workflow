@@ -176,8 +176,7 @@ def get_study_area(
     return db_study_area
 
 
-@app.put("/study_area/{session_id}",
-           response_model=schemas.StudyArea)
+@app.put("/study_area/{session_id}", response_model=schemas.StudyArea)
 def update_study_area(session_id: str, study_area: schemas.StudyArea,
                       db: Session = Depends(get_db)):
     # check that the session exists
@@ -801,3 +800,32 @@ def get_invest_results(scenario_id: int, db: Session = Depends(get_db)):
         'results': invest_results,
         'serviceshed': serviceshed
     }
+
+
+@app.get("/lucodes/nlud_tier_2")
+def get_nlud_tier_2(db: Session = Depends(get_db)) -> list[str]:
+    db_list = crud.get_nlud_tier_2(db)
+    return [row.nlud_tier_2 for row in db_list]
+
+
+@app.get("/lucodes/nlud_tier_3/{nlud_tier_2}")
+def get_nlud_tier_3(nlud_tier_2: str, db: Session = Depends(get_db)) -> list[str]:
+    db_list = crud.get_nlud_tier_3(db, nlud_tier_2=nlud_tier_2)
+    return [row.nlud_tier_3 for row in db_list]
+
+
+@app.get("/lucodes/nlcd/{nlud_tier_2}/{nlud_tier_3}")
+def get_nlcd(nlud_tier_2: str, nlud_tier_3: str,
+             db: Session = Depends(get_db)) -> list[str]:
+    db_list = crud.get_nlcd(db, nlud_tier_2=nlud_tier_2, nlud_tier_3=nlud_tier_3)
+    return [row.nlcd_lulc for row in db_list]
+
+
+# TODO: will all 3 tree cover classes always be present for each category?
+# or do we need another query to find out which are present?
+@app.get("/lucodes/lucode/{nlud_tier_2}/{nlud_tier_3}/{nlcd}/{tree}")
+def get_lucode(nlud_tier_2: str, nlud_tier_3: str, nlcd: str, tree: str,
+               db: Session = Depends(get_db)) -> int:
+    db_list = crud.get_lucode(
+        db, nlud_tier_2=nlud_tier_2, nlud_tier_3=nlud_tier_3, nlcd=nlcd, tree=tree)
+    return [row.lucode for row in db_list]
