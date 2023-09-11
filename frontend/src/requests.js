@@ -345,7 +345,7 @@ export async function getNLUDTier2() {
 }
 
 export async function getNLUDTier3(tier2) {
-  const t2 = encodeURIComponent(t23);
+  const t2 = encodeURIComponent(tier2);
   return (
     window.fetch(`${apiBaseURL}/lucodes/nlud_tier_3/${t2}`, {
       method: 'get',

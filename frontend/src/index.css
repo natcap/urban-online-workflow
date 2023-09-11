@@ -122,6 +122,25 @@ html, body, #root, .App {
   padding-top: 0.5rem;
 }
 
+#landuse-select-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.lulc-select {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.lulc-select .bp4-html-select {
+  flex-grow: 1;
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
 .wallpaper-options {
   display: inline-block;
   vertical-align: top;

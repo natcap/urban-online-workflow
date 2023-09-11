@@ -11,7 +11,7 @@ import {
   getLucode,
 } from '../requests';
 
-const treeOptions = ['none', 'low', 'medium']
+const treeOptions = ['none', 'low', 'medium'];
 
 export default function LulcMenu(props) {
   const [nlud2Options, setNlud2Options] = useState([]);
@@ -50,7 +50,7 @@ export default function LulcMenu(props) {
     if (nlud2 && nlud3 && nlcd && tree) {
       (async () => {
         const code = await getLucode(nlud2, nlud3, nlcd, tree);
-        console.log(code)
+        console.log(code);
         props.setLucode(code);
       })();
     }
@@ -58,28 +58,40 @@ export default function LulcMenu(props) {
 
   if (nlud2Options) {
     return (
-      <>
-        <HTMLSelect
-          onChange={(event) => setNlud2(event.target.value)}
-        >
-          {nlud2Options.map((name) => <option key={name} value={name}>{name}</option>)}
-        </HTMLSelect>
-        <HTMLSelect
-          onChange={(event) => setNlud3(event.target.value)}
-        >
-          {nlud3Options.map((name) => <option key={name} value={name}>{name}</option>)}
-        </HTMLSelect>
-        <HTMLSelect
-          onChange={(event) => setNlcd(event.target.value)}
-        >
-          {nlcdOptions.map((name) => <option key={name} value={name}>{name}</option>)}
-        </HTMLSelect>
-        <HTMLSelect
-          onChange={(event) => setTree(event.target.value)}
-        >
-          {treeOptions.map((name) => <option key={name} value={name}>{name}</option>)}
-        </HTMLSelect>
-      </>
+      <div id="landuse-select-form">
+        <label className="lulc-select">
+          Landuse type:
+          <HTMLSelect
+            onChange={(event) => setNlud2(event.target.value)}
+          >
+            {nlud2Options.map((name) => <option key={name} value={name}>{name}</option>)}
+          </HTMLSelect>
+          <span>
+            subtype:
+            <HTMLSelect
+              onChange={(event) => setNlud3(event.target.value)}
+            >
+              {nlud3Options.map((name) => <option key={name} value={name}>{name}</option>)}
+            </HTMLSelect>
+          </span>
+        </label>
+        <label className="lulc-select">
+          Landcover:
+          <HTMLSelect
+            onChange={(event) => setNlcd(event.target.value)}
+          >
+            {nlcdOptions.map((name) => <option key={name} value={name}>{name}</option>)}
+          </HTMLSelect>
+        </label>
+        <label className="lulc-select">
+          Tree Canopy Cover:
+          <HTMLSelect
+            onChange={(event) => setTree(event.target.value)}
+          >
+            {treeOptions.map((name) => <option key={name} value={name}>{name}</option>)}
+          </HTMLSelect>
+        </label>
+      </div>
     );
   }
 }
