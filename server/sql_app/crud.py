@@ -350,4 +350,4 @@ def get_lucode(db: Session, nlud_tier_2: str, nlud_tier_3: str, nlcd: str, tree:
         models.LulcCrosswalk.nlud_tier_2 == nlud_tier_2,
         models.LulcCrosswalk.nlud_tier_3 == nlud_tier_3,
         models.LulcCrosswalk.nlcd_lulc == nlcd,
-        models.LulcCrosswalk.tree_canopy_cover == tree).distinct()
+        models.LulcCrosswalk.tree_canopy_cover == tree).first()

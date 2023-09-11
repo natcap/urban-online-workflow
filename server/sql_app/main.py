@@ -4,6 +4,7 @@ import logging
 import os
 import queue
 import sys
+from typing import Optional
 
 import shapely.geometry
 import shapely.wkt
@@ -823,9 +824,14 @@ def get_nlcd(nlud_tier_2: str, nlud_tier_3: str,
 
 # TODO: will all 3 tree cover classes always be present for each category?
 # or do we need another query to find out which are present?
-@app.get("/lucodes/lucode/{nlud_tier_2}/{nlud_tier_3}/{nlcd}/{tree}")
-def get_lucode(nlud_tier_2: str, nlud_tier_3: str, nlcd: str, tree: str,
-               db: Session = Depends(get_db)) -> int:
-    db_list = crud.get_lucode(
-        db, nlud_tier_2=nlud_tier_2, nlud_tier_3=nlud_tier_3, nlcd=nlcd, tree=tree)
-    return [row.lucode for row in db_list]
+@app.post("/lucodes/lucode")
+def get_lucode(lulc_dict: schemas.LulcRequest, db: Session = Depends(get_db)) -> Optional[int]:
+    row = crud.get_lucode(
+        db,
+        nlud_tier_2=lulc_dict.nlud_tier_2,
+        nlud_tier_3=lulc_dict.nlud_tier_3,
+        nlcd=lulc_dict.nlcd,
+        tree=lulc_dict.tree)
+    if row:
+        return row.lucode
+    return None

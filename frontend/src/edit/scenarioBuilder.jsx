@@ -3,15 +3,16 @@ import React, { useState } from 'react';
 import {
   Button,
   InputGroup,
-  HTMLSelect,
+  // HTMLSelect,
   Radio,
   RadioGroup,
   Spinner
 } from '@blueprintjs/core';
 
 import useInterval from '../hooks/useInterval';
-import landuseCodes from '../../../appdata/NLCD_2016.lulcdata.json';
+// import landuseCodes from '../../../appdata/NLCD_2016.lulcdata.json';
 import WallpaperingMenu from './wallpaperingMenu';
+import LulcMenu from './lulcMenu';
 import {
   createScenario,
   getJobStatus,
@@ -32,13 +33,12 @@ export default function ScenarioBuilder(props) {
     scenarioNames,
   } = props;
 
-  const [singleLULC, setSingleLULC] = useState(Object.keys(landuseCodes)[0]);
+  const [singleLULC, setSingleLULC] = useState(null);
   const [conversionOption, setConversionOption] = useState('fill');
   const [scenarioName, setScenarioName] = useState('');
   const [scenarioID, setScenarioID] = useState(null);
   const [selectedPattern, setSelectedPattern] = useState(null);
   const [jobID, setJobID] = useState(null);
-  const [nlud2Options, setNLUD2Options] = useState([]);
 
   useInterval(async () => {
     // There are sometimes two jobs submitted concurrently.
@@ -87,7 +87,7 @@ export default function ScenarioBuilder(props) {
   if (conversionOption === 'fill' && singleLULC) {
     scenarioDescription = (
       <span>
-        Create a scenario by <em>filling</em> with <em>{landuseCodes[singleLULC].name}</em>
+        Create a scenario by <em>filling</em> with <em>{singleLULC}</em>
       </span>
     );
   }
@@ -110,12 +110,9 @@ export default function ScenarioBuilder(props) {
         {
           (conversionOption === 'fill')
             ? (
-              <HTMLSelect
-                onChange={(event) => setSingleLULC(event.target.value)}
-              >
-                {Object.entries(landuseCodes)
-                  .map(([code, data]) => <option key={code} value={code}>{data.name}</option>)}
-              </HTMLSelect>
+              <LulcMenu
+                setLucode={setSingleLULC}
+              />
             )
             : (
               <WallpaperingMenu
