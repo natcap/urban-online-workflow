@@ -32,17 +32,21 @@ export default function LulcMenu(props) {
 
   useEffect(() => {
     (async () => {
-      const options = await getNLUDTier3(nlud2);
-      setNlud3Options(options);
-      setNlud3(options[0]);
+      if (nlud2) {
+        const options = await getNLUDTier3(nlud2);
+        setNlud3Options(options);
+        setNlud3(options[0]);
+      }
     })();
   }, [nlud2]);
 
   useEffect(() => {
     (async () => {
-      const options = await getNLCD(nlud2, nlud3);
-      setNlcdOptions(options);
-      setNlcd(options[0]);
+      if (nlud2 && nlud3) {
+        const options = await getNLCD(nlud2, nlud3);
+        setNlcdOptions(options);
+        setNlcd(options[0]);
+      }
     })();
   }, [nlud2, nlud3]);
 
@@ -60,23 +64,23 @@ export default function LulcMenu(props) {
     return (
       <div id="landuse-select-form">
         <label className="lulc-select">
-          Landuse type:
+          <p>Landuse type:</p>
           <HTMLSelect
             onChange={(event) => setNlud2(event.target.value)}
           >
             {nlud2Options.map((name) => <option key={name} value={name}>{name}</option>)}
           </HTMLSelect>
-          <span>
+          <label id="nlud-subtype">
             subtype:
             <HTMLSelect
               onChange={(event) => setNlud3(event.target.value)}
             >
               {nlud3Options.map((name) => <option key={name} value={name}>{name}</option>)}
             </HTMLSelect>
-          </span>
+          </label>
         </label>
         <label className="lulc-select">
-          Landcover:
+          <p>Landcover:</p>
           <HTMLSelect
             onChange={(event) => setNlcd(event.target.value)}
           >
@@ -84,7 +88,7 @@ export default function LulcMenu(props) {
           </HTMLSelect>
         </label>
         <label className="lulc-select">
-          Tree Canopy Cover:
+          <p>Tree Cover:</p>
           <HTMLSelect
             onChange={(event) => setTree(event.target.value)}
           >

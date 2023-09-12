@@ -809,23 +809,30 @@ def get_nlud_tier_2(db: Session = Depends(get_db)) -> list[str]:
     return [row.nlud_tier_2 for row in db_list]
 
 
-@app.get("/lucodes/nlud_tier_3/{nlud_tier_2}")
-def get_nlud_tier_3(nlud_tier_2: str, db: Session = Depends(get_db)) -> list[str]:
-    db_list = crud.get_nlud_tier_3(db, nlud_tier_2=nlud_tier_2)
+@app.post("/lucodes/nlud_tier_3")
+def get_nlud_tier_3(nlud_dict: dict[str, str],
+                    db: Session = Depends(get_db)) -> list[str]:
+    db_list = crud.get_nlud_tier_3(
+        db,
+        nlud_tier_2=nlud_dict['nlud_tier_2'])
     return [row.nlud_tier_3 for row in db_list]
 
 
-@app.get("/lucodes/nlcd/{nlud_tier_2}/{nlud_tier_3}")
-def get_nlcd(nlud_tier_2: str, nlud_tier_3: str,
+@app.post("/lucodes/nlcd")
+def get_nlcd(nlud_dict: dict[str, str],
              db: Session = Depends(get_db)) -> list[str]:
-    db_list = crud.get_nlcd(db, nlud_tier_2=nlud_tier_2, nlud_tier_3=nlud_tier_3)
+    db_list = crud.get_nlcd(
+        db,
+        nlud_tier_2=nlud_dict['nlud_tier_2'],
+        nlud_tier_3=nlud_dict['nlud_tier_3'])
     return [row.nlcd_lulc for row in db_list]
 
 
 # TODO: will all 3 tree cover classes always be present for each category?
 # or do we need another query to find out which are present?
 @app.post("/lucodes/lucode")
-def get_lucode(lulc_dict: schemas.LulcRequest, db: Session = Depends(get_db)) -> Optional[int]:
+def get_lucode(lulc_dict: schemas.LulcRequest,
+               db: Session = Depends(get_db)) -> Optional[int]:
     row = crud.get_lucode(
         db,
         nlud_tier_2=lulc_dict.nlud_tier_2,

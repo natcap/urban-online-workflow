@@ -345,11 +345,14 @@ export async function getNLUDTier2() {
 }
 
 export async function getNLUDTier3(tier2) {
-  const t2 = encodeURIComponent(tier2);
+  console.log(tier2)
   return (
-    window.fetch(`${apiBaseURL}/lucodes/nlud_tier_3/${t2}`, {
-      method: 'get',
+    window.fetch(`${apiBaseURL}/lucodes/nlud_tier_3`, {
+      method: 'post',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nlud_tier_2: tier2,
+      }),
     })
       .then((response) => response.json())
       .catch((error) => console.log(error))
@@ -357,12 +360,14 @@ export async function getNLUDTier3(tier2) {
 }
 
 export async function getNLCD(tier2, tier3) {
-  const t2 = encodeURIComponent(tier2);
-  const t3 = encodeURIComponent(tier3);
   return (
-    window.fetch(`${apiBaseURL}/lucodes/nlcd/${t2}/${t3}`, {
-      method: 'get',
+    window.fetch(`${apiBaseURL}/lucodes/nlcd`, {
+      method: 'post',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nlud_tier_2: tier2,
+        nlud_tier_3: tier3,
+      }),
     })
       .then((response) => response.json())
       .catch((error) => console.log(error))
