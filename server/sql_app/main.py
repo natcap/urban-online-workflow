@@ -31,7 +31,7 @@ LOGGER = logging.getLogger(__name__)
 # This will help with flexibility of where we store our files and DB
 # When gathering URL result for frontend request build the URL with this:
 WORKING_ENV = "/opt/appdata"
-BASE_LULC = "NLCD_2016_epsg3857.tif"
+BASE_LULC = "lulc_overlay_3857.tif"
 LULC_CSV_PATH = os.path.join(WORKING_ENV, 'lulc_crosswalk.csv')
 
 # Create a queue that we will use to store our "workload".
@@ -382,8 +382,12 @@ def worker_parcel_stats_response(
             status=STATUS_SUCCESS,
             name=job_db.name, description=job_db.description)
         # Update the scenario lulc path and stats
+        LOGGER.info(parcel_stats_job.result['lulc_stats']['base'])
+        LOGGER.info({code: count for code, count in parcel_stats_job.result['lulc_stats']['base'].items()})
+        data = {crud.get_lulc_string(db, int(code)): count for code, count in parcel_stats_job.result['lulc_stats']['base'].items()}
+        LOGGER.info(data)
         stats_update = schemas.ParcelStatsUpdate(
-            lulc_stats=json.dumps(parcel_stats_job.result['lulc_stats']))
+            lulc_stats=json.dumps(data))
     else:
         # Update the job status in the DB to "failed"
         job_update = schemas.JobBase(

@@ -6,7 +6,7 @@ import {
 } from '@blueprintjs/core';
 
 import { removeParcel } from '../requests';
-import landuseCodes from '../../../appdata/NLCD_2016.lulcdata.json';
+// import landuseCodes from '../../../appdata/NLCD_2016.lulcdata.json';
 
 export default function StudyAreaTable(props) {
   const {
@@ -16,6 +16,7 @@ export default function StudyAreaTable(props) {
     immutableStudyArea,
     setHoveredParcel,
   } = props;
+  console.log(parcelArray)
   const [highlightedCode, setHighlightedCode] = useState(null);
   const [hiddenRowClass, setHiddenRowClass] = useState('');
 
@@ -33,26 +34,23 @@ export default function StudyAreaTable(props) {
   };
 
   function plot(table) {
-    const blocks = [];
-    Object.entries(table).forEach(([code, count]) => {
-      let n = 0;
-      while (n < count) {
-        blocks.push(
-          <div
-            key={`${n}${code}`}
-            style={{
-              backgroundColor: landuseCodes[code].color,
-              width: '10px',
-              height: '10px',
-            }}
-            onMouseOver={() => setHighlightedCode(code)}
-            onMouseOut={() => setHighlightedCode(null)}
-          />,
-        );
-        n++;
-      }
+    const sorted = Object.entries(table)
+      .sort(([, a], [, b]) => b - a);
+    const sortedClasses = sorted.map((x) => x[0]);
+    const sortedValues = sorted.map((x) => x[1]);
+    const total = sortedValues.reduce((partial, a) => partial + a, 0);
+    let x = 0;
+    let i = 0;
+    while (x < total / 2) {
+      x += sortedValues[i];
+      i++;
+    }
+    const topClasses = sortedClasses.slice(0, i);
+    const divs = topClasses.map((x, i) => {
+      const pct = (sortedValues[i] / total) * 100;
+      return <div>{x}: {pct}</div>;
     });
-    return blocks;
+    return divs;
   }
 
   const rows = [];
@@ -92,7 +90,7 @@ export default function StudyAreaTable(props) {
             (lulcData)
               ? (
                 <div className="parcel-block lulc-legend">
-                  {plot(lulcData.base)}
+                  {plot(lulcData)}
                 </div>
               )
               : <div />
