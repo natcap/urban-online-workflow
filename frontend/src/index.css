@@ -216,10 +216,11 @@ html, body, #root, .App {
   border-collapse: collapse;
 }
 
-.study-area-table tr {
+.study-area-table .address-row {
   border: solid;
   border-color: lightgray;
   border-width: 0.5px 0;
+  border-bottom: none;
 }
 
 .study-area-table tr:first-child {
@@ -227,7 +228,7 @@ html, body, #root, .App {
 }
 
 .study-area-table .parcel-address {
-  width: 200px;
+  width: 120px;
 }
 
 .study-area-table .parcel-block {

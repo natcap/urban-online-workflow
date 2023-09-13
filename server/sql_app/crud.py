@@ -355,5 +355,9 @@ def get_lucode(db: Session, nlud_tier_2: str, nlud_tier_3: str, nlcd: str, tree:
 def get_lulc_string(db: Session, lucode: int):
     row = db.query(models.LulcCrosswalk).filter(
         models.LulcCrosswalk.lucode == lucode).first()
-    LOGGER.debug(row)
-    return f'{row.nlud_tier_2} | {row.nlud_tier_3} | {row.nlcd_lulc} | {row.tree_canopy_cover}'
+    # LOGGER.debug(row)
+    # return f'{row.nlud_tier_3} | {row.nlcd_lulc} | {row.tree_canopy_cover}'
+    return json.dumps({
+            'nlud2': row.nlud_tier_2,
+            'nlcd': row.nlcd_lulc,
+            'tree': row.tree_canopy_cover})
