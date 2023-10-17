@@ -47,7 +47,7 @@ _ALBERS_EQUAL_AREA_SRS.ImportFromProj4(  # more terse than WKT
     '+datum=WGS84 +units=m +no_defs')
 _ALBERS_EQUAL_AREA_SRS.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
 
-NLCD_FILENAME = 'lulc_overlay_3857.tif'
+NLCD_FILENAME = 'overlay_simple_3857.tif'
 NLCD_RASTER_PATHS = {
     'vsigs': f'/vsigs/natcap-urban-online-datasets-public/{NLCD_FILENAME}',
     'docker': f'/opt/appdata/{NLCD_FILENAME}',

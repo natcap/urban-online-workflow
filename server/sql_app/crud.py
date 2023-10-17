@@ -323,22 +323,22 @@ def update_invest(db: Session, scenario_id: int, job_id: int,
 
 
 def get_nlud_tier_2(db: Session):
-    data = db.query(models.LulcCrosswalk.nlud_tier_2).distinct()
+    data = db.query(models.LulcCrosswalk.nlud_simple_class).distinct()
     LOGGER.info(data)
     return data
 
 
 def get_nlud_tier_3(db: Session, nlud_tier_2: str):
     return db.query(
-        models.LulcCrosswalk.nlud_tier_3).filter(
-        models.LulcCrosswalk.nlud_tier_2 == nlud_tier_2).distinct()
+        models.LulcCrosswalk.nlud_simple_subclass).filter(
+        models.LulcCrosswalk.nlud_simple_class == nlud_tier_2).distinct()
 
 
 def get_nlcd(db: Session, nlud_tier_2: str, nlud_tier_3: str):
     return db.query(
         models.LulcCrosswalk.nlcd_lulc).filter(
-        models.LulcCrosswalk.nlud_tier_2 == nlud_tier_2,
-        models.LulcCrosswalk.nlud_tier_3 == nlud_tier_3).distinct()
+        models.LulcCrosswalk.nlud_simple_class == nlud_tier_2,
+        models.LulcCrosswalk.nlud_simple_subclass == nlud_tier_3).distinct()
 
 
 # TODO: this set of queries is not optimal because LulcCrosswalk is
@@ -347,8 +347,8 @@ def get_nlcd(db: Session, nlud_tier_2: str, nlud_tier_3: str):
 def get_lucode(db: Session, nlud_tier_2: str, nlud_tier_3: str, nlcd: str, tree: str):
     return db.query(
         models.LulcCrosswalk.lucode).filter(
-        models.LulcCrosswalk.nlud_tier_2 == nlud_tier_2,
-        models.LulcCrosswalk.nlud_tier_3 == nlud_tier_3,
+        models.LulcCrosswalk.nlud_simple_class == nlud_tier_2,
+        models.LulcCrosswalk.nlud_simple_subclass == nlud_tier_3,
         models.LulcCrosswalk.nlcd_lulc == nlcd,
         models.LulcCrosswalk.tree_canopy_cover == tree).first()
 
@@ -358,6 +358,6 @@ def get_lulc_string(db: Session, lucode: int):
     # LOGGER.debug(row)
     # return f'{row.nlud_tier_3} | {row.nlcd_lulc} | {row.tree_canopy_cover}'
     return json.dumps({
-            'nlud2': row.nlud_tier_2,
+            'nlud2': row.nlud_simple_class,
             'nlcd': row.nlcd_lulc,
             'tree': row.tree_canopy_cover})

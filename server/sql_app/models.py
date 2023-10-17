@@ -140,13 +140,12 @@ class LulcCrosswalk(Base):
     """Lookup table for landuse-landcover codes and labels."""
     __tablename__ = "lulc_crosswalk"
 
+    frequency = Column(Integer)
     lucode = Column(Integer, primary_key=True)
     code = Column(Integer)
-    nlud = Column(Integer)
-    nlud_tier_1 = Column(String)
-    nlud_tier_2 = Column(String)
-    nlud_tier_3 = Column(String)
-    nlud_colors = Column(String)
+    nlud_simple_class = Column(String)
+    nlud_simple_subclass = Column(String)
+    simple_nlud = Column(Integer)
     nlcd = Column(Integer)
     nlcd_lulc = Column(String)
     nlcd_colors = Column(String)

@@ -231,20 +231,20 @@ html, body, #root, .App {
   width: 120px;
 }
 
-.study-area-table .parcel-block {
+/*.study-area-table .parcel-block {
   display: flex;
   flex-wrap:  wrap;
-}
+}*/
 
 .study-area-table .hidden-row {
   display: none;
 }
 
-.study-area-table-legend {
+/*.study-area-table-legend {
   display: flex;
   height: 1rem;
   padding-bottom: 2rem;
-}
+}*/
 
 #scenario-table {
   padding-top: 1rem;

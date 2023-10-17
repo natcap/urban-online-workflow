@@ -43,7 +43,7 @@ export default function StudyAreaTable(props) {
       <td><em>landuse</em></td>
       <td><em>landcover</em></td>
       <td><em>tree cover</em></td>
-      <td><em>area</em></td>
+      <td><em>% of area</em></td>
     </tr>,
   );
   parcelArray.forEach((parcel) => {
@@ -58,7 +58,7 @@ export default function StudyAreaTable(props) {
     const total = sortedValues.reduce((partial, a) => partial + a, 0);
     let x = 0;
     let i = 0;
-    while (x < total * 0.75) {
+    while (x < total * 1.0) {
       x += sortedValues[i];
       i++;
     }

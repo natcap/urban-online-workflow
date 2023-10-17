@@ -31,8 +31,8 @@ LOGGER = logging.getLogger(__name__)
 # This will help with flexibility of where we store our files and DB
 # When gathering URL result for frontend request build the URL with this:
 WORKING_ENV = "/opt/appdata"
-BASE_LULC = "lulc_overlay_3857.tif"
-LULC_CSV_PATH = os.path.join(WORKING_ENV, 'lulc_crosswalk.csv')
+BASE_LULC = "overlay_simple_3857.tif"
+LULC_CSV_PATH = os.path.join(WORKING_ENV, 'overlay_simple_crosswalk.csv')
 
 # Create a queue that we will use to store our "workload".
 QUEUE = queue.PriorityQueue()
@@ -79,6 +79,8 @@ def insert_lulc_data(target, connection, **kw):
 
 # create_all() will check if tables already exist before creating them.
 # if this table did not exist, populate it from the CSV.
+# TODO: use some type of hash to check if the CSV file
+# has changed, not just checking if the db table already exists.
 event.listen(models.LulcCrosswalk.__table__, 'after_create', insert_lulc_data)
 
 # Normally you would probably initialize your db (create tables, etc) with
@@ -810,7 +812,7 @@ def get_invest_results(scenario_id: int, db: Session = Depends(get_db)):
 @app.get("/lucodes/nlud_tier_2")
 def get_nlud_tier_2(db: Session = Depends(get_db)) -> list[str]:
     db_list = crud.get_nlud_tier_2(db)
-    return [row.nlud_tier_2 for row in db_list]
+    return [row.nlud_simple_class for row in db_list]
 
 
 @app.post("/lucodes/nlud_tier_3")
@@ -819,7 +821,7 @@ def get_nlud_tier_3(nlud_dict: dict[str, str],
     db_list = crud.get_nlud_tier_3(
         db,
         nlud_tier_2=nlud_dict['nlud_tier_2'])
-    return [row.nlud_tier_3 for row in db_list]
+    return [row.nlud_simple_subclass for row in db_list]
 
 
 @app.post("/lucodes/nlcd")

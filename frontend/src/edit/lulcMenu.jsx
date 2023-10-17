@@ -34,6 +34,7 @@ export default function LulcMenu(props) {
     (async () => {
       if (nlud2) {
         const options = await getNLUDTier3(nlud2);
+        console.log(options)
         setNlud3Options(options);
         setNlud3(options[0]);
       }
@@ -42,16 +43,18 @@ export default function LulcMenu(props) {
 
   useEffect(() => {
     (async () => {
-      if (nlud2 && nlud3) {
+      if ([nlud2, nlud3].every((x) => typeof x === 'string')) {
         const options = await getNLCD(nlud2, nlud3);
+        console.log('got nlcd')
         setNlcdOptions(options);
         setNlcd(options[0]);
       }
     })();
-  }, [nlud2, nlud3]);
+  }, [nlud3]);
 
   useEffect(() => {
-    if (nlud2 && nlud3 && nlcd && tree) {
+    if ([nlud2, nlud3, nlcd, tree].every((x) => typeof x === 'string')) {
+      console.log(nlud2, nlud3, nlcd, tree);
       (async () => {
         const code = await getLucode(nlud2, nlud3, nlcd, tree);
         console.log(code);
