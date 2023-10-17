@@ -45,7 +45,7 @@ export default function LulcMenu(props) {
     (async () => {
       if ([nlud2, nlud3].every((x) => typeof x === 'string')) {
         const options = await getNLCD(nlud2, nlud3);
-        console.log('got nlcd')
+        console.log(options)
         setNlcdOptions(options);
         setNlcd(options[0]);
       }
@@ -53,8 +53,8 @@ export default function LulcMenu(props) {
   }, [nlud3]);
 
   useEffect(() => {
+    console.log(nlud2, nlud3, nlcd, tree);
     if ([nlud2, nlud3, nlcd, tree].every((x) => typeof x === 'string')) {
-      console.log(nlud2, nlud3, nlcd, tree);
       (async () => {
         const code = await getLucode(nlud2, nlud3, nlcd, tree);
         console.log(code);
@@ -70,6 +70,7 @@ export default function LulcMenu(props) {
           <p>Landuse type:</p>
           <HTMLSelect
             onChange={(event) => setNlud2(event.target.value)}
+            value={nlud2}
           >
             {nlud2Options.map((name) => <option key={name} value={name}>{name}</option>)}
           </HTMLSelect>
@@ -77,6 +78,7 @@ export default function LulcMenu(props) {
             subtype:
             <HTMLSelect
               onChange={(event) => setNlud3(event.target.value)}
+              value={nlud3}
             >
               {nlud3Options.map((name) => <option key={name} value={name}>{name}</option>)}
             </HTMLSelect>
@@ -86,6 +88,7 @@ export default function LulcMenu(props) {
           <p>Landcover:</p>
           <HTMLSelect
             onChange={(event) => setNlcd(event.target.value)}
+            value={nlcd}
           >
             {nlcdOptions.map((name) => <option key={name} value={name}>{name}</option>)}
           </HTMLSelect>
@@ -94,6 +97,7 @@ export default function LulcMenu(props) {
           <p>Tree Cover:</p>
           <HTMLSelect
             onChange={(event) => setTree(event.target.value)}
+            value={tree}
           >
             {treeOptions.map((name) => <option key={name} value={name}>{name}</option>)}
           </HTMLSelect>

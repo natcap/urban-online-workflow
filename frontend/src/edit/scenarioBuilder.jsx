@@ -66,7 +66,7 @@ export default function ScenarioBuilder(props) {
         currentScenarioID
       );
     }
-    if (conversionOption === 'fill' && singleLULC) {
+    if (conversionOption === 'fill' && Number.isInteger(singleLULC)) {
       jid = await lulcFill(singleLULC, currentScenarioID);
     }
     setJobID(jid);
@@ -84,7 +84,7 @@ export default function ScenarioBuilder(props) {
       </span>
     );
   }
-  if (conversionOption === 'fill' && singleLULC) {
+  if (conversionOption === 'fill' && Number.isInteger(singleLULC)) {
     scenarioDescription = (
       <span>
         Create a scenario by <em>filling</em> with <em>{singleLULC}</em>
