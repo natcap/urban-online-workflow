@@ -359,5 +359,6 @@ def get_lulc_string(db: Session, lucode: int):
     # return f'{row.nlud_tier_3} | {row.nlcd_lulc} | {row.tree_canopy_cover}'
     return json.dumps({
             'nlud2': row.nlud_simple_class,
+            'nlud3': row.nlud_simple_subclass,
             'nlcd': row.nlcd_lulc,
             'tree': row.tree_canopy_cover})

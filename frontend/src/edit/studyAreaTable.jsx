@@ -51,6 +51,7 @@ export default function StudyAreaTable(props) {
     if (!lulcData) {
       lulcData = {};
     }
+    console.log(lulcData)
     const sorted = Object.entries(lulcData)
       .sort(([, a], [, b]) => b - a);
     const sortedClasses = sorted.map((x) => x[0]);
@@ -58,7 +59,7 @@ export default function StudyAreaTable(props) {
     const total = sortedValues.reduce((partial, a) => partial + a, 0);
     let x = 0;
     let i = 0;
-    while (x < total * 1.0) {
+    while (x < total * 0.9) {
       x += sortedValues[i];
       i++;
     }
@@ -93,7 +94,7 @@ export default function StudyAreaTable(props) {
         >
           {header}
           {address}
-          <td>{data.nlud2}</td>
+          <td>{`${data.nlud2} : ${data.nlud3}`}</td>
           <td>{data.nlcd}</td>
           <td>{data.tree}</td>
           <td>{Math.round(pct)}</td>
