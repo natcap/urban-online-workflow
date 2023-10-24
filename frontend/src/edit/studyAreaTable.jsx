@@ -46,25 +46,40 @@ export default function StudyAreaTable(props) {
       <td><em>% of area</em></td>
     </tr>,
   );
-  parcelArray.forEach((parcel) => {
-    let lulcData = JSON.parse(parcel.parcel_stats.lulc_stats);
+
+  function sortLulcStats(stats_map_string) {
+    let lulcData = JSON.parse(stats_map_string);
     if (!lulcData) {
       lulcData = {};
     }
-    console.log(lulcData)
     const sorted = Object.entries(lulcData)
       .sort(([, a], [, b]) => b - a);
     const sortedClasses = sorted.map((x) => x[0]);
     const sortedValues = sorted.map((x) => x[1]);
+    return [sortedClasses, sortedValues];
+  }
+
+  parcelArray.forEach((parcel) => {
+    const [sortedClasses, sortedValues] = sortLulcStats(parcel.parcel_stats.lulc_stats);
     const total = sortedValues.reduce((partial, a) => partial + a, 0);
-    let x = 0;
-    let i = 0;
-    while (x < total * 0.9) {
-      x += sortedValues[i];
-      i++;
-    }
-    const topClasses = sortedClasses.slice(0, i);
-    rows.push(topClasses.map((x, i) => {
+    // let lulcData = JSON.parse(parcel.parcel_stats.lulc_stats);
+    // if (!lulcData) {
+    //   lulcData = {};
+    // }
+    // console.log(lulcData)
+    // const sorted = Object.entries(lulcData)
+    //   .sort(([, a], [, b]) => b - a);
+    // const sortedClasses = sorted.map((x) => x[0]);
+    // const sortedValues = sorted.map((x) => x[1]);
+    // const total = sortedValues.reduce((partial, a) => partial + a, 0);
+    // let x = 0;
+    // let i = 0;
+    // while (x < total * 0.9) {
+    //   x += sortedValues[i];
+    //   i++;
+    // }
+    // const topClasses = sortedClasses.slice(0, i);
+    rows.push(sortedClasses.map((x, i) => {
       let header = <td />;
       let address = <td />;
       let rowClass = '';
@@ -83,6 +98,7 @@ export default function StudyAreaTable(props) {
       }
       const data = JSON.parse(x);
       const pct = sortedValues[i] / total * 100;
+      const landuseDesc = `${data.nlud2} ${data.nlud3 ? `: ${data.nlud3}` : ''}`;
       return (
         <tr
           className={rowClass.concat(' ', hiddenRowClass)}
@@ -94,7 +110,7 @@ export default function StudyAreaTable(props) {
         >
           {header}
           {address}
-          <td>{`${data.nlud2} : ${data.nlud3}`}</td>
+          <td>{landuseDesc}</td>
           <td>{data.nlcd}</td>
           <td>{data.tree}</td>
           <td>{Math.round(pct)}</td>
