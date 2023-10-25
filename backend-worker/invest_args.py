@@ -57,16 +57,16 @@ def carbon(lulc_path, workspace_dir, study_area_wkt):
         "lulc_cur_path": lulc_path
     }
 
-    [minx, miny, maxx, maxy] = pygeoprocessing.get_raster_info(
-        lulc_path)['bounding_box']
-    center = shapely.geometry.Point(
-        (minx + maxx) / 2, (miny + maxy) / 2)
-    bioregion = get_bioregion(center)
+    # [minx, miny, maxx, maxy] = pygeoprocessing.get_raster_info(
+    #     lulc_path)['bounding_box']
+    # center = shapely.geometry.Point(
+    #     (minx + maxx) / 2, (miny + maxy) / 2)
+    # bioregion = get_bioregion(center)
 
     args_dict['carbon_pools_path'] = os.path.join(
         INVEST_BASE_PATH,
         'biophysical_tables',
-        f'urban_carbon_nlcd_{bioregion}.csv')
+        'urban_carbon_nlcd_simple_nlud_trees.csv')
 
     return args_dict
 
@@ -101,11 +101,11 @@ def urban_cooling(lulc_path, workspace_dir, study_area_wkt):
     pygeoprocessing.shapely_geometry_to_vector(
         [aoi_geom], aoi_vector_path, lulc_info['projection_wkt'], 'GEOJSON')
 
-    bioregion = get_bioregion(aoi_geom.centroid)
+    # bioregion = get_bioregion(aoi_geom.centroid)
 
     args_dict['biophysical_table_path'] = os.path.join(
         INVEST_BASE_PATH,
         'biophysical_tables',
-        f'ucm_nlcd_{bioregion}.csv')
+        'ucm_nlcd_simple_nlud_trees.csv')
 
     return args_dict
