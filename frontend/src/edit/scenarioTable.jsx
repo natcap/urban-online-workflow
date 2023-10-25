@@ -70,7 +70,7 @@ export default function ScenarioTable(props) {
           // borderLeftColor: landuseCodes[code].color,
         }}
         >
-          {landuseCodes[code]}
+          {landuseCodes[code]['name']}
         </td>
       );
       cells.push(...counts.map((c, idx) => {

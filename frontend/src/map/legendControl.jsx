@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import landuseCodes from '../../../appdata/NLCD_2016.lulcdata.json';
+import landuseCodes from '../../../appdata/overlay_simple_crosswalk.json';
 
 
 export default function LegendControl(props) {
@@ -8,7 +8,7 @@ export default function LegendControl(props) {
     lulcCode,
   } = props;
 
-
+  console.log(lulcCode)
   return (
     <div>
       {
@@ -17,7 +17,7 @@ export default function LegendControl(props) {
               // <div className="map-lulc-legend lulc-legend">
               //   <div
               //     style={{
-              //       backgroundColor: landuseCodes[lulcCode].color,
+              //       // backgroundColor: landuseCodes[lulcCode].color,
               //       width: '20px',
               //       height: '20px',
               //       display: 'inline-block',
@@ -26,7 +26,7 @@ export default function LegendControl(props) {
               //   />
               //   <span>{landuseCodes[lulcCode].name}</span>
               // </div>
-              <div className="map-lulc-legend lulc-legend">{lulcCode}</div>
+              <div className="map-lulc-legend lulc-legend">{'?'}</div>
           )
           : <div />
       }
