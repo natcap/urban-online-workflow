@@ -7,7 +7,7 @@ import {
   Icon,
 } from '@blueprintjs/core';
 
-import landuseCodes from '../../../appdata/NLCD_2016.lulcdata.json';
+import landuseCodes from '../../../appdata/overlay_simple_crosswalk.json';
 
 const METRICS = {
   avg_tmp_v: {

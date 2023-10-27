@@ -87,6 +87,8 @@ export default function EditMenu(props) {
     }
   }, [scenarios]);
 
+  console.log(scenarios)
+  console.log(results)
   return (
     <div className="menu-container">
       <Tabs
@@ -152,7 +154,12 @@ export default function EditMenu(props) {
                       />
                       <br />
                       <InvestRunner
-                        completeResults={scenarios.length === Object.keys(results).length}
+                        completeResults={
+                          scenarios.every((scene) => (
+                            results[scene.name]
+                            && Object.keys(results[scene.name]).length
+                          ))
+                        }
                         scenarios={scenarios}
                         setInvestResults={setInvestResults}
                         setActiveTab={setActiveTab}
@@ -165,7 +172,11 @@ export default function EditMenu(props) {
           )}
         />
         {
-          (Object.keys(results).length && scenarioDescriptions)
+          (
+            results.baseline
+            && Object.keys(results.baseline).length
+            && scenarioDescriptions
+          )
             ? (
               <Tab
                 id="results"
