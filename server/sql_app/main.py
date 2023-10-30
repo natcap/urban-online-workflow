@@ -346,9 +346,10 @@ def worker_scenario_response(
             status=STATUS_SUCCESS,
             name=job_db.name, description=job_db.description)
         # Update the scenario lulc path and stats
+        lulc_stats = crud.explode_lulc_counts(db, scenario_job.result['lulc_stats'])
         scenario_update = schemas.ScenarioUpdate(
             lulc_url_result=scenario_job.result['lulc_path'],
-            lulc_stats=json.dumps(scenario_job.result['lulc_stats']))
+            lulc_stats=json.dumps(lulc_stats))
     else:
         # Update the job status in the DB to "failed"
         job_update = schemas.JobBase(
@@ -385,9 +386,7 @@ def worker_parcel_stats_response(
             name=job_db.name, description=job_db.description)
         # Update the scenario lulc path and stats
         LOGGER.info(parcel_stats_job.result['lulc_stats']['base'])
-        LOGGER.info({code: count for code, count in parcel_stats_job.result['lulc_stats']['base'].items()})
-        data = {crud.get_lulc_string(db, int(code)): count for code, count in parcel_stats_job.result['lulc_stats']['base'].items()}
-        LOGGER.info(data)
+        data = crud.explode_lulc_counts(db, parcel_stats_job.result['lulc_stats']['base'])
         stats_update = schemas.ParcelStatsUpdate(
             lulc_stats=json.dumps(data))
     else:

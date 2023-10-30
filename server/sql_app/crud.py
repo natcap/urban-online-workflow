@@ -5,6 +5,7 @@ import logging
 import sys
 import time
 import uuid
+from collections import Counter
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -352,6 +353,7 @@ def get_lucode(db: Session, nlud_tier_2: str, nlud_tier_3: str, nlcd: str, tree:
         models.LulcCrosswalk.nlcd_lulc == nlcd,
         models.LulcCrosswalk.tree_canopy_cover == tree).first()
 
+
 def get_lulc_string(db: Session, lucode: int):
     row = db.query(models.LulcCrosswalk).filter(
         models.LulcCrosswalk.lucode == lucode).first()
@@ -362,3 +364,21 @@ def get_lulc_string(db: Session, lucode: int):
             'nlud3': row.nlud_simple_subclass,
             'nlcd': row.nlcd_lulc,
             'tree': row.tree_canopy_cover})
+
+
+def explode_lulc_counts(db: Session, stats_dict):
+    data = {
+        'nlcd': Counter(),
+        'nlud': Counter(),
+        'tree': Counter()
+    }
+    for lucode, count in stats_dict.items():
+        row = db.query(models.LulcCrosswalk).filter(
+            models.LulcCrosswalk.lucode == lucode).first()
+        nlud_label_2 = f' | {row.nlud_simple_subclass}' \
+            if row.nlud_simple_subclass else ''
+        nlud_label = f'{row.nlud_simple_class}{nlud_label_2}'
+        data['nlud'][nlud_label] += count
+        data['nlcd'][row.nlcd_lulc] += count
+        data['tree'][row.tree_canopy_cover] += count
+    return data

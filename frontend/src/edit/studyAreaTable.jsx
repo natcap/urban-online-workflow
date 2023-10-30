@@ -2,10 +2,19 @@ import React, { useState } from 'react';
 
 import {
   Button,
+  HTMLSelect,
   HTMLTable,
 } from '@blueprintjs/core';
 
 import { removeParcel } from '../requests';
+
+import landuseCodes from '../../../appdata/overlay_simple_crosswalk.json';
+
+const LULC_TYPES = {
+  'nlcd': 'landcover',
+  'nlud': 'landuse',
+  'tree': 'tree cover'
+};
 
 export default function StudyAreaTable(props) {
   const {
@@ -16,6 +25,7 @@ export default function StudyAreaTable(props) {
     setHoveredParcel,
   } = props;
   const [hiddenRowClass, setHiddenRowClass] = useState('');
+  const [lulcType, setLulcType] = useState('nlcd');
 
   const deleteParcel = async (parcelID) => {
     await removeParcel(parcelID, studyAreaID);
@@ -30,8 +40,7 @@ export default function StudyAreaTable(props) {
     }
   };
 
-  const rows = [];
-  rows.push(
+  const headerRow = (
     <tr key="header">
       <td>
         <Button
@@ -40,50 +49,36 @@ export default function StudyAreaTable(props) {
         />
       </td>
       <td className="parcel-address"><em>address</em></td>
-      <td><em>landuse</em></td>
-      <td><em>landcover</em></td>
-      <td><em>tree cover</em></td>
-      <td><em>% of area</em></td>
-    </tr>,
+      <td>
+        <HTMLSelect
+          onChange={(event) => setLulcType(event.target.value)}
+          value={lulcType}
+        >
+          {Object.entries(LULC_TYPES).map(
+            ([type, label]) => <option key={type} value={type}>{label}</option>
+          )}
+        </HTMLSelect>
+      </td>
+      <td><em>count</em></td>
+    </tr>
   );
+  const rows = [];
+  rows.push(headerRow);
 
-  function sortLulcStats(stats_map_string) {
-    let lulcData = JSON.parse(stats_map_string);
-    if (!lulcData) {
-      lulcData = {};
-    }
-    const sorted = Object.entries(lulcData)
+  function sortCounts(countsMap) {
+    return Object.entries(countsMap)
       .sort(([, a], [, b]) => b - a);
-    const sortedClasses = sorted.map((x) => x[0]);
-    const sortedValues = sorted.map((x) => x[1]);
-    return [sortedClasses, sortedValues];
   }
 
   parcelArray.forEach((parcel) => {
-    const [sortedClasses, sortedValues] = sortLulcStats(parcel.parcel_stats.lulc_stats);
-    const total = sortedValues.reduce((partial, a) => partial + a, 0);
-    // let lulcData = JSON.parse(parcel.parcel_stats.lulc_stats);
-    // if (!lulcData) {
-    //   lulcData = {};
-    // }
-    // console.log(lulcData)
-    // const sorted = Object.entries(lulcData)
-    //   .sort(([, a], [, b]) => b - a);
-    // const sortedClasses = sorted.map((x) => x[0]);
-    // const sortedValues = sorted.map((x) => x[1]);
-    // const total = sortedValues.reduce((partial, a) => partial + a, 0);
-    // let x = 0;
-    // let i = 0;
-    // while (x < total * 0.9) {
-    //   x += sortedValues[i];
-    //   i++;
-    // }
-    // const topClasses = sortedClasses.slice(0, i);
-    rows.push(sortedClasses.map((x, i) => {
+    const data = JSON.parse(parcel.parcel_stats.lulc_stats);
+    if (!data) { return; }
+    const sorted = sortCounts(data[lulcType]);
+    rows.push(sorted.map(([label, count], i) => {
       let header = <td />;
       let address = <td />;
       let rowClass = '';
-      if (i == 0) {
+      if (i === 0) {
         header = (
           <td>
             <Button
@@ -96,13 +91,10 @@ export default function StudyAreaTable(props) {
         address = <td className="parcel-address">{parcel.address}</td>;
         rowClass = 'address-row';
       }
-      const data = JSON.parse(x);
-      const pct = sortedValues[i] / total * 100;
-      const landuseDesc = `${data.nlud2} ${data.nlud3 ? `: ${data.nlud3}` : ''}`;
       return (
         <tr
           className={rowClass.concat(' ', hiddenRowClass)}
-          key={i}
+          key={parcel.parcel_id}
           onMouseOver={() => setHoveredParcel(parcel.parcel_id)}
           onFocus={() => setHoveredParcel(parcel.parcel_id)}
           onMouseOut={() => setHoveredParcel(null)}
@@ -110,10 +102,8 @@ export default function StudyAreaTable(props) {
         >
           {header}
           {address}
-          <td>{landuseDesc}</td>
-          <td>{data.nlcd}</td>
-          <td>{data.tree}</td>
-          <td>{Math.round(pct)}</td>
+          <td>{label}</td>
+          <td>{Math.round(count)}</td>
         </tr>
       );
     }));
