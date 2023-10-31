@@ -7,6 +7,7 @@ import {
 } from '@blueprintjs/core';
 
 import { removeParcel } from '../requests';
+import { toAcres } from '../utils';
 
 import landuseCodes from '../../../appdata/overlay_simple_crosswalk.json';
 
@@ -64,7 +65,7 @@ export default function StudyAreaTable(props) {
           )}
         </HTMLSelect>
       </td>
-      <td><em>count</em></td>
+      <td><em>acres</em></td>
     </tr>
   );
   const rows = [];
@@ -103,7 +104,7 @@ export default function StudyAreaTable(props) {
           {header}
           {address}
           <td>{label}</td>
-          <td>{Math.round(count)}</td>
+          <td>{toAcres(count)}</td>
         </tr>
       );
     }));

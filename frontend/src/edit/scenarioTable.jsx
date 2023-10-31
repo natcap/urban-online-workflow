@@ -6,6 +6,8 @@ import {
   Button,
 } from '@blueprintjs/core';
 
+import { toAcres } from '../utils';
+
 import landuseCodes from '../../../appdata/overlay_simple_crosswalk.json';
 
 const LULC_TYPES = {
@@ -13,14 +15,6 @@ const LULC_TYPES = {
   'nlud': 'landuse',
   'tree': 'tree cover'
 };
-
-function acres(count) {
-  if (!parseInt(count)) {
-    return '';
-  }
-  const acres = (count * 30 * 30) / 4047; // square-meters to acres
-  return acres.toFixed(1);
-}
 
 export default function ScenarioTable(props) {
   const { scenarios } = props;
@@ -108,7 +102,7 @@ export default function ScenarioTable(props) {
       cells.push(...counts.map((c, idx) => {
         let content = '';
         if (c) {
-          content = <span>{acres(c)} acres</span>;
+          content = <span>{toAcres(c)} acres</span>;
         }
         return <td key={idx}>{content}</td>;
       }));
