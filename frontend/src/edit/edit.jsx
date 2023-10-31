@@ -87,8 +87,6 @@ export default function EditMenu(props) {
     }
   }, [scenarios]);
 
-  console.log(scenarios)
-  console.log(results)
   return (
     <div className="menu-container">
       <Tabs

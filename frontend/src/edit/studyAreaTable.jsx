@@ -40,6 +40,11 @@ export default function StudyAreaTable(props) {
     }
   };
 
+  function sortCounts(countsMap) {
+    return Object.entries(countsMap)
+      .sort(([, a], [, b]) => b - a);
+  }
+
   const headerRow = (
     <tr key="header">
       <td>
@@ -65,11 +70,6 @@ export default function StudyAreaTable(props) {
   const rows = [];
   rows.push(headerRow);
 
-  function sortCounts(countsMap) {
-    return Object.entries(countsMap)
-      .sort(([, a], [, b]) => b - a);
-  }
-
   parcelArray.forEach((parcel) => {
     const data = JSON.parse(parcel.parcel_stats.lulc_stats);
     if (!data) { return; }
@@ -94,7 +94,7 @@ export default function StudyAreaTable(props) {
       return (
         <tr
           className={rowClass.concat(' ', hiddenRowClass)}
-          key={parcel.parcel_id}
+          key={label}
           onMouseOver={() => setHoveredParcel(parcel.parcel_id)}
           onFocus={() => setHoveredParcel(parcel.parcel_id)}
           onMouseOut={() => setHoveredParcel(null)}

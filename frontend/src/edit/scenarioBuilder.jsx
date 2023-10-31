@@ -76,37 +76,38 @@ export default function ScenarioBuilder(props) {
     return <div />;
   }
 
-  let scenarioDescription = '';
-  if (conversionOption === 'wallpaper' && selectedPattern) {
-    scenarioDescription = (
-      <span>
-        Create a scenario by <em>wallpapering</em> with <em>{selectedPattern.label}</em>
-      </span>
-    );
-  }
-  if (conversionOption === 'fill' && Number.isInteger(singleLULC)) {
-    scenarioDescription = (
-      <span>
-        Create a scenario by <em>filling</em> with <em>{singleLULC}</em>
-      </span>
-    );
-  }
+  // let scenarioDescription = '';
+  // if (conversionOption === 'wallpaper' && selectedPattern) {
+  //   scenarioDescription = (
+  //     <span>
+  //       Create a scenario by <em>wallpapering</em> with <em>{selectedPattern.label}</em>
+  //     </span>
+  //   );
+  // }
+  // if (conversionOption === 'fill' && Number.isInteger(singleLULC)) {
+  //   scenarioDescription = (
+  //     <span>
+  //       Create a scenario by <em>filling</em> with <em>{singleLULC}</em>
+  //     </span>
+  //   );
+  // }
 
   return (
-    <form>
+    <form className="panel">
       <label className="sidebar-subheading">
-        Modify the landuse in this study area:
+        Create a scenario:
       </label>
+      <p><em>choose new landuse and landcover for the study area</em></p>
       <RadioGroup
         className="conversion-radio"
         inline
         onChange={(event) => setConversionOption(event.target.value)}
         selectedValue={conversionOption}
       >
-        <Radio key="wallpaper" value="wallpaper" label="wallpaper" />
         <Radio key="fill" value="fill" label="fill" />
+        <Radio key="wallpaper" value="wallpaper" label="wallpaper" />
       </RadioGroup>
-      <div className="panel">
+      <div>
         {
           (conversionOption === 'fill')
             ? (
@@ -126,8 +127,9 @@ export default function ScenarioBuilder(props) {
             )
         }
       </div>
-      <div id="scenario-input-label" className="sidebar-subheading">
-        {scenarioDescription}
+      <div id="scenario-input-label">
+        {/*TODO: This subscript is a note to self, remove it.*/}
+        <sub>{singleLULC}</sub>
         {
           (jobID)
             ? <Spinner size="20" />
