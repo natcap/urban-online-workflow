@@ -66,19 +66,26 @@ export default function EditMenu(props) {
       // of the area changed and just list those.
       const descriptions = {};
       scenarios.forEach((scenario) => {
-        const sorted = Object.entries(JSON.parse(scenario.lulc_stats))
-          .sort(([, a], [, b]) => b - a);
-        const sortedClasses = sorted.map((x) => x[0]);
-        const sortedValues = sorted.map((x) => x[1]);
-        const total = sortedValues.reduce((partial, a) => partial + a, 0);
-        let x = 0;
-        let i = 0;
-        while (x < total / 2) {
-          x += sortedValues[i];
-          i++;
-        }
-        const topClasses = sortedClasses.slice(0, i);
-        descriptions[scenario.name] = topClasses;
+        const stats = JSON.parse(scenario.lulc_stats);
+        descriptions[scenario.name] = {
+          nlcd: [],
+          nlud: [],
+        };
+        ['nlcd', 'nlud'].forEach((lulcType) => {
+          const sorted = Object.entries(stats[lulcType])
+            .sort(([, a], [, b]) => b - a);
+          const sortedClasses = sorted.map((x) => x[0]);
+          const sortedValues = sorted.map((x) => x[1]);
+          const total = sortedValues.reduce((partial, a) => partial + a, 0);
+          let x = 0;
+          let i = 0;
+          while (x < total / 2) {
+            x += sortedValues[i];
+            i++;
+          }
+          const topClasses = sortedClasses.slice(0, i);
+          descriptions[scenario.name][lulcType] = topClasses;
+        });
       });
       setScenarioDescriptions(descriptions);
       (async () => {

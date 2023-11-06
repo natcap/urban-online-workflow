@@ -53,7 +53,7 @@ import {
 
 import { publicUrl } from '../utils';
 
-const BASE_LULC_URL = 'https://storage.googleapis.com/natcap-urban-online-datasets-public/overlay_simple_3857.tif';
+const BASE_LULC_URL = 'https://storage.googleapis.com/natcap-urban-online-datasets-public/lulc_overlay_3857.tif';
 const GEOTIFF_SOURCE_OPTIONS = {
   allowFullFile: true,
   blockSize: 256,

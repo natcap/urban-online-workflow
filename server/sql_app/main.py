@@ -31,8 +31,8 @@ LOGGER = logging.getLogger(__name__)
 # This will help with flexibility of where we store our files and DB
 # When gathering URL result for frontend request build the URL with this:
 WORKING_ENV = "/opt/appdata"
-BASE_LULC = "overlay_simple_3857.tif"
-LULC_CSV_PATH = os.path.join(WORKING_ENV, 'overlay_simple_crosswalk.csv')
+BASE_LULC = "lulc_overlay_3857.tif"
+LULC_CSV_PATH = os.path.join(WORKING_ENV, 'lulc_crosswalk.csv')
 
 # Create a queue that we will use to store our "workload".
 QUEUE = queue.PriorityQueue()

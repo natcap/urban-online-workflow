@@ -11,7 +11,7 @@ import {
   getLucode,
 } from '../requests';
 
-const treeOptions = ['none', 'low', 'medium'];
+const treeOptions = ['none', 'low', 'medium', 'high'];
 
 export default function LulcMenu(props) {
   const [nlud2Options, setNlud2Options] = useState([]);

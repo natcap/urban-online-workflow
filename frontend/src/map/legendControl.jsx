@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import landuseCodes from '../../../appdata/overlay_simple_crosswalk.json';
+// import landuseCodes from '../../../appdata/overlay_simple_crosswalk.json';
 
 
 export default function LegendControl(props) {
@@ -8,7 +8,6 @@ export default function LegendControl(props) {
     lulcCode,
   } = props;
 
-  console.log(lulcCode)
   return (
     <div>
       {

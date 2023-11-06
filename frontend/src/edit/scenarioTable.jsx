@@ -8,8 +8,6 @@ import {
 
 import { toAcres } from '../utils';
 
-import landuseCodes from '../../../appdata/overlay_simple_crosswalk.json';
-
 const LULC_TYPES = {
   'nlcd': 'landcover',
   'nlud': 'landuse',
