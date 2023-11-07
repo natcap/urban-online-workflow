@@ -105,7 +105,7 @@ def execute(args):
     Args:
         args['workspace_dir'] (string): a path to the output workspace folder.
         args['results_suffix'] (string): string appended to each output file path.
-        args['city'] (string): selected city.
+        args['city'] (string): selected city from the cities listed in args['mortality_risk_path'].
         args['lulc_tif'] (string): file path to a landcover raster.
         args['air_temp_tif'] (string): file path to an air temperature raster output from InVEST Urban Cooling Model.
         args['dd_energy_path'] (string): file path to a table indicating the relationship between LULC classes and
@@ -221,22 +221,18 @@ def execute(args):
             )
 
     # Test if selected city is in the Guo et al dataset
-    city_name_global = f"{args['city'].split(',')[0]}, USA"
-    try:
-        if city_name_global not in mortality_risk_df["city"]:
-            raise IndexError("GuoStudy")
-    except IndexError:
-        logger.error(
-            f"'{city_name_global}' not in Guo et al. 2014 Mortality Risk study"
-        )
-    else:
+    if args["city"] in mortality_risk_df["city"]:
         city_mortality_risk_df = mortality_risk_df.loc[
-            mortality_risk_df["city"] == city_name_global
+            mortality_risk_df["city"] == args["city"]
         ]
 
         mortality_tif = Path(args["workspace_dir"]) / f"mortality_risk{file_suffix}.tif"
         mortality_risk_calculation(
             args["air_temp_tif"], mortality_tif, city_mortality_risk_df
+        )
+    else:
+        logger.warning(
+            f"'{args['city']}' not in Guo et al. 2014 Mortality Risk study, skipping Mortality Risk analysis."
         )
 
 
@@ -244,6 +240,17 @@ def hdd_calculation(
     t_air_raster_path: pathlike, target_hdd_path: pathlike, hdd_threshold: float = 15.5
 ) -> None:
     """Raster calculator op to calculate Heating Degree Days from air temperature and HDD threshold temperature.
+    Implementing the following function from Roxon et al. 2020 (https://doi.org/10.1016/j.uclim.2019.100546):
+
+        if T_(air,i) > hdd_threshold:
+            hdd_i = 1.43 * 10**25 * T_(air,i) **-12.85
+        else:
+            hdd_i = -29.54 * T_(air,i) + 1941
+
+    HOWEVER the problem is these are Fahrenheit Degree Day calculations, while the incoming temperature data is in
+    Celsius. For now, we simply convert the incoming temperature data to Fahrenheit then convert the output
+    Fahrenheit Degree Day to Celsius.
+
 
     Args:
         t_air_raster_path (pathlike): Pathlib path to T air raster.
@@ -251,14 +258,7 @@ def hdd_calculation(
         hdd_threshold (float): number between 0-100.
 
     Returns:
-        if T_(air,i) > hdd_threshold:
-            hdd_i = 1.43 * 10**25 * T_(air,i) **-12.85
-        else:
-            hdd_i = -29.54 * T_(air,i) + 1941
-        HOWEVER the problem is these are Fahrenheit Degree Day calculations, while the incoming temperature data is in
-        Celsius. For now, we simply convert the incoming temperature data to Fahrenheit then convert the output
-        Fahrenheit Degree Day to Celsius.
-
+        None
     """
     # Ensure path variables are Path objects
     t_air_raster_path = Path(t_air_raster_path)
@@ -294,7 +294,17 @@ def hdd_calculation(
 def cdd_calculation(
     t_air_raster_path: pathlike, target_cdd_path: pathlike, cdd_threshold: float = 21.1
 ) -> None:
-    """Raster calculator op to calculate Cooling Degree Days. Currently based solely on Temperature
+    """Raster calculator op to calculate Cooling Degree Days. Currently based solely on Temperature.
+    Implementing the following function from Roxon et al. 2020 (https://doi.org/10.1016/j.uclim.2019.100546):
+
+        if T_(air,i) >= cdd_threshold:
+            cdd_i = 29.58 * T_(air,i) - 1905
+        else:
+            cdd_i = 1.07 * 10**-18 * T_(air,i)**10.96
+
+        HOWEVER the problem is these are Fahrenheit Degree Day calculations, while the incoming temperature data is in
+        Celsius. For now, we simply convert the incoming temperature data to Fahrenheit then convert the output
+        Fahrenheit Degree Day to Celsius.
 
     Args:
         t_air_raster_path (Path): Pathlib path to T air raster.
@@ -302,14 +312,7 @@ def cdd_calculation(
         cdd_threshold (float): number between 0-100.
 
     Returns:
-        if T_(air,i) >= cdd_threshold:
-            cdd_i = 29.58 * T_(air,i) - 1905
-        else:
-            cdd_i = 1.07 * 10**-18 * T_(air,i)**10.96
-        HOWEVER the problem is these are Fahrenheit Degree Day calculations, while the incoming temperature data is in
-        Celsius. For now, we simply convert the incoming temperature data to Fahrenheit then convert the output
-        Fahrenheit Degree Day to Celsius.
-
+        None
     """
     t_air_nodata = pygeoprocessing.get_raster_info(str(t_air_raster_path))["nodata"][0]
 
@@ -382,26 +385,25 @@ def mortality_risk_calculation(
             valid_mask = np.ones(t_air_array.shape, dtype=bool)
 
         thresholds = ["01", "10", "mmtp", "90", "99"]
+        lower_thresholds = thresholds[:-1]
         # Iterate through thresholds, except 99th percentile (since we linearly interpolate anything greater than 90th)
-        for i, t in enumerate(thresholds[:-1]):
-            i += 1
-
+        for i, t in enumerate(lower_thresholds[:-1]):
             # Temperature Thresholds
             lower_threshold = mortality_risk_df.loc[0, f"t_{t}"]
-            upper_threshold = mortality_risk_df.loc[0, f"t_{thresholds[i]}"]
+            upper_threshold = mortality_risk_df.loc[0, f"t_{thresholds[i+1]}"]
 
             # Mortality Risks
             lower_risk = mortality_risk_df.loc[0, f"rr_{t}"]
-            upper_risk = mortality_risk_df.loc[0, f"rr_{thresholds[i]}"]
+            upper_risk = mortality_risk_df.loc[0, f"rr_{thresholds[i+1]}"]
 
             # Calculate mask
             # Initial bin
-            if i == 1:
+            if i == 0:
                 current_mask = np.logical_and(
                     valid_mask, (t_air_array < upper_threshold)
                 )
             # Final Bin
-            elif i == len(thresholds) - 1:
+            elif i + 1 == len(lower_thresholds):
                 current_mask = np.logical_and(
                     valid_mask, (t_air_array >= lower_threshold)
                 )
