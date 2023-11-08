@@ -268,14 +268,18 @@ export default function MapComponent(props) {
   const switchScenario = (title) => {
     map.getAllLayers().forEach((layer) => {
       if (layer.get('type') === 'scenario') {
-        layer.setVisible(layer.get('title') === title)
+        layer.setVisible(layer.get('title') === title);
       }
     });
     setMapLayers();
   };
 
   const setLulcStyle = (lulcType) => {
-    lulcLayer.setStyle(getStyle(lulcType));
+    map.getAllLayers().forEach((layer) => {
+      if (layer.get('type') === 'scenario' || layer.get('title') === 'Landcover') {
+        layer.setStyle(getStyle(lulcType));
+      }
+    });
   };
 
   const toggleLayerControl = () => {
@@ -393,10 +397,10 @@ export default function MapComponent(props) {
           }
         }
       });
-      if (scenarioData) {
+      if (scenarioData && scenarioData[1]) { // check band [1] for nodata
         // Get here if a Scenario LULC is visible
         setHoveredCode(scenarioData[0].toString());
-      } else if (baseData) {
+      } else if (baseData && baseData[1]) {
         // Base LULC visible but no Scenario LULC visible
         setHoveredCode(baseData[0].toString());
       } else {
@@ -450,7 +454,6 @@ export default function MapComponent(props) {
     if (scenarios.length) {
       const scenarioLayers = [];
       scenarios.forEach((scene) => {
-        console.log(scene.lulc_url_result)
         scenarioLayers.push(
           lulcTileLayer(scene.lulc_url_result, scene.name, 'scenario')
         );
@@ -460,6 +463,7 @@ export default function MapComponent(props) {
       scenarioLayers.push(mostRecentLyr);
       scenarioLayerGroup.setLayers(new Collection(scenarioLayers));
       map.addLayer(scenarioLayerGroup);
+      setShowLegendControl(true);
     }
     clearSelection();
   }, [scenarios]);

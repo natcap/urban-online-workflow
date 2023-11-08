@@ -17,14 +17,13 @@ export default function LegendControl(props) {
     show,
   } = props;
 
-  const [lulcType, setLulcType] = useState(null);
+  const [lulcType, setLulcType] = useState('nlcd');
 
   const changeLulc = (event) => {
     setLulcType(event.target.value);
     setLulcStyle(event.target.value);
   };
 
-  console.log(lulcCode)
   return (
     <div>
       {
@@ -40,7 +39,7 @@ export default function LegendControl(props) {
                 )}
               </HTMLSelect>
               {
-                (lulcCode && lulcType)
+                (lulcCode)
                   ? (
                     <div>
                       <div
