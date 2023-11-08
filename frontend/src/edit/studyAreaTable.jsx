@@ -9,7 +9,6 @@ import {
 import { removeParcel } from '../requests';
 import { toAcres } from '../utils';
 
-
 const LULC_TYPES = {
   'nlcd': 'landcover',
   'nlud': 'landuse',

@@ -32,7 +32,6 @@ export default function Results(props) {
     scenarioDescriptions,
     setSelectedScenario,
   } = props;
-  console.log(scenarioDescriptions)
 
   const [scenarioName, setScenarioName] = useState(null);
   const [temperature, setTemperature] = useState(null);

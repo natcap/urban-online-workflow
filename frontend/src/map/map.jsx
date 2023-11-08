@@ -34,7 +34,7 @@ import { Button, Icon } from '@blueprintjs/core';
 
 import ParcelControl from './parcelControl';
 import LegendControl from './legendControl';
-import { lulcTileLayer } from './lulcLayer';
+import { lulcTileLayer, getStyle } from './lulcLayer';
 import LayerPanel from './LayerPanel';
 import {
   satelliteLayer,
@@ -53,7 +53,12 @@ import {
 
 import { publicUrl } from '../utils';
 
-const BASE_LULC_URL = 'https://storage.googleapis.com/natcap-urban-online-datasets-public/lulc_overlay_3857.tif';
+const GCS_BUCKET = 'https://storage.googleapis.com/natcap-urban-online-datasets-public';
+const NLCD_2016_URL = `${GCS_BUCKET}/NLCD_2016_epsg3857.tif`
+const BASE_LULC_URL = `${GCS_BUCKET}/lulc_overlay_3857.tif`
+const BASE_NLCD_URL = `${GCS_BUCKET}/nlcd_san_antonio_3857.tif`;
+const BASE_NLUD_URL = `${GCS_BUCKET}/nlud_simple_san_antonio_3857.tif`;
+const BASE_TREE_URL = `${GCS_BUCKET}/nasa_tree_canopy_san_antonio_classified_3857.tif`;
 const GEOTIFF_SOURCE_OPTIONS = {
   allowFullFile: true,
   blockSize: 256,
@@ -159,11 +164,13 @@ serviceshedLayer.setZIndex(3);
 // Set a default basemap to be visible
 satelliteLayer.setVisible(true);
 
+const lulcLayer = lulcTileLayer(BASE_LULC_URL, 'Landcover', 'base');
+
 const map = new Map({
   layers: [
     satelliteLayer,
     streetMapLayer,
-    lulcTileLayer(BASE_LULC_URL, 'Landcover', 'base'),
+    lulcLayer,
     parcelLayer,
     selectionLayer,
     hoveredLayer,
@@ -201,6 +208,7 @@ export default function MapComponent(props) {
   const [showLayerControl, setShowLayerControl] = useState(false);
   const [selectedParcel, setSelectedParcel] = useState(null);
   const [hoveredCode, setHoveredCode] = useState(null);
+  const [showLegendControl, setShowLegendControl] = useState(false);
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
 
@@ -241,6 +249,7 @@ export default function MapComponent(props) {
     map.getLayers().forEach(lyr => {
       if (lyr.get('title') === title) {
         lyr.setVisible(visible);
+        setShowLegendControl(lyr.get('type') === 'scenario-group')
       }
     });
     setMapLayers();
@@ -252,6 +261,7 @@ export default function MapComponent(props) {
         layer.setVisible(layer.get('title') === title);
       }
     });
+    setShowLegendControl(title === 'Landcover');
     setMapLayers();
   };
 
@@ -262,6 +272,10 @@ export default function MapComponent(props) {
       }
     });
     setMapLayers();
+  };
+
+  const setLulcStyle = (lulcType) => {
+    lulcLayer.setStyle(getStyle(lulcType));
   };
 
   const toggleLayerControl = () => {
@@ -436,6 +450,7 @@ export default function MapComponent(props) {
     if (scenarios.length) {
       const scenarioLayers = [];
       scenarios.forEach((scene) => {
+        console.log(scene.lulc_url_result)
         scenarioLayers.push(
           lulcTileLayer(scene.lulc_url_result, scene.name, 'scenario')
         );
@@ -511,7 +526,9 @@ export default function MapComponent(props) {
         immutableStudyArea={Boolean(scenarios.length)}
       />
       <LegendControl
+        show={showLegendControl}
         lulcCode={hoveredCode}
+        setLulcStyle={setLulcStyle}
       />
     </div>
   );
