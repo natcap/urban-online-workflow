@@ -25,7 +25,6 @@ const COLORMAPS = {
 };
 
 export function getStyle(lulcType) {
-  console.log(lulcType)
   // https://openlayers.org/en/latest/apidoc/module-ol_style_expressions.html#~ExpressionValue
   // https://github.com/openlayers/openlayers/blob/main/test/rendering/cases/webgl-palette/main.js
   return {

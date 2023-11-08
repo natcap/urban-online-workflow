@@ -41,7 +41,7 @@ export default function LegendControl(props) {
               {
                 (lulcCode)
                   ? (
-                    <div>
+                    <>
                       <div
                         style={{
                           backgroundColor: landuseCodes[lulcCode][lulcType].color,
@@ -52,12 +52,11 @@ export default function LegendControl(props) {
                         }}
                       />
                       <span>{landuseCodes[lulcCode][lulcType].name}</span>
-                    </div>
+                    </>
                   )
                   : <div />
               }
             </div>
-            // <div className="map-lulc-legend lulc-legend">{'?'}</div>
           )
           : <div />
       }
