@@ -51,7 +51,6 @@ export function lulcTileLayer(url, title, type, sourceOptions) {
     sources: [{
       url: publicUrl(url),
       projection: 'EPSG:3857',
-      // nodata: -1,
     }],
     interpolate: false,
     normalize: false,

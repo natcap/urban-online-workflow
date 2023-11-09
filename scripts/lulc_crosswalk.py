@@ -3,40 +3,40 @@ import pandas
 
 df = pandas.read_csv('../appdata/lulc_crosswalk.csv')
 
+
 def construct_nlud_names(row):
     name = ''
     if row.nlud_simple_class:
         name += row.nlud_simple_class
     if row.nlud_simple_subclass:
         name += f' ({row.nlud_simple_subclass})'
-    # if row.nlcd_lulc:
-    #     name += f' | {row.nlcd_lulc}'
     return name
 
 
 df = df.fillna('')
 df['nlud_name'] = df.apply(construct_nlud_names, axis=1)
-# df['name'] = \
-#     df['nlud_simple_class'] + ' | ' + \
-#     df['nlud_simple_subclass'] + ' | ' + \
-#     df['nlcd_lulc']
 
-# data = dict(zip(df['lucode'], df['name']))
-# data = {lucode: {'name': name} for lucode, name in zip(df['lucode'], df['name'])}
+with open('../appdata/nlcd_colormap.json') as file:
+    nlcd_map = json.load(file)
+with open('../appdata/nlud_colormap.json') as file:
+    nlud_map = json.load(file)
+with open('../appdata/tree_colormap.json') as file:
+    tree_map = json.load(file)
+
 data = {}
 for idx, row in df.iterrows():
     data[row.lucode] = {
         'nlcd': {
             'name': row.nlcd_lulc,
-            'color': row.nlcd_colors
+            'color': nlcd_map[str(row.nlcd)]
         },
         'nlud': {
             'name': row.nlud_name,
-            'color': '#000000'
+            'color': nlud_map[str(row.nlud_simple)]
         },
         'tree': {
             'name': row.tree_canopy_cover,
-            'color': row.tree_colors
+            'color': tree_map[str(row.tree)]
         }
     }
 

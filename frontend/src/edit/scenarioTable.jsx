@@ -7,6 +7,7 @@ import {
 } from '@blueprintjs/core';
 
 import { toAcres } from '../utils';
+import landuseCodes from '../../../appdata/lulc_crosswalk.json';
 
 const LULC_TYPES = {
   'nlcd': 'landcover',
@@ -91,7 +92,7 @@ export default function ScenarioTable(props) {
       const cells = [];
       cells.push(
         <td key={category} className="row-name lulc-legend" style={{
-          // borderLeftColor: landuseCodes[code].color,
+          // borderLeftColor: landuseCodes[code][lulcType].color,
         }}
         >
           {category}
