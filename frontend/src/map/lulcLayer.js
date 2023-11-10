@@ -1,20 +1,23 @@
 import GeoTIFF from 'ol/source/GeoTIFF';
 import TileLayer from 'ol/layer/WebGLTile';
 
-import landuseCodes from '../../../appdata/lulc_crosswalk.json';
 import { publicUrl } from '../utils';
+import landuseCodes from '../../../appdata/lulc_crosswalk.json';
+import nlcdLookup from '../../../appdata/nlcd_colormap.json';
+import nludLookup from '../../../appdata/nlud_colormap.json';
+import treeLookup from '../../../appdata/tree_colormap.json';
 
 const nlcdColors = Array(3000).fill('#000000');
 const nludColors = Array(3000).fill('#000000');
 const treeColors = Array(3000).fill('#000000');
 Object.entries(landuseCodes).forEach(([code, data]) => {
-  nlcdColors[code] = data.nlcd.color;
+  nlcdColors[code] = nlcdLookup[data.nlcd].color;
 });
 Object.entries(landuseCodes).forEach(([code, data]) => {
-  nludColors[code] = data.nlud.color;
+  nludColors[code] = nludLookup[data.nlud].color;
 });
 Object.entries(landuseCodes).forEach(([code, data]) => {
-  treeColors[code] = data.tree.color;
+  treeColors[code] = treeLookup[data.tree].color;
 });
 
 // keys here match 'title' passed to lulcTileLayer

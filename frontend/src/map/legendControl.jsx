@@ -3,6 +3,15 @@ import React, { useState } from 'react';
 import { HTMLSelect } from '@blueprintjs/core';
 
 import landuseCodes from '../../../appdata/lulc_crosswalk.json';
+import nlcdLookup from '../../../appdata/nlcd_colormap.json';
+import nludLookup from '../../../appdata/nlud_colormap.json';
+import treeLookup from '../../../appdata/tree_colormap.json';
+
+const LULC_LOOKUP = {
+  nlcd: nlcdLookup,
+  nlud: nludLookup,
+  tree: treeLookup,
+};
 
 const LULC_TYPES = {
   'nlcd': 'landcover',
@@ -44,14 +53,14 @@ export default function LegendControl(props) {
                     <>
                       <div
                         style={{
-                          backgroundColor: landuseCodes[lulcCode][lulcType].color,
+                          backgroundColor: LULC_LOOKUP[lulcType][landuseCodes[lulcCode][lulcType]].color,
                           width: '20px',
                           height: '20px',
                           display: 'inline-block',
                           margin: '0.5em',
                         }}
                       />
-                      <span>{landuseCodes[lulcCode][lulcType].name}</span>
+                      <span>{LULC_LOOKUP[lulcType][landuseCodes[lulcCode][lulcType]].name}</span>
                     </>
                   )
                   : <div />

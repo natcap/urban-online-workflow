@@ -7,7 +7,15 @@ import {
 } from '@blueprintjs/core';
 
 import { toAcres } from '../utils';
-import landuseCodes from '../../../appdata/lulc_crosswalk.json';
+import nlcdLookup from '../../../appdata/nlcd_colormap.json';
+import nludLookup from '../../../appdata/nlud_colormap.json';
+import treeLookup from '../../../appdata/tree_colormap.json';
+
+const LULC_LOOKUP = {
+  nlcd: nlcdLookup,
+  nlud: nludLookup,
+  tree: treeLookup,
+};
 
 const LULC_TYPES = {
   'nlcd': 'landcover',
@@ -68,34 +76,37 @@ export default function ScenarioTable(props) {
   const rows = [];
   rows.push(scenarioHeader);
 
-  let categories;
+  let codes;
   switch (lulcType) {
     case 'nlcd':
-      categories = landcoverTypes;
+      codes = landcoverTypes;
       break;
     case 'nlud':
-      categories = landuseTypes;
+      codes = landuseTypes;
       break;
     case 'tree':
-      categories = treeTypes;
+      codes = treeTypes;
       break;
     default:
-      categories = [];
+      codes = [];
   }
-  categories.forEach((category) => {
+  codes.forEach((code) => {
     const counts = [];
-    Object.entries(scenarioTable).forEach(([name, table]) => {
-      const count = table[lulcType][category] || '';
+    Object.entries(scenarioTable).forEach(([x, table]) => {
+      const count = table[lulcType][code] || '';
       counts.push(count);
     });
     if (counts.reduce((x, y) => (x || 0) + (y || 0), 0)) { // skip rows of all 0s
       const cells = [];
       cells.push(
-        <td key={category} className="row-name lulc-legend" style={{
-          // borderLeftColor: landuseCodes[code][lulcType].color,
-        }}
+        <td
+          key={code}
+          className="row-name lulc-legend"
+          style={{
+            borderLeftColor: LULC_LOOKUP[lulcType][code].color,
+          }}
         >
-          {category}
+          {LULC_LOOKUP[lulcType][code].name}
         </td>
       );
       cells.push(...counts.map((c, idx) => {
@@ -105,7 +116,7 @@ export default function ScenarioTable(props) {
         }
         return <td key={idx}>{content}</td>;
       }));
-      rows.push(<tr key={category}>{cells}</tr>);
+      rows.push(<tr key={code}>{cells}</tr>);
     }
   });
 

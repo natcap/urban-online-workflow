@@ -354,18 +354,6 @@ def get_lucode(db: Session, nlud_tier_2: str, nlud_tier_3: str, nlcd: str, tree:
         models.LulcCrosswalk.tree_canopy_cover == tree).first()
 
 
-def get_lulc_string(db: Session, lucode: int):
-    row = db.query(models.LulcCrosswalk).filter(
-        models.LulcCrosswalk.lucode == lucode).first()
-    # LOGGER.debug(row)
-    # return f'{row.nlud_tier_3} | {row.nlcd_lulc} | {row.tree_canopy_cover}'
-    return json.dumps({
-            'nlud2': row.nlud_simple_class,
-            'nlud3': row.nlud_simple_subclass,
-            'nlcd': row.nlcd_lulc,
-            'tree': row.tree_canopy_cover})
-
-
 def explode_lulc_counts(db: Session, stats_dict):
     data = {
         'nlcd': Counter(),
@@ -375,10 +363,7 @@ def explode_lulc_counts(db: Session, stats_dict):
     for lucode, count in stats_dict.items():
         row = db.query(models.LulcCrosswalk).filter(
             models.LulcCrosswalk.lucode == lucode).first()
-        nlud_label_2 = f' | {row.nlud_simple_subclass}' \
-            if row.nlud_simple_subclass else ''
-        nlud_label = f'{row.nlud_simple_class}{nlud_label_2}'
-        data['nlud'][nlud_label] += count
-        data['nlcd'][row.nlcd_lulc] += count
-        data['tree'][row.tree_canopy_cover] += count
+        data['nlud'][row.nlud_simple] += count
+        data['nlcd'][row.nlcd] += count
+        data['tree'][row.tree] += count
     return data

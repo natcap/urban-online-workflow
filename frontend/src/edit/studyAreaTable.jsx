@@ -8,6 +8,15 @@ import {
 
 import { removeParcel } from '../requests';
 import { toAcres } from '../utils';
+import nlcdLookup from '../../../appdata/nlcd_colormap.json';
+import nludLookup from '../../../appdata/nlud_colormap.json';
+import treeLookup from '../../../appdata/tree_colormap.json';
+
+const LULC_LOOKUP = {
+  nlcd: nlcdLookup,
+  nlud: nludLookup,
+  tree: treeLookup,
+};
 
 const LULC_TYPES = {
   'nlcd': 'landcover',
@@ -73,7 +82,8 @@ export default function StudyAreaTable(props) {
     const data = JSON.parse(parcel.parcel_stats.lulc_stats);
     if (!data) { return; }
     const sorted = sortCounts(data[lulcType]);
-    rows.push(sorted.map(([label, count], i) => {
+    rows.push(sorted.map(([code, count], i) => {
+      const label = LULC_LOOKUP[lulcType][code].name;
       let header = <td />;
       let address = <td />;
       let rowClass = '';

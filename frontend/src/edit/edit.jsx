@@ -15,6 +15,16 @@ import InvestRunner from './investRunner';
 import Results from './results';
 import { getInvestResults } from '../requests';
 
+import nlcdLookup from '../../../appdata/nlcd_colormap.json';
+import nludLookup from '../../../appdata/nlud_colormap.json';
+import treeLookup from '../../../appdata/tree_colormap.json';
+
+const LULC_LOOKUP = {
+  nlcd: nlcdLookup,
+  nlud: nludLookup,
+  tree: treeLookup,
+};
+
 FocusStyleManager.onlyShowFocusOnTabs();
 
 export default function EditMenu(props) {
@@ -84,7 +94,9 @@ export default function EditMenu(props) {
             i++;
           }
           const topClasses = sortedClasses.slice(0, i);
-          descriptions[scenario.name][lulcType] = topClasses;
+          descriptions[scenario.name][lulcType] = topClasses.map(
+            (code) => LULC_LOOKUP[lulcType][code].name
+          );
         });
       });
       setScenarioDescriptions(descriptions);
