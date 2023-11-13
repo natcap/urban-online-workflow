@@ -69,7 +69,7 @@ test('parcel present in study area, without scenarios', async () => {
   expect(createScenario).toBeInTheDocument();
 });
 
-test('scenarios exist', async () => {
+test('scenarios & results exist', async () => {
   const screen = renderEdit(STUDY_AREA, SCENARIOS);
 
   const tableText = await screen.findByText(/baseline/);
@@ -80,5 +80,5 @@ test('scenarios exist', async () => {
   expect(cols).toHaveLength(SCENARIOS.length + 1);
 
   const investBtn = await screen.getByRole('button', { name: /Evaluate Impacts/ });
-  expect(investBtn).toBeEnabled();
+  await waitFor(() => expect(investBtn).not.toBeEnabled());
 });
