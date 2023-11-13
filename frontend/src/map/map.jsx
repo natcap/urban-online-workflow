@@ -54,21 +54,7 @@ import {
 import { publicUrl } from '../utils';
 
 const GCS_BUCKET = 'https://storage.googleapis.com/natcap-urban-online-datasets-public';
-const NLCD_2016_URL = `${GCS_BUCKET}/NLCD_2016_epsg3857.tif`
 const BASE_LULC_URL = `${GCS_BUCKET}/lulc_overlay_3857.tif`
-const BASE_NLCD_URL = `${GCS_BUCKET}/nlcd_san_antonio_3857.tif`;
-const BASE_NLUD_URL = `${GCS_BUCKET}/nlud_simple_san_antonio_3857.tif`;
-const BASE_TREE_URL = `${GCS_BUCKET}/nasa_tree_canopy_san_antonio_classified_3857.tif`;
-const GEOTIFF_SOURCE_OPTIONS = {
-  allowFullFile: true,
-  blockSize: 256,
-  maxRanges: 1, // doesn't seem to work as advertised
-  headers: {
-    // 'range' is case-sensitive, despite the fact that browser & docs
-    // capitalize 'Range'.
-    // 'range': 'bytes=0-3356',
-  }
-};
 const SCENARIO_LAYER_GROUP_NAME = 'Scenarios';
 
 // JSTS utilities

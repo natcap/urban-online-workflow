@@ -345,7 +345,6 @@ export async function getNLUDTier2() {
 }
 
 export async function getNLUDTier3(tier2) {
-  console.log(tier2)
   return (
     window.fetch(`${apiBaseURL}/lucodes/nlud_tier_3`, {
       method: 'post',
@@ -360,7 +359,6 @@ export async function getNLUDTier3(tier2) {
 }
 
 export async function getNLCD(tier2, tier3) {
-  console.log(tier2, tier3)
   return (
     window.fetch(`${apiBaseURL}/lucodes/nlcd`, {
       method: 'post',

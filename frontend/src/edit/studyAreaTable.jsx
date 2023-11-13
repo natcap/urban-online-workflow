@@ -19,9 +19,9 @@ const LULC_LOOKUP = {
 };
 
 const LULC_TYPES = {
-  'nlcd': 'landcover',
-  'nlud': 'landuse',
-  'tree': 'tree cover'
+  nlcd: 'landcover',
+  nlud: 'landuse',
+  tree: 'tree cover'
 };
 
 export default function StudyAreaTable(props) {

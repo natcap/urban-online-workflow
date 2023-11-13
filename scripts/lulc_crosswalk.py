@@ -1,3 +1,8 @@
+"""Create json-format lulc crosswalk for use in frontend.
+
+The resulting json is checked-in to the application source code,
+So this script need only be run if the source CSV file changes.
+"""
 import json
 import pandas
 

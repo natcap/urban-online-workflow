@@ -7,6 +7,7 @@ import nlcdLookup from '../../../appdata/nlcd_colormap.json';
 import nludLookup from '../../../appdata/nlud_colormap.json';
 import treeLookup from '../../../appdata/tree_colormap.json';
 
+// landuseCodes range from 0 to 2400, allow 3000 indices.
 const nlcdColors = Array(3000).fill('#000000');
 const nludColors = Array(3000).fill('#000000');
 const treeColors = Array(3000).fill('#000000');
@@ -20,11 +21,10 @@ Object.entries(landuseCodes).forEach(([code, data]) => {
   treeColors[code] = treeLookup[data.tree].color;
 });
 
-// keys here match 'title' passed to lulcTileLayer
 const COLORMAPS = {
-  'nlcd': nlcdColors,
-  'nlud': nludColors,
-  'tree': treeColors,
+  nlcd: nlcdColors,
+  nlud: nludColors,
+  tree: treeColors,
 };
 
 export function getStyle(lulcType) {
@@ -65,6 +65,6 @@ export function lulcTileLayer(url, title, type, sourceOptions) {
     title: title,
     type: type,
     visible: false,
-    style: getStyle('nlcd')
+    style: getStyle('nlcd'),
   });
 }

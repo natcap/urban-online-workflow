@@ -3,14 +3,12 @@ import React, { useState } from 'react';
 import {
   Button,
   InputGroup,
-  // HTMLSelect,
   Radio,
   RadioGroup,
   Spinner
 } from '@blueprintjs/core';
 
 import useInterval from '../hooks/useInterval';
-// import landuseCodes from '../../../appdata/NLCD_2016.lulcdata.json';
 import WallpaperingMenu from './wallpaperingMenu';
 import LulcMenu from './lulcMenu';
 import {
@@ -76,22 +74,6 @@ export default function ScenarioBuilder(props) {
     return <div />;
   }
 
-  // let scenarioDescription = '';
-  // if (conversionOption === 'wallpaper' && selectedPattern) {
-  //   scenarioDescription = (
-  //     <span>
-  //       Create a scenario by <em>wallpapering</em> with <em>{selectedPattern.label}</em>
-  //     </span>
-  //   );
-  // }
-  // if (conversionOption === 'fill' && Number.isInteger(singleLULC)) {
-  //   scenarioDescription = (
-  //     <span>
-  //       Create a scenario by <em>filling</em> with <em>{singleLULC}</em>
-  //     </span>
-  //   );
-  // }
-
   return (
     <form className="panel">
       <label className="sidebar-subheading">
@@ -105,7 +87,7 @@ export default function ScenarioBuilder(props) {
         selectedValue={conversionOption}
       >
         <Radio key="fill" value="fill" label="fill" />
-        <Radio key="wallpaper" value="wallpaper" label="wallpaper" />
+        <Radio key="wallpaper" value="wallpaper" label="wallpaper" disabled/>
       </RadioGroup>
       <div>
         {
@@ -128,7 +110,8 @@ export default function ScenarioBuilder(props) {
         }
       </div>
       <div id="scenario-input-label">
-        {/*TODO: This subscript is a note to self, remove it.*/}
+        {/*TODO: This subscript is a note to self, related to
+        https://github.com/natcap/urban-online-workflow/issues/124*/}
         <sub>{singleLULC}</sub>
         {
           (jobID)

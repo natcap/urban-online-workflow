@@ -484,16 +484,6 @@ def read_jobs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return jobs
 
 
-@app.post("/lulc_codes/", response_model=schemas.JobResponse)
-def get_lulc_info(db: Session = Depends(get_db)):
-    """Get the lulc class codes, names, and color representation."""
-    #TODO: determine if this should act like the rest of our job endpoints
-    # or if this operation should happen locally or if it should happen at
-    # server start.
-
-    pass
-
-
 @app.post("/pattern/{session_id}", response_model=schemas.PatternResponse)
 def create_pattern(session_id: str, pattern: schemas.PatternBase,
                    db: Session = Depends(get_db)):
@@ -835,6 +825,7 @@ def get_nlcd(nlud_dict: dict[str, str],
 
 # TODO: will all 3 tree cover classes always be present for each category?
 # or do we need another query to find out which are present?
+# related to https://github.com/natcap/urban-online-workflow/issues/124
 @app.post("/lucodes/lucode")
 def get_lucode(lulc_dict: schemas.LulcRequest,
                db: Session = Depends(get_db)) -> Optional[int]:
