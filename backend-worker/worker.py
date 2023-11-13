@@ -175,7 +175,7 @@ class Tests(unittest.TestCase):
             os.path.join(self.workspace_dir, 'parcel.shp'),
             _WEB_MERCATOR_SRS.ExportToWkt(), 'ESRI Shapefile')
 
-        _create_new_lulc(parcel.wkt, gtiff_path)
+        _create_new_lulc(parcel.wkt, gtiff_path, include_pixel_values=True)
 
         raster_info = pygeoprocessing.get_raster_info(gtiff_path)
 
@@ -431,7 +431,8 @@ def fill_parcel(parcel_wkt_epsg3857, fill_lulc_class,
         ogr_geom_type=OGR_GEOMETRY_TYPES[parcel_geom.type]
     )
 
-    _create_new_lulc(parcel_wkt_epsg3857, target_lulc_path)
+    _create_new_lulc(
+        parcel_wkt_epsg3857, target_lulc_path, include_pixel_values=True)
     pygeoprocessing.geoprocessing.rasterize(
         parcel_vector_path, target_lulc_path, [fill_lulc_class],
         option_list=['ALL_TOUCHED=TRUE'])
