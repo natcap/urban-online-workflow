@@ -12,6 +12,10 @@ import INVEST_RESULT from './fixtures/investResult.json';
 vi.mock('../src/requests', () => {
   return {
     getInvestResults: () => INVEST_RESULT,
+    getNLUDTier2: () => [],
+    getNLUDTier3: () => [],
+    getNLCD: () => [],
+    getLucode: () => null,
   };
 });
 
@@ -48,7 +52,7 @@ test('no parcel present in study area', async () => {
   const studyAreaTable = await screen.queryByRole('table');
   expect(studyAreaTable).toBeNull();
 
-  const scenarioBuilder = await screen.queryByText(/Modify the landuse/);
+  const scenarioBuilder = await screen.queryByText(/choose new landuse/);
   expect(scenarioBuilder).toBeNull();
 
   const createScenario = await screen.queryByText(/Create a scenario/);
@@ -61,8 +65,6 @@ test('parcel present in study area, without scenarios', async () => {
 
   const addressCell = await screen.findByText(STUDY_AREA.parcels[0].address);
 
-  const scenarioBuilder = await screen.getByText('Modify the landuse in this study area:');
-  expect(scenarioBuilder).toBeInTheDocument();
   const createScenario = await screen.getByText(/Create a scenario/);
   expect(createScenario).toBeInTheDocument();
 });
@@ -70,13 +72,11 @@ test('parcel present in study area, without scenarios', async () => {
 test('scenarios exist', async () => {
   const screen = renderEdit(STUDY_AREA, SCENARIOS);
 
-  const tableText = await screen.findByText(
-    /Landcover composition by scenario/
-  );
+  const tableText = await screen.findByText(/baseline/);
   const table = tableText.closest('table');
   const rows = within(table).getAllByRole('row');
   const cols = within(rows[1]).getAllByRole('cell');
-  expect(rows).toHaveLength(4); // number of diff lulc types represented, + header
+  expect(rows).toHaveLength(2); // number of diff lulc types represented, + header
   expect(cols).toHaveLength(SCENARIOS.length + 1);
 
   const investBtn = await screen.getByRole('button', { name: /Evaluate Impacts/ });
