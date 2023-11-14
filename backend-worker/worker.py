@@ -64,13 +64,6 @@ if _NLCD_RASTER_INFO is None:
     raise AssertionError(
         f"Could not open {NLCD_FILENAME} at any known locations")
 LOGGER.info(f"Using NLCD at {NLCD_RASTER_PATH}")
-# NLCD_COLOR_TABLE_PATH = os.path.join(
-#     os.path.dirname(NLCD_RASTER_PATH), 'NLCD_2016.lulcdata.json')
-
-# with open(NLCD_COLOR_TABLE_PATH, 'r') as file:
-#     table = json.loads(file.read())
-# NLCD_COLORS = {int(lulc_code): data['color'] for lulc_code, data
-#                in table.items()}
 
 NLCD_SRS_WKT = _NLCD_RASTER_INFO['projection_wkt']
 _NLCD_SRS = osr.SpatialReference()
@@ -222,49 +215,6 @@ class Tests(unittest.TestCase):
 
         wallpaper_parcel(parcel.wkt, pattern.wkt, NLCD_RASTER_PATH,
                          target_raster_path, self.workspace_dir)
-
-    # def test_wallpaper_nlcd(self):
-    #     # University of Texas: San Antonio, selected by hand in QGIS
-    #     # Coordinates are in EPSG:3857 "Web Mercator"
-    #     point_over_san_antonio = shapely.geometry.Point(
-    #         -10965275.57, 3429693.30)
-    #     parcel = point_over_san_antonio.buffer(100)
-
-    #     # Apache Creek, urban residential area, San Antonio, TX.
-    #     # Selected by hand in QGIS.  Coordinates are in EPSG:3857 "Web
-    #     # Mercator"
-    #     # Near the intersection of South Laredo street and South Zarzamora
-    #     # Street.
-    #     pattern = shapely.geometry.box(
-    #         *shapely.geometry.Point(
-    #             -10968418.16, 3429347.98).buffer(100).bounds)
-
-    #     # write this output to a file for testing
-    #     pygeoprocessing.geoprocessing.shapely_geometry_to_vector(
-    #         [pattern],
-    #         os.path.join(self.workspace_dir, 'pattern_webmercator.geojson'),
-    #         _WEB_MERCATOR_SRS.ExportToWkt(), 'GeoJSON')
-
-    #     target_raster_path = os.path.join(
-    #         self.workspace_dir, 'wallpapered_raster.tif')
-
-    #     wallpaper_parcel(parcel.wkt, pattern.wkt, NLCD_RASTER_PATH,
-    #                      target_raster_path, self.workspace_dir)
-
-    #     thumbnail = os.path.join('thumbnail_pattern.png')
-    #     make_thumbnail(pattern.wkt, NLCD_COLORS, thumbnail, self.workspace_dir)
-
-    # def test_thumbnail(self):
-    #     # University of Texas: San Antonio, selected by hand in QGIS
-    #     # Coordinates are in EPSG:3857 "Web Mercator"
-    #     point_over_san_antonio = shapely.geometry.Point(
-    #         -10965275.57, 3429693.30)
-
-    #     # Raster units are in meters (mercator)
-    #     parcel = point_over_san_antonio.buffer(100)
-
-    #     thumbnail = os.path.join(self.workspace_dir, 'thumbnail.png')
-    #     make_thumbnail(parcel.wkt, NLCD_COLORS, thumbnail)
 
     def test_get_bioregion(self):
         # University of Texas: San Antonio, selected by hand in QGIS
@@ -758,28 +708,6 @@ def do_work(host, port, outputs_location):
                         }
                     }
                 }
-            # elif job_type == JOBTYPE_PATTERN_THUMBNAIL:
-            #     thumbnails_dir = os.path.join(
-            #         model_outputs_dir, 'thumbnails')
-            #     if not os.path.exists(thumbnails_dir):
-            #         os.makedirs(thumbnails_dir)
-            #     pattern_id = server_args['pattern_id']
-            #     thumbnail_path = os.path.join(
-            #         thumbnails_dir,
-            #         f'pattern_{pattern_id}_thumbnail.png')
-            #     make_thumbnail(
-            #         pattern_wkt_epsg3857=job_args['pattern_wkt'],
-            #         colors_dict=NLCD_COLORS,
-            #         target_thumbnail_path=thumbnail_path,
-            #         working_dir=thumbnails_dir
-            #     )
-            #     LOGGER.info(f"Thumbnail written to {thumbnail_path}")
-
-            #     data = {
-            #         'result': {
-            #             'pattern_thumbnail_path': thumbnail_path,
-            #         }
-            #     }
             elif job_type == JOBTYPE_INVEST:
                 invest_model = job_args['invest_model']
                 scenario_id = job_args['scenario_id']
