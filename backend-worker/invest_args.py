@@ -1,7 +1,6 @@
 import logging
 import os
 
-from osgeo import gdal
 import pygeoprocessing
 import shapely.geometry
 
@@ -24,28 +23,6 @@ if INVEST_BASE_PATH is None:
         f"Could not find {INVEST_DATA} at any known locations")
 LOGGER.info(f"Using InVEST data at {INVEST_BASE_PATH}")
 
-BIOREGIONS_VECTOR_PATH = f'{INVEST_BASE_PATH}/OE_Bioregions_3857.shp'
-BIOREGIONS_FIELD = 'BIOREGION_'
-# The regions for which we have biophysical parameters
-AVAILABLE_BIOREGIONS = ['NA10', 'NA11', 'NA12', 'NA13', 'NA15', 'NA16', 'NA17',
-                        'NA18', 'NA19', 'NA20', 'NA21', 'NA22', 'NA23', 'NA24',
-                        'NA25', 'NA27', 'NA28', 'NA29', 'NA30', 'NA31', 'NT26']
-
-
-def get_bioregion(point):
-    vector = gdal.OpenEx(BIOREGIONS_VECTOR_PATH, gdal.OF_VECTOR)
-    layer = vector.GetLayer()
-    region = None
-    for feature in layer:
-        geom = shapely.wkt.loads(feature.GetGeometryRef().ExportToWkt())
-        if geom.contains(point):
-            region = feature.GetField(BIOREGIONS_FIELD)
-    if region not in AVAILABLE_BIOREGIONS:
-        raise ValueError(
-            f'the point {point} is not contained '
-            f'within a parameterized bioregion. Region: {region}')
-    return region
-
 
 def carbon(lulc_path, workspace_dir, study_area_wkt):
     args_dict = {
@@ -56,12 +33,6 @@ def carbon(lulc_path, workspace_dir, study_area_wkt):
         "do_valuation": False,
         "lulc_cur_path": lulc_path
     }
-
-    # [minx, miny, maxx, maxy] = pygeoprocessing.get_raster_info(
-    #     lulc_path)['bounding_box']
-    # center = shapely.geometry.Point(
-    #     (minx + maxx) / 2, (miny + maxy) / 2)
-    # bioregion = get_bioregion(center)
 
     args_dict['carbon_pools_path'] = os.path.join(
         INVEST_BASE_PATH,
@@ -100,8 +71,6 @@ def urban_cooling(lulc_path, workspace_dir, study_area_wkt):
     aoi_geom = shapely.wkt.loads(study_area_wkt).buffer(cooling_distance)
     pygeoprocessing.shapely_geometry_to_vector(
         [aoi_geom], aoi_vector_path, lulc_info['projection_wkt'], 'GEOJSON')
-
-    # bioregion = get_bioregion(aoi_geom.centroid)
 
     args_dict['biophysical_table_path'] = os.path.join(
         INVEST_BASE_PATH,
