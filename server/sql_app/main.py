@@ -1,28 +1,24 @@
+import csv
 import json
 import logging
 import os
 import queue
 import sys
+from typing import Optional
 
 import shapely.geometry
 import shapely.wkt
 
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.testclient import TestClient
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
 from sqlalchemy.orm import Session
+from sqlalchemy import event
 
 from . import crud, models, schemas
 from .database import SessionLocal, engine
-
-
-# This will help with flexibility of where we store our files and DB
-# When gathering URL result for frontend request build the URL with this:
-WORKING_ENV = "/opt/appdata"
-BASE_LULC = "NLCD_2016_epsg3857.tif"
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -32,9 +28,11 @@ logging.basicConfig(
     stream=sys.stdout)
 LOGGER = logging.getLogger(__name__)
 
-# Create the db tables
-models.Base.metadata.create_all(bind=engine)
-
+# This will help with flexibility of where we store our files and DB
+# When gathering URL result for frontend request build the URL with this:
+WORKING_ENV = "/opt/appdata"
+BASE_LULC = "lulc_overlay_3857.tif"
+LULC_CSV_PATH = os.path.join(WORKING_ENV, 'lulc_crosswalk.csv')
 
 # Create a queue that we will use to store our "workload".
 QUEUE = queue.PriorityQueue()
@@ -68,24 +66,37 @@ JOB_TYPES = {
 }
 
 
+def insert_lulc_data(target, connection, **kw):
+    LOGGER.info('importing LULC Crosswalk table')
+    # https://docs.sqlalchemy.org/en/20/_modules/examples/performance/bulk_inserts.html
+    with open(LULC_CSV_PATH, 'r') as file:
+        reader = csv.DictReader(file)
+        connection.execute(
+            models.LulcCrosswalk.__table__.insert(),
+            [row for row in reader]
+        )
+
+
+# create_all() will check if tables already exist before creating them.
+# if this table did not exist, populate it from the CSV.
+# TODO: use some type of hash to check if the CSV file
+# has changed, not just checking if the db table already exists.
+event.listen(models.LulcCrosswalk.__table__, 'after_create', insert_lulc_data)
+
 # Normally you would probably initialize your db (create tables, etc) with
 # Alembic. Would also use Alembic for "migrations" (that's its main job).
 # A "migration" is the set of steps needed whenever you change the structure
 # of your SQLA models, add a new attribute, etc. to replicate those changes
 # in the db, add a new column, a new table, etc.
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-
-
-origins = [
-    "http://localhost:3000",
-]
-
+origins = ["http://localhost:3000"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],  # despite this *, I could not get PATCH to pass CORS
+    allow_methods=["*"],  # despite this *, PATCH does not pass CORS
     allow_headers=["*"],
 )
 
@@ -100,34 +111,31 @@ async def validation_exception_handler(
     return JSONResponse(
         content=content, status_code=HTTP_422_UNPROCESSABLE_ENTITY)
 
-# We need to have an independent db session / connection (SessionLocal) per
-# request, use the same session through all the request and then close it after
-# the request is finished.
-
-# Then a new session will be created for the next request.
-
-# Our dependency will create a new SQLA SessionLocal that will be used in a
-# single request, and then close it once the request is finished.
 
 # Dependency
 def get_db():
+    # We need to have an independent db session / connection (SessionLocal) per
+    # request, use the same session through all the request and then close it after
+    # the request is finished.
+
+    # Then a new session will be created for the next request.
+
+    # Our dependency will create a new SQLA SessionLocal that will be used in a
+    # single request, and then close it once the request is finished.
+    # We are creating the db session before each request in the dependency with
+    # 'yield', and then closing it afterwards.
+
+    # Then we can create the required dependency in the path operation function,
+    # to get that session directly.
+
+    # With that, we can just call crud.get_user directly from inside of the path
+    # operation function and use that session.
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
 
-# We are creating the db session before each request in the dependency with
-# 'yield', and then closing it afterwards.
-
-# Then we can create the required dependency in the path operation function,
-# to get that session directly.
-
-# With that, we can just call crud.get_user directly from inside of the path
-# operation function and use that session.
-###
-
-### Session Endpoints ###
 
 @app.post("/sessions/", response_model=schemas.SessionResponse)
 def create_session(db: Session = Depends(get_db)):
@@ -139,13 +147,6 @@ def create_session(db: Session = Depends(get_db)):
     return crud.create_session(db=db)
 
 
-# Type annotations in the function arguments will give you editor support
-# inside of your function, with error checks, completion, etc.
-# So, with that type declaration, FastAPI gives you automatic request
-# "parsing". With the same Python type declaration, FastAPI gives you data
-# validation. All the data validation is performed under the hood by Pydantic,
-# so you get all the benefits from it.
-
 @app.get("/session/{session_id}", response_model=schemas.Session)
 def read_session(session_id: str, db: Session = Depends(get_db)):
     db_session = crud.get_session(db, session_id=session_id)
@@ -153,8 +154,6 @@ def read_session(session_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Session not found")
     return db_session
 
-
-### Study Area and Scenario Endpoints ###
 
 @app.post("/study_area/{session_id}", response_model=schemas.StudyArea)
 def create_study_area(
@@ -171,7 +170,7 @@ def create_study_area(
 @app.get("/study_area/{session_id}/{study_area_id}",
          response_model=schemas.StudyArea)
 def get_study_area(
-    session_id: str, study_area_id: int, db: Session = Depends(get_db)):
+        session_id: str, study_area_id: int, db: Session = Depends(get_db)):
     # check that the session exists
     db_session = crud.get_session(db, session_id=session_id)
     if db_session is None:
@@ -179,9 +178,8 @@ def get_study_area(
     db_study_area = crud.get_study_area(db, study_area_id=study_area_id)
     return db_study_area
 
-# TODO: patch method blocked by CORS? fails preflight request with 400
-@app.put("/study_area/{session_id}",
-           response_model=schemas.StudyArea)
+
+@app.put("/study_area/{session_id}", response_model=schemas.StudyArea)
 def update_study_area(session_id: str, study_area: schemas.StudyArea,
                       db: Session = Depends(get_db)):
     # check that the session exists
@@ -241,8 +239,6 @@ def update_scenario(
 def delete_scenario(scenario_id: int, db: Session = Depends(get_db)):
     return crud.delete_scenario(db=db, scenario_id=scenario_id)
 
-
-### Worker Endpoints ###
 
 @app.get("/jobsqueue/")
 async def worker_job_request(db: Session = Depends(get_db)):
@@ -315,14 +311,14 @@ def worker_invest_response(
 
 @app.post("/jobsqueue/scenario")
 def worker_scenario_response(
-    scenario_job: schemas.WorkerResponse, db: Session = Depends(get_db)):
+        scenario_job: schemas.WorkerResponse, db: Session = Depends(get_db)):
     """Update the db given the job details from the worker.
 
     Returned URL result will be partial to allow for local vs cloud stored
     depending on production vs dev environment.
 
     Args:
-        scenario_job (pydantic model): a pydantic model with the following 
+        scenario_job (pydantic model): a pydantic model with the following
             key/vals
 
             "result": {
@@ -350,9 +346,10 @@ def worker_scenario_response(
             status=STATUS_SUCCESS,
             name=job_db.name, description=job_db.description)
         # Update the scenario lulc path and stats
+        lulc_stats = crud.explode_lulc_counts(db, scenario_job.result['lulc_stats'])
         scenario_update = schemas.ScenarioUpdate(
             lulc_url_result=scenario_job.result['lulc_path'],
-            lulc_stats=json.dumps(scenario_job.result['lulc_stats']))
+            lulc_stats=json.dumps(lulc_stats))
     else:
         # Update the job status in the DB to "failed"
         job_update = schemas.JobBase(
@@ -373,7 +370,8 @@ def worker_scenario_response(
 
 @app.post("/jobsqueue/parcel_stats")
 def worker_parcel_stats_response(
-    parcel_stats_job: schemas.WorkerResponse, db: Session = Depends(get_db)):
+        parcel_stats_job: schemas.WorkerResponse,
+        db: Session = Depends(get_db)):
     """Update the db given the job details from the worker."""
     LOGGER.debug("Entering jobsqueue/parcel_stats")
     LOGGER.debug(parcel_stats_job)
@@ -387,8 +385,10 @@ def worker_parcel_stats_response(
             status=STATUS_SUCCESS,
             name=job_db.name, description=job_db.description)
         # Update the scenario lulc path and stats
+        LOGGER.info(parcel_stats_job.result['lulc_stats']['base'])
+        data = crud.explode_lulc_counts(db, parcel_stats_job.result['lulc_stats']['base'])
         stats_update = schemas.ParcelStatsUpdate(
-            lulc_stats=json.dumps(parcel_stats_job.result['lulc_stats']))
+            lulc_stats=json.dumps(data))
     else:
         # Update the job status in the DB to "failed"
         job_update = schemas.JobBase(
@@ -408,14 +408,14 @@ def worker_parcel_stats_response(
 
 @app.post("/jobsqueue/pattern")
 def worker_pattern_response(
-    pattern_job: schemas.WorkerResponse, db: Session = Depends(get_db)):
+        pattern_job: schemas.WorkerResponse, db: Session = Depends(get_db)):
     """Update the db given the job details from the worker.
 
     Returned URL result will be partial to allow for local vs cloud stored
     depending on production vs dev environment.
 
     Args:
-        pattern_job (pydantic model): a pydantic model with the following 
+        pattern_job (pydantic model): a pydantic model with the following
             key/vals
 
         {
@@ -484,18 +484,6 @@ def read_jobs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return jobs
 
 
-### Task Endpoints ###
-
-@app.post("/lulc_codes/", response_model=schemas.JobResponse)
-def get_lulc_info(db: Session = Depends(get_db)):
-    """Get the lulc class codes, names, and color representation."""
-    #TODO: determine if this should act like the rest of our job endpoints
-    # or if this operation should happen locally or if it should happen at
-    # server start.
-
-    pass
-
-
 @app.post("/pattern/{session_id}", response_model=schemas.PatternResponse)
 def create_pattern(session_id: str, pattern: schemas.PatternBase,
                    db: Session = Depends(get_db)):
@@ -520,7 +508,7 @@ def create_pattern(session_id: str, pattern: schemas.PatternBase,
         },
         "job_args": {
             "pattern_wkt": pattern_db.wkt,
-            "lulc_source_url": os.path.join(WORKING_ENV,BASE_LULC),
+            "lulc_source_url": os.path.join(WORKING_ENV, BASE_LULC),
         }
     }
 
@@ -590,7 +578,7 @@ def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
 
 @app.post("/lulc_fill/", response_model=schemas.JobResponse)
 def lulc_fill(lulc_fill: schemas.ParcelFill,
-                db: Session = Depends(get_db)):
+              db: Session = Depends(get_db)):
     # Get Scenario details from scenario_id
     scenario_db = crud.get_scenario(db, lulc_fill.scenario_id)
     study_area_id = scenario_db.study_area_id
@@ -613,7 +601,7 @@ def lulc_fill(lulc_fill: schemas.ParcelFill,
         },
         "job_args": {
             "target_parcel_wkt": study_area_wkt,
-            "lulc_class": lulc_fill.lulc_class, #TODO: make sure this is a WKT string and no just a bounding box
+            "lulc_class": lulc_fill.lulc_class,
             "lulc_source_url": f'{WORKING_ENV}/{scenario_db.lulc_url_base}',
             }
         }
@@ -810,23 +798,43 @@ def get_invest_results(scenario_id: int, db: Session = Depends(get_db)):
     }
 
 
-### Testing ideas from tutorial ###
+@app.get("/lucodes/nlud_tier_2")
+def get_nlud_tier_2(db: Session = Depends(get_db)) -> list[str]:
+    db_list = crud.get_nlud_tier_2(db)
+    return [row.nlud_simple_class for row in db_list]
 
-client = TestClient(app)
+
+@app.post("/lucodes/nlud_tier_3")
+def get_nlud_tier_3(nlud_dict: dict[str, str],
+                    db: Session = Depends(get_db)) -> list[str]:
+    db_list = crud.get_nlud_tier_3(
+        db,
+        nlud_tier_2=nlud_dict['nlud_tier_2'])
+    return [row.nlud_simple_subclass for row in db_list]
 
 
-def test_read_main():
-    response = client.get("/")
-    assert response.status_code == 200
-    assert response.json() == {"msg": "Hello World: prototype test"}
+@app.post("/lucodes/nlcd")
+def get_nlcd(nlud_dict: dict[str, str],
+             db: Session = Depends(get_db)) -> list[str]:
+    db_list = crud.get_nlcd(
+        db,
+        nlud_tier_2=nlud_dict['nlud_tier_2'],
+        nlud_tier_3=nlud_dict['nlud_tier_3'])
+    return [row.nlcd_lulc for row in db_list]
 
-def test_add_jobs():
-    response = client.get("/")
-    assert response.status_code == 200
-    assert response.json() == {"msg": "Hello World"}
 
-    # read status of job
-    response = client.get("/")
-    assert response.status_code == 200
-    assert response.json() == {"msg": "Hello World"}
-
+# TODO: will all 3 tree cover classes always be present for each category?
+# or do we need another query to find out which are present?
+# related to https://github.com/natcap/urban-online-workflow/issues/124
+@app.post("/lucodes/lucode")
+def get_lucode(lulc_dict: schemas.LulcRequest,
+               db: Session = Depends(get_db)) -> Optional[int]:
+    row = crud.get_lucode(
+        db,
+        nlud_tier_2=lulc_dict.nlud_tier_2,
+        nlud_tier_3=lulc_dict.nlud_tier_3,
+        nlcd=lulc_dict.nlcd,
+        tree=lulc_dict.tree)
+    if row:
+        return row.lucode
+    return None

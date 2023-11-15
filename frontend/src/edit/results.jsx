@@ -7,8 +7,6 @@ import {
   Icon,
 } from '@blueprintjs/core';
 
-import landuseCodes from '../../../appdata/NLCD_2016.lulcdata.json';
-
 const METRICS = {
   avg_tmp_v: {
     label: 'change in temperature',
@@ -40,8 +38,8 @@ export default function Results(props) {
   const [carbon, setCarbon] = useState(null);
   const [table, setTable] = useState(null);
   const [scenarioNames, setScenarioNames] = useState([]);
-  const [fromLULC, setFromLULC] = useState([]);
-  const [toLULC, setToLULC] = useState([]);
+  const [fromLULC, setFromLULC] = useState('');
+  const [toLULC, setToLULC] = useState('');
 
   const changeScenario = (name) => {
     setScenarioName(name);
@@ -61,9 +59,12 @@ export default function Results(props) {
         };
       });
     });
-    const from = scenarioDescriptions['baseline'].map((code) => {
-      return landuseCodes[code].name
-    });
+    const from = (scenarioDescriptions['baseline']['nlcd'].length)
+      ? `
+          ${scenarioDescriptions['baseline']['nlcd'].join(', ')}
+          ( ${scenarioDescriptions['baseline']['nlud'].join(', ')} )
+        `
+      : '';
     setFromLULC(from);
     setTable(data);
     setScenarioNames(names);
@@ -74,9 +75,12 @@ export default function Results(props) {
     if (scenarioName) {
       setTemperature(parseFloat(table[scenarioName][METRICS['avg_tmp_v'].label].value));
       setCarbon(parseFloat(table[scenarioName][METRICS['tot_c_cur'].label].value));
-      const to = scenarioDescriptions[scenarioName].map((code) => {
-        return landuseCodes[code].name
-      });
+      const to = (scenarioDescriptions[scenarioName]['nlcd'].length)
+        ? `
+            ${scenarioDescriptions[scenarioName]['nlcd'].join(', ')}
+            ( ${scenarioDescriptions[scenarioName]['nlud'].join(', ')} )
+          `
+        : '';
       setToLULC(to);
     }
   }, [scenarioName]);
@@ -84,12 +88,12 @@ export default function Results(props) {
   const landcoverDescription = (
     <>
       <p className="hanging-indent">
-        <b>from: </b>{(fromLULC.length > 1) ? 'mostly ' : ''}
-        <em>{fromLULC.join(', ')}</em>
+        <b>from: </b>
+        mostly <em>{fromLULC}</em>
       </p>
       <p className="hanging-indent">
-        <b>to: </b>{(toLULC.length > 1) ? 'mostly ' : ''}
-        <em>{toLULC.join(', ')}</em>
+        <b>to: </b>
+        mostly <em>{toLULC}</em>
       </p>
     </>
   );
@@ -152,7 +156,7 @@ export default function Results(props) {
             {scenarioNames
               .map((name) => <option key={name} value={name}>{name}</option>)}
           </HTMLSelect>
-          <span style={{ 'paddingLeft': '2rem' }}>landcover changed,</span>
+          <span style={{ 'paddingLeft': '2rem' }}>landcover (landuse) changed,</span>
         </h4>
         {landcoverDescription}
         <hr />

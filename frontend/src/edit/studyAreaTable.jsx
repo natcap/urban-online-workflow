@@ -2,11 +2,27 @@ import React, { useState } from 'react';
 
 import {
   Button,
+  HTMLSelect,
   HTMLTable,
 } from '@blueprintjs/core';
 
 import { removeParcel } from '../requests';
-import landuseCodes from '../../../appdata/NLCD_2016.lulcdata.json';
+import { toAcres } from '../utils';
+import nlcdLookup from '../../../appdata/nlcd_colormap.json';
+import nludLookup from '../../../appdata/nlud_colormap.json';
+import treeLookup from '../../../appdata/tree_colormap.json';
+
+const LULC_LOOKUP = {
+  nlcd: nlcdLookup,
+  nlud: nludLookup,
+  tree: treeLookup,
+};
+
+const LULC_TYPES = {
+  nlcd: 'landcover',
+  nlud: 'landuse',
+  tree: 'tree cover'
+};
 
 export default function StudyAreaTable(props) {
   const {
@@ -16,8 +32,8 @@ export default function StudyAreaTable(props) {
     immutableStudyArea,
     setHoveredParcel,
   } = props;
-  const [highlightedCode, setHighlightedCode] = useState(null);
   const [hiddenRowClass, setHiddenRowClass] = useState('');
+  const [lulcType, setLulcType] = useState('nlcd');
 
   const deleteParcel = async (parcelID) => {
     await removeParcel(parcelID, studyAreaID);
@@ -32,31 +48,12 @@ export default function StudyAreaTable(props) {
     }
   };
 
-  function plot(table) {
-    const blocks = [];
-    Object.entries(table).forEach(([code, count]) => {
-      let n = 0;
-      while (n < count) {
-        blocks.push(
-          <div
-            key={`${n}${code}`}
-            style={{
-              backgroundColor: landuseCodes[code].color,
-              width: '10px',
-              height: '10px',
-            }}
-            onMouseOver={() => setHighlightedCode(code)}
-            onMouseOut={() => setHighlightedCode(null)}
-          />,
-        );
-        n++;
-      }
-    });
-    return blocks;
+  function sortCounts(countsMap) {
+    return Object.entries(countsMap)
+      .sort(([, a], [, b]) => b - a);
   }
 
-  const rows = [];
-  rows.push(
+  const headerRow = (
     <tr key="header">
       <td>
         <Button
@@ -65,41 +62,60 @@ export default function StudyAreaTable(props) {
         />
       </td>
       <td className="parcel-address"><em>address</em></td>
-      <td><em>landuse composition</em></td>
-    </tr>,
+      <td>
+        <HTMLSelect
+          onChange={(event) => setLulcType(event.target.value)}
+          value={lulcType}
+        >
+          {Object.entries(LULC_TYPES).map(
+            ([type, label]) => <option key={type} value={type}>{label}</option>
+          )}
+        </HTMLSelect>
+      </td>
+      <td><em>acres</em></td>
+    </tr>
   );
+  const rows = [];
+  rows.push(headerRow);
+
   parcelArray.forEach((parcel) => {
-    const lulcData = JSON.parse(parcel.parcel_stats.lulc_stats);
-    rows.push(
-      <tr
-        className={hiddenRowClass}
-        key={parcel.parcel_id}
-        onMouseOver={() => setHoveredParcel(parcel.parcel_id)}
-        onFocus={() => setHoveredParcel(parcel.parcel_id)}
-        onMouseOut={() => setHoveredParcel(null)}
-        onBlur={() => setHoveredParcel(null)}
-      >
-        <td>
-          <Button
-            icon="remove"
-            onClick={() => deleteParcel(parcel.parcel_id)}
-            disabled={immutableStudyArea}
-          />
-        </td>
-        <td className="parcel-address">{parcel.address}</td>
-        <td>
-          {
-            (lulcData)
-              ? (
-                <div className="parcel-block lulc-legend">
-                  {plot(lulcData.base)}
-                </div>
-              )
-              : <div />
-          }
-        </td>
-      </tr>,
-    );
+    const data = JSON.parse(parcel.parcel_stats.lulc_stats);
+    if (!data) { return; }
+    const sorted = sortCounts(data[lulcType]);
+    rows.push(sorted.map(([code, count], i) => {
+      const label = LULC_LOOKUP[lulcType][code].name;
+      let header = <td />;
+      let address = <td />;
+      let rowClass = '';
+      if (i === 0) {
+        header = (
+          <td>
+            <Button
+              icon="remove"
+              onClick={() => deleteParcel(parcel.parcel_id)}
+              disabled={immutableStudyArea}
+            />
+          </td>
+        );
+        address = <td className="parcel-address">{parcel.address}</td>;
+        rowClass = 'address-row';
+      }
+      return (
+        <tr
+          className={rowClass.concat(' ', hiddenRowClass)}
+          key={label}
+          onMouseOver={() => setHoveredParcel(parcel.parcel_id)}
+          onFocus={() => setHoveredParcel(parcel.parcel_id)}
+          onMouseOut={() => setHoveredParcel(null)}
+          onBlur={() => setHoveredParcel(null)}
+        >
+          {header}
+          {address}
+          <td>{label}</td>
+          <td>{toAcres(count)}</td>
+        </tr>
+      );
+    }));
   });
 
   return (
@@ -111,26 +127,6 @@ export default function StudyAreaTable(props) {
           {rows}
         </tbody>
       </HTMLTable>
-      <div className="study-area-table-legend">
-        {
-          (highlightedCode)
-            ? (
-              <>
-                <div
-                  style={{
-                    backgroundColor: landuseCodes[highlightedCode].color,
-                    width: '20px',
-                    height: '20px',
-                    display: 'inline-block',
-                    marginRight: '0.5em'
-                  }}
-                />
-                <span>{landuseCodes[highlightedCode].name}</span>
-              </>
-            )
-            : <div />
-        }
-      </div>
     </div>
   );
 }

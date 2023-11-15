@@ -1,9 +1,0 @@
-,lucode,building type,kwh_per_cdd,kwh_per_hdd,cost_per_kwh,bioregion,bio_desc
-64,80,residential 75,1.35,1.65,0.706666667,NA24,Appalachia & Allegheny Interior Forests (NA24)
-65,81,residential 75,1.35,1.65,0.706666667,NA24,Appalachia & Allegheny Interior Forests (NA24)
-66,82,commercial 75,27.0,33.0,0.8325,NA24,Appalachia & Allegheny Interior Forests (NA24)
-67,83,industrial 75,27.0,33.0,0.62,NA24,Appalachia & Allegheny Interior Forests (NA24)
-68,84,mixed use 75,1.35,1.65,0.769583333,NA24,Appalachia & Allegheny Interior Forests (NA24)
-69,85,mixed use 75,1.35,1.65,0.769583333,NA24,Appalachia & Allegheny Interior Forests (NA24)
-70,86,commercial 75,27.0,33.0,0.8325,NA24,Appalachia & Allegheny Interior Forests (NA24)
-71,88,commercial 100,36.0,44.0,0.8325,NA24,Appalachia & Allegheny Interior Forests (NA24)

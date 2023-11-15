@@ -1,0 +1,102 @@
+{
+    "1": {
+        "color": "#3690eb",
+        "name": "Waterbody  (Natural)"
+    },
+    "2": {
+        "color": "#4393ab",
+        "name": "Waterbody  (Wetland)"
+    },
+    "3": {
+        "color": "#3690eb",
+        "name": "Waterbody  (Artificial)"
+    },
+    "11": {
+        "color": "#645CBB",
+        "name": "Residential (Dense urban)"
+    },
+    "12": {
+        "color": "#A084DC",
+        "name": "Residential (Urban)"
+    },
+    "13": {
+        "color": "#BFACE2",
+        "name": "Residential (Suburban)"
+    },
+    "14": {
+        "color": "#EBC7E6",
+        "name": "Residential (Exurban)"
+    },
+    "15": {
+        "color": "#EBC7E6",
+        "name": "Rural"
+    },
+    "20": {
+        "color": "#df73ff",
+        "name": "Commercial"
+    },
+    "30": {
+        "color": "#cccccc",
+        "name": "Industrial"
+    },
+    "40": {
+        "color": "#df73ff",
+        "name": "Institutional"
+    },
+    "51": {
+        "color": "#9c9c9c",
+        "name": "Transportation (Airport)"
+    },
+    "52": {
+        "color": "#9c9c9c",
+        "name": "Transportation (Road and Rail)"
+    },
+    "53": {
+        "color": "#9c9c9c",
+        "name": "Transportation (Other)"
+    },
+    "60": {
+        "color": "#df73ff",
+        "name": "Other Development"
+    },
+    "70": {
+        "color": "#C07F00",
+        "name": "Agriculture"
+    },
+    "80": {
+        "color": "#f7bb14",
+        "name": "Rangeland"
+    },
+    "90": {
+        "color": "#cccccc",
+        "name": "Extractive/Mining"
+    },
+    "100": {
+        "color": "#61876E",
+        "name": "Timber"
+    },
+    "110": {
+        "color": "#b3ac9f",
+        "name": "Barren"
+    },
+    "120": {
+        "color": "#4ce600",
+        "name": "Undifferentiated park"
+    },
+    "132": {
+        "color": "#55ff00",
+        "name": "Developed park (Golf course)"
+    },
+    "134": {
+        "color": "#4ce600",
+        "name": "Developed park (Other)"
+    },
+    "140": {
+        "color": "#057548",
+        "name": "Natural park"
+    },
+    "152": {
+        "color": "#267300",
+        "name": "Conservation (Public-limited access)"
+    }
+}
