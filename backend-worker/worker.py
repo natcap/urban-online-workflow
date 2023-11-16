@@ -47,32 +47,32 @@ _ALBERS_EQUAL_AREA_SRS.ImportFromProj4(  # more terse than WKT
     '+datum=WGS84 +units=m +no_defs')
 _ALBERS_EQUAL_AREA_SRS.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
 
-NLCD_FILENAME = 'lulc_overlay_3857.tif'
-NLCD_RASTER_PATHS = {
-    'vsigs': f'/vsigs/natcap-urban-online-datasets-public/{NLCD_FILENAME}',
-    'docker': f'/opt/appdata/{NLCD_FILENAME}',
+LULC_FILENAME = 'lulc_overlay_3857.tif'
+LULC_RASTER_PATHS = {
+    'vsigs': f'/vsigs/natcap-urban-online-datasets-public/{LULC_FILENAME}',
+    'docker': f'/opt/appdata/{LULC_FILENAME}',
     'local': os.path.join(os.path.dirname(__file__), '..', 'appdata',
-                          NLCD_FILENAME)
+                          LULC_FILENAME)
 }
-_NLCD_RASTER_INFO = None
-for NLCD_RASTER_PATH in NLCD_RASTER_PATHS.values():
+_LULC_RASTER_INFO = None
+for LULC_RASTER_PATH in LULC_RASTER_PATHS.values():
     try:
-        _NLCD_RASTER_INFO = pygeoprocessing.get_raster_info(NLCD_RASTER_PATH)
+        _LULC_RASTER_INFO = pygeoprocessing.get_raster_info(LULC_RASTER_PATH)
     except ValueError:
-        LOGGER.info(f"Could not open raster path {NLCD_RASTER_PATH}")
-if _NLCD_RASTER_INFO is None:
+        LOGGER.info(f"Could not open raster path {LULC_RASTER_PATH}")
+if _LULC_RASTER_INFO is None:
     raise AssertionError(
-        f"Could not open {NLCD_FILENAME} at any known locations")
-LOGGER.info(f"Using NLCD at {NLCD_RASTER_PATH}")
+        f"Could not open {LULC_FILENAME} at any known locations")
+LOGGER.info(f"Using LULC at {LULC_RASTER_PATH}")
 
-NLCD_SRS_WKT = _NLCD_RASTER_INFO['projection_wkt']
-_NLCD_SRS = osr.SpatialReference()
-_NLCD_SRS.ImportFromWkt(NLCD_SRS_WKT)
-assert _NLCD_SRS.IsSame(_WEB_MERCATOR_SRS), (
-    "NLCD must have been reprojected to web mercator")
+LULC_SRS_WKT = _LULC_RASTER_INFO['projection_wkt']
+_LULC_SRS = osr.SpatialReference()
+_LULC_SRS.ImportFromWkt(LULC_SRS_WKT)
+assert _LULC_SRS.IsSame(_WEB_MERCATOR_SRS), (
+    "LULC must have been reprojected to web mercator")
 
-NLCD_NODATA = _NLCD_RASTER_INFO['nodata'][0]
-NLCD_DTYPE = _NLCD_RASTER_INFO['datatype']
+LULC_NODATA = _LULC_RASTER_INFO['nodata'][0]
+LULC_DTYPE = _LULC_RASTER_INFO['datatype']
 WEB_MERCATOR_TO_ALBERS_EQ_AREA = osr.CreateCoordinateTransformation(
     _WEB_MERCATOR_SRS, _ALBERS_EQUAL_AREA_SRS)
 ALBERS_EQ_AREA_TO_WEB_MERCATOR = osr.CreateCoordinateTransformation(
@@ -82,9 +82,9 @@ OGR_GEOMETRY_TYPES = {
     'MultiPolygon': ogr.wkbMultiPolygon,
 }
 
-# NLCD raster attributes copied in by hand from gdalinfo
-NLCD_ORIGIN_X, _, _, NLCD_ORIGIN_Y, _, _ = _NLCD_RASTER_INFO['geotransform']
-PIXELSIZE_X, PIXELSIZE_Y = _NLCD_RASTER_INFO['pixel_size']
+# LULC raster attributes copied in by hand from gdalinfo
+LULC_ORIGIN_X, _, _, LULC_ORIGIN_Y, _, _ = _LULC_RASTER_INFO['geotransform']
+PIXELSIZE_X, PIXELSIZE_Y = _LULC_RASTER_INFO['pixel_size']
 
 CARBON = 'carbon'
 URBAN_COOLING = 'urban_cooling_model'
@@ -145,7 +145,7 @@ class Tests(unittest.TestCase):
             _WEB_MERCATOR_SRS.ExportToWkt(), 'FlatGeoBuf')
 
         pixelcounts = pixelcounts_under_parcel(
-            parcel.wkt, NLCD_RASTER_PATH)
+            parcel.wkt, LULC_RASTER_PATH)
 
         expected_values = {
             262: 40,
@@ -193,7 +193,7 @@ class Tests(unittest.TestCase):
         result_array = pygeoprocessing.raster_to_numpy_array(
                 target_raster_path)
         self.assertEqual(
-            numpy.sum(result_array[result_array != NLCD_NODATA]), 600)
+            numpy.sum(result_array[result_array != LULC_NODATA]), 600)
         self.assertEqual(numpy.sum(result_array == 15), 40)
 
     def test_wallpaper(self):
@@ -213,7 +213,7 @@ class Tests(unittest.TestCase):
         target_raster_path = os.path.join(
             self.workspace_dir, 'wallpapered_raster.tif')
 
-        wallpaper_parcel(parcel.wkt, pattern.wkt, NLCD_RASTER_PATH,
+        wallpaper_parcel(parcel.wkt, pattern.wkt, LULC_RASTER_PATH,
                          target_raster_path, self.workspace_dir)
 
     def test_get_bioregion(self):
@@ -286,7 +286,7 @@ def _warp_raster_to_web_mercator(source_albers_raster_path,
 
 
 def _reproject_to_nlud(parcel_wkt_epsg3857):
-    """Reproject a WKT polygon to the NLCD projection.
+    """Reproject a WKT polygon to the LULC projection.
 
     Args:
         parcel_wkt_epsg3857 (string): A WKT polygon projected in epsg 3857 "Web
@@ -294,7 +294,7 @@ def _reproject_to_nlud(parcel_wkt_epsg3857):
 
     Returns:
         parcel (shapely.geometry): A Shapely geometry of the input parcel where
-            the geometry has been transformed to the NLCD's projection.
+            the geometry has been transformed to the LULC's projection.
     """
     ogr_geom = ogr.CreateGeometryFromWkt(parcel_wkt_epsg3857)
     err_code = ogr_geom.Transform(WEB_MERCATOR_TO_ALBERS_EQ_AREA)
@@ -309,7 +309,7 @@ def _reproject_to_nlud(parcel_wkt_epsg3857):
 
 def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path,
                      include_pixel_values=False):
-    """Create an LULC raster in the NLCD projection covering the parcel.
+    """Create an LULC raster in the LULC projection covering the parcel.
 
     Args:
         parcel_wkt_epsg3857 (str): The parcel WKT in EPSG:3857 (Web Mercator)
@@ -327,13 +327,13 @@ def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path,
 
     # Round "up" to the nearest pixel, sort of the pixel-math version of
     # rasterizing the bounding box with "ALL_TOUCHED=TRUE".
-    buf_minx -= abs((buf_minx - NLCD_ORIGIN_X) % PIXELSIZE_X)
-    buf_miny -= abs((buf_miny - NLCD_ORIGIN_Y) % PIXELSIZE_Y)
-    buf_maxx += PIXELSIZE_X - abs((buf_maxx - NLCD_ORIGIN_X) % PIXELSIZE_X)
-    buf_maxy += PIXELSIZE_Y - abs((buf_maxy - NLCD_ORIGIN_Y) % PIXELSIZE_Y)
+    buf_minx -= abs((buf_minx - LULC_ORIGIN_X) % PIXELSIZE_X)
+    buf_miny -= abs((buf_miny - LULC_ORIGIN_Y) % PIXELSIZE_Y)
+    buf_maxx += PIXELSIZE_X - abs((buf_maxx - LULC_ORIGIN_X) % PIXELSIZE_X)
+    buf_maxy += PIXELSIZE_Y - abs((buf_maxy - LULC_ORIGIN_Y) % PIXELSIZE_Y)
 
     pygeoprocessing.geoprocessing.warp_raster(
-        NLCD_RASTER_PATH, (PIXELSIZE_X, PIXELSIZE_Y),
+        LULC_RASTER_PATH, (PIXELSIZE_X, PIXELSIZE_Y),
         target_local_gtiff_path,
         resample_method='near',
         target_bb=[buf_minx, buf_miny, buf_maxx, buf_maxy])
@@ -345,7 +345,7 @@ def _create_new_lulc(parcel_wkt_epsg3857, target_local_gtiff_path,
         if nodata is not None:
             band.Fill(nodata)
         else:
-            LOGGER.warning("NLCD does not have a defined nodata value; "
+            LOGGER.warning("LULC does not have a defined nodata value; "
                            "cannot fill with None.")
         band = None
         raster = None
@@ -377,7 +377,7 @@ def fill_parcel(parcel_wkt_epsg3857, fill_lulc_class,
 
     parcel_vector_path = os.path.join(working_dir, 'parcel.fgb')
     pygeoprocessing.geoprocessing.shapely_geometry_to_vector(
-        [parcel_geom], parcel_vector_path, NLCD_SRS_WKT, 'FlatGeoBuf',
+        [parcel_geom], parcel_vector_path, LULC_SRS_WKT, 'FlatGeoBuf',
         ogr_geom_type=OGR_GEOMETRY_TYPES[parcel_geom.type]
     )
 
@@ -404,7 +404,7 @@ def wallpaper_parcel(parcel_wkt_epsg3857, pattern_wkt_epsg3857,
         pattern_wkt_epsg3857 (str): The WKT of the pattern geometry, projected
             in EPSG:3857 (Web Mercator)
         source_nlud_raster_path (str): The GDAL-compatible URI to the source
-            NLCD raster, projected in Web Mercator.
+            LULC raster, projected in Web Mercator.
         target_raster_path (str): Where the output raster should be written on
             disk.
         working_dir (str): Where temporary files should be stored.  If
@@ -446,7 +446,7 @@ def wallpaper_parcel(parcel_wkt_epsg3857, pattern_wkt_epsg3857,
 
     pygeoprocessing.new_raster_from_base(
         parcel_mask_raster_path, target_raster_path,
-        NLCD_DTYPE, [NLCD_NODATA])
+        LULC_DTYPE, [LULC_NODATA])
     target_raster = gdal.OpenEx(
         target_raster_path, gdal.OF_RASTER | gdal.GA_Update)
     target_band = target_raster.GetRasterBand(1)
@@ -541,7 +541,7 @@ def pixelcounts_under_parcel(parcel_wkt_epsg3857, source_raster_path):
     gdal_driver = gdal.GetDriverByName('MEM')
     target_raster = gdal_driver.Create(
         '', array.shape[1], array.shape[0], 1, gdal.GDT_Byte)
-    target_raster.SetProjection(NLCD_SRS_WKT)
+    target_raster.SetProjection(LULC_SRS_WKT)
     target_origin_x, target_origin_y = gdal.ApplyGeoTransform(
         geotransform, x0, y0)
     target_raster.SetGeoTransform(
@@ -586,7 +586,7 @@ def make_thumbnail(pattern_wkt_epsg3857, colors_dict, target_thumbnail_path,
     # Buffer the bbox by a half-pixel to make sure we get the whole pattern and
     # just a small bit of the surrounding context.
     pygeoprocessing.geoprocessing.warp_raster(
-        NLCD_RASTER_PATH, _NLCD_RASTER_INFO['pixel_size'],
+        LULC_RASTER_PATH, _LULC_RASTER_INFO['pixel_size'],
         thumbnail_gtiff_path, 'near',
         target_bb=shapely.wkt.loads(pattern_wkt_epsg3857).buffer(
             PIXELSIZE_X/2).bounds
