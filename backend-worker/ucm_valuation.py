@@ -104,7 +104,6 @@ def execute(args):
 
     Args:
         args['workspace_dir'] (string): a path to the output workspace folder.
-        args['results_suffix'] (string): string appended to each output file path.
         args['city'] (string): selected city from the cities listed in args['mortality_risk_path'].
         args['lulc_tif'] (string): file path to a landcover raster.
         args['air_temp_tif'] (string): file path to an air temperature raster output from InVEST Urban Cooling Model.
@@ -134,8 +133,6 @@ def execute(args):
         None
     """
 
-    file_suffix = natcap.invest.utils.make_suffix_string(args, "results_suffix")
-
     dd_energy_df = pd.read_csv(args["dd_energy_path"])
 
     # Test for correct csv headers
@@ -153,11 +150,11 @@ def execute(args):
 
     # Calculate Heating Degree Days raster
     logger.debug(f"Calculating Heating Degree Days")
-    hdd_tif = Path(args["workspace_dir"]) / f"hdd{file_suffix}.tif"
+    hdd_tif = Path(args["workspace_dir"]) / "hdd.tif"
     hdd_calculation(args["air_temp_tif"], hdd_tif)
 
     # Calculate energy use raster (kWh) based on Heating Degree Days
-    hdd_kwh_tif = Path(args["workspace_dir"]) / f"hdd_kwh{file_suffix}.tif"
+    hdd_kwh_tif = Path(args["workspace_dir"]) / "hdd_kwh.tif"
     grouped_scalar_calculation(
         hdd_tif,
         args["lulc_tif"],
@@ -168,7 +165,7 @@ def execute(args):
     )
 
     # Calculate energy use raster ($) based on Heating Degree Days
-    hdd_cost_tif = Path(args["workspace_dir"]) / f"hdd_cost{file_suffix}.tif"
+    hdd_cost_tif = Path(args["workspace_dir"]) / "hdd_cost.tif"
     grouped_scalar_calculation(
         hdd_kwh_tif,
         args["lulc_tif"],
@@ -179,12 +176,12 @@ def execute(args):
     )
 
     # Calculate Cooling Degree Days raster
-    logger.debug(f"Calculating Cooling Degree Days")
-    cdd_tif = Path(args["workspace_dir"]) / f"cdd{file_suffix}.tif"
+    logger.debug("Calculating Cooling Degree Days")
+    cdd_tif = Path(args["workspace_dir"]) / "cdd.tif"
     cdd_calculation(args["air_temp_tif"], cdd_tif)
 
     # Calculate energy use raster (kWh) based on Cooling Degree Days
-    cdd_kwh_tif = Path(args["workspace_dir"]) / f"cdd_kwh{file_suffix}.tif"
+    cdd_kwh_tif = Path(args["workspace_dir"]) / "cdd_kwh.tif"
     grouped_scalar_calculation(
         cdd_tif,
         args["lulc_tif"],
@@ -195,7 +192,7 @@ def execute(args):
     )
 
     # Calculate energy use raster ($) based on Cooling Degree Days
-    cdd_cost_tif = Path(args["workspace_dir"]) / f"cdd_cost{file_suffix}.tif"
+    cdd_cost_tif = Path(args["workspace_dir"]) / "cdd_cost.tif"
     grouped_scalar_calculation(
         cdd_kwh_tif,
         args["lulc_tif"],
@@ -206,7 +203,7 @@ def execute(args):
     )
 
     # Calculate Mortality Risk
-    logger.debug(f"Calculating Relative Mortality Risk")
+    logger.debug("Calculating Relative Mortality Risk")
 
     mortality_risk_df = pd.read_csv(
         args["mortality_risk_path"], encoding="unicode_escape"
@@ -226,7 +223,7 @@ def execute(args):
             mortality_risk_df["city"] == args["city"]
         ]
 
-        mortality_tif = Path(args["workspace_dir"]) / f"mortality_risk{file_suffix}.tif"
+        mortality_tif = Path(args["workspace_dir"]) / "mortality_risk.tif"
         mortality_risk_calculation(
             args["air_temp_tif"], mortality_tif, city_mortality_risk_df
         )
