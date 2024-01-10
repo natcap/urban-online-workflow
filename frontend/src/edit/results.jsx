@@ -121,27 +121,49 @@ export default function Results(props) {
   );
 
   const { census } = results.baseline;
-  const populations = Object.entries(census.race)
-    .sort(([, a], [, b]) => b - a);
+  let populationTable;
+  let povertyPar;
+  if (census && census.race) {
+    const populations = Object.entries(census.race)
+      .sort(([, a], [, b]) => b - a);
 
-  const povertyPar = (
-    <ul>
-      <li>
-        <b>{census.poverty[HOUSE_SNAP]} households received</b> Food Stamps or SNAP.
-      </li>
-      <p className="hanging-indent">
-        Of those households, <b>{census.poverty[`${HOUSE_SNAP} | ${INCOME_BELOW}`]} were below poverty level </b>
-        and <b>{census.poverty[`${HOUSE_SNAP} | ${INCOME_ABOVE}`]} were above</b>.
-      </p>
-      <li>
-        <b>{census.poverty[HOUSE_NO_SNAP]} households did not receive</b> Food Stamps or SNAP.
-      </li>
-      <p className="hanging-indent">
-        Of those households, <b>{census.poverty[`${HOUSE_NO_SNAP} | ${INCOME_BELOW}`]} were below poverty level </b>
-        and <b>{census.poverty[`${HOUSE_NO_SNAP} | ${INCOME_ABOVE}`]} were above</b>.
-      </p>
-    </ul>
-  );
+    populationTable = (
+      <div>
+        <h3>Population by race</h3>
+        <HTMLTable className="bp4-html-table-condensed">
+          <tbody>
+            {populations.map(([group, count]) => (
+              <tr key={group}>
+                <td key="group">{group}</td>
+                <td key="count">{count}</td>
+              </tr>
+            ))}
+          </tbody>
+        </HTMLTable>
+      </div>
+    );
+  }
+
+  if (census && census.poverty) {    
+    povertyPar = (
+      <ul>
+        <li>
+          <b>{census.poverty[HOUSE_SNAP]} households received</b> Food Stamps or SNAP.
+        </li>
+        <p className="hanging-indent">
+          Of those households, <b>{census.poverty[`${HOUSE_SNAP} | ${INCOME_BELOW}`]} were below poverty level </b>
+          and <b>{census.poverty[`${HOUSE_SNAP} | ${INCOME_ABOVE}`]} were above</b>.
+        </p>
+        <li>
+          <b>{census.poverty[HOUSE_NO_SNAP]} households did not receive</b> Food Stamps or SNAP.
+        </li>
+        <p className="hanging-indent">
+          Of those households, <b>{census.poverty[`${HOUSE_NO_SNAP} | ${INCOME_BELOW}`]} were below poverty level </b>
+          and <b>{census.poverty[`${HOUSE_NO_SNAP} | ${INCOME_ABOVE}`]} were above</b>.
+        </p>
+      </ul>
+    );
+  }
 
   return (
     <div id="results" data-testid="results">
@@ -198,19 +220,7 @@ export default function Results(props) {
         Demographics of the impacted area:
       </h2>
       <div id="demographics-body">
-        <div>
-          <h3>Population by race</h3>
-          <HTMLTable className="bp4-html-table-condensed">
-            <tbody>
-              {populations.map(([group, count]) => (
-                <tr key={group}>
-                  <td key="group">{group}</td>
-                  <td key="count">{count}</td>
-                </tr>
-              ))}
-            </tbody>
-          </HTMLTable>
-        </div>
+        {populationTable}
         {/*<Divider />*/}
         <div id="acs-container">
           {povertyPar}
