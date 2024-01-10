@@ -120,16 +120,16 @@ def urban_cooling(workspace_dir):
     """
     LOGGER.info('Doing Urban Cooling valuation')
     args = {
-        'workspace_dir': workspace_dir,
+        'workspace_dir': os.path.join(workspace_dir, 'valuation'),
         'city': 'San Antonio',
         'lulc_tif': os.path.join(workspace_dir, 'intermediate', 'lulc.tif'),
-        'air_temp_tif': os.path.join(workspace_dir, 'T_air.tif'),
+        'air_temp_tif': os.path.join(workspace_dir, 'intermediate', 'T_air.tif'),
         'dd_energy_path': os.path.join(
             INVEST_BASE_PATH, 'biophysical_tables',
             'placeholder_ucm_energy_parameters.csv'),
         'mortality_risk_path': os.path.join(
             INVEST_BASE_PATH, 'biophysical_tables',
-            'placeholder_ucm_energy_parameters.csv')
+            'guo_et_al_2014_mortality_risk.csv')
     }
     ucm_valuation.execute(args)
 
