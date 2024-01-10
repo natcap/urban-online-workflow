@@ -117,13 +117,19 @@ def urban_cooling(workspace_dir):
         urban_cooling_results (dict) : A python dictionary with a single
             key of 'avg_tmp_v' and it's corresponding value.
     """
-    ucm_valuation.execute(
-        workspace_dir,
-        "San Antonio",
-        os.path.join(workspace_dir, 'intermediate', 'lulc.tif'),
-        os.path.join(workspace_dir, 'T_air.tif'),
-        # energy table
-        )
+    args = {
+        'workspace_dir': workspace_dir,
+        'city': 'San Antonio',
+        'lulc_tif': os.path.join(workspace_dir, 'intermediate', 'lulc.tif'),
+        'air_temp_tif': os.path.join(workspace_dir, 'T_air.tif'),
+        'dd_energy_path': os.path.join(
+            INVEST_BASE_PATH, 'biophysical_tables',
+            'placeholder_ucm_energy_parameters.csv'),
+        'mortality_risk_path': os.path.join(
+            INVEST_BASE_PATH, 'biophysical_tables',
+            'placeholder_ucm_energy_parameters.csv')
+    }
+    ucm_valuation.execute(args)
 
     uhi_vector_path = os.path.join(workspace_dir, 'uhi_results.shp')
     value_field = 'avg_tmp_v'
