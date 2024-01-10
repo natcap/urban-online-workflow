@@ -30,7 +30,6 @@ logger.setLevel(logging.INFO)
 
 _EXPECTED_ENERGY_HEADERS = [
     "lucode",
-    "building type",
     "kwh_per_cdd",
     "kwh_per_hdd",
     "cost_per_kwh",
@@ -110,10 +109,9 @@ def execute(args):
         args['dd_energy_path'] (string): file path to a table indicating the relationship between LULC classes and
             energy use. Table headers must include:
                 * 'lucode': column linking this table to the lulc_tif raster classes
-                * 'building type': the building type associated with each raster lucode
-                * 'kwh_per_cdd': the energy impact of each Cooling Degree Day for this building type
-                * 'kwh_per_hdd': the energy impact of each Heating Degree Day for this building type
-                * 'cost_per_hdd': the cost of energy associated with this building type
+                * 'kwh_per_cdd': the energy impact of each Cooling Degree Day for this lucode
+                * 'kwh_per_hdd': the energy impact of each Heating Degree Day for this lucode
+                * 'cost_per_hdd': the cost of energy associated with this lucode
         args['mortality_risk_path'] (string): file path to a table indicating the relationship between temperature and
             mortality risk for numerous cities . Table headers must include:
                 * 'city': city name in the format 'City, Country'

@@ -66,6 +66,7 @@ def carbon(workspace_dir):
         carbon_results (dict) : A python dictionary with keys as the output
             name and values as the aggregated sum.
     """
+    LOGGER.info('Gathering Carbon Model results')
     #carbon_output_dir = os.path.join(workspace_dir, 'intermediate_outputs')
     carbon_outputs = {
         'tot_c_cur': os.path.join(workspace_dir, 'tot_c_cur.tif'),
@@ -117,6 +118,7 @@ def urban_cooling(workspace_dir):
         urban_cooling_results (dict) : A python dictionary with a single
             key of 'avg_tmp_v' and it's corresponding value.
     """
+    LOGGER.info('Doing Urban Cooling valuation')
     args = {
         'workspace_dir': workspace_dir,
         'city': 'San Antonio',
@@ -131,12 +133,15 @@ def urban_cooling(workspace_dir):
     }
     ucm_valuation.execute(args)
 
+    LOGGER.info('Gathering Urban Cooling Model results')
     uhi_vector_path = os.path.join(workspace_dir, 'uhi_results.shp')
     value_field = 'avg_tmp_v'
     avg_tmp_dict = _read_field_from_vector(uhi_vector_path, 'FID', value_field)
     # Currently only aggregating over one large bounding box, so only one entry
     feat_key = list(avg_tmp_dict.keys())[0]
     urban_cooling_results = {value_field: avg_tmp_dict[feat_key]}
+
+    LOGGER.info('Gathering Census data from AOI')
     census_data = {'census': _extract_census_from_aoi(uhi_vector_path)}
     results = {**urban_cooling_results, **census_data}
     results_json_path = os.path.join(workspace_dir, "derived_results.json")
