@@ -1,6 +1,5 @@
 from pathlib import Path
 import logging
-import tempfile
 import hashlib
 import inspect
 from typing import List
@@ -451,34 +450,19 @@ def grouped_scalar_calculation(
     category_raster_path = Path(category_raster_path)
     target_raster_path = Path(target_raster_path)
 
-    temporary_working_dir = Path(tempfile.mkdtemp(dir=target_raster_path.parent))
-
     base_raster_info = pygeoprocessing.get_raster_info(str(base_raster_path))
     base_raster_nodata = base_raster_info["nodata"][0]
-    cell_size = np.min(np.abs(base_raster_info["pixel_size"]))
 
-    category_raster_nodata = pygeoprocessing.get_raster_info(str(category_raster_path))[
-        "nodata"
-    ][0]
+    category_raster_nodata = pygeoprocessing.get_raster_info(
+        str(category_raster_path))["nodata"][0]
 
     # Calculate kWh map
     grouped_scalar_op = MultiplyRasterByScalarList(
         category_list, scalar_list, base_raster_nodata, category_raster_nodata
     )
 
-    temp_base_path = temporary_working_dir / Path(base_raster_path).name
-    temp_category_path = temporary_working_dir / Path(category_raster_path).name
-
-    pygeoprocessing.align_and_resize_raster_stack(
-        [str(base_raster_path), str(category_raster_path)],
-        [str(temp_base_path), str(temp_category_path)],
-        ["near", "near"],
-        (cell_size, -cell_size),
-        "intersection",
-    )
-
     pygeoprocessing.raster_calculator(
-        [(str(temp_base_path), 1), (str(temp_category_path), 1)],
+        [(str(base_raster_path), 1), (str(category_raster_path), 1)],
         grouped_scalar_op,
         str(target_raster_path),
         gdal.GDT_Float32,
