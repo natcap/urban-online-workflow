@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 from osgeo import gdal
+from osgeo import ogr
 import pygeoprocessing
 
 import natcap.invest.utils
@@ -126,6 +127,7 @@ def execute(args):
                 * 'rr_90': relative mortality risk associated with t_90
                 * 'rr_99': relative mortality risk associated with t_99
             This comes from Guo et al. 2014.
+        args['aoi_vector_path'] (string): polygon vector with which to aggregate raster results
 
     Returns:
         None
@@ -145,30 +147,30 @@ def execute(args):
     workspace_dir = Path(args["workspace_dir"])
     workspace_dir.mkdir(exist_ok=True)
 
-    # Calculate Heating Degree Days raster
-    logger.debug(f"Calculating Heating Degree Days")
-    hdd_tif = workspace_dir / "hdd.tif"
-    hdd_calculation(args["air_temp_tif"], hdd_tif)
+    # # Calculate Heating Degree Days raster
+    # logger.debug(f"Calculating Heating Degree Days")
+    # hdd_tif = workspace_dir / "hdd.tif"
+    # hdd_calculation(args["air_temp_tif"], hdd_tif)
 
-    # Calculate energy use raster (kWh) based on Heating Degree Days
-    hdd_kwh_tif = workspace_dir / "hdd_kwh.tif"
-    grouped_scalar_calculation(
-        hdd_tif,
-        args["lulc_tif"],
-        hdd_kwh_tif,
-        dd_energy_df["lucode"].to_list(),
-        dd_energy_df["kwh_per_hdd"].to_list()
-    )
+    # # Calculate energy use raster (kWh) based on Heating Degree Days
+    # hdd_kwh_tif = workspace_dir / "hdd_kwh.tif"
+    # grouped_scalar_calculation(
+    #     hdd_tif,
+    #     args["lulc_tif"],
+    #     hdd_kwh_tif,
+    #     dd_energy_df["lucode"].to_list(),
+    #     dd_energy_df["kwh_per_hdd"].to_list()
+    # )
 
-    # Calculate energy use raster ($) based on Heating Degree Days
-    hdd_cost_tif = workspace_dir / "hdd_cost.tif"
-    grouped_scalar_calculation(
-        hdd_kwh_tif,
-        args["lulc_tif"],
-        hdd_cost_tif,
-        dd_energy_df["lucode"].to_list(),
-        dd_energy_df["cost_per_kwh"].to_list()
-    )
+    # # Calculate energy use raster ($) based on Heating Degree Days
+    # hdd_cost_tif = workspace_dir / "hdd_cost.tif"
+    # grouped_scalar_calculation(
+    #     hdd_kwh_tif,
+    #     args["lulc_tif"],
+    #     hdd_cost_tif,
+    #     dd_energy_df["lucode"].to_list(),
+    #     dd_energy_df["cost_per_kwh"].to_list()
+    # )
 
     # Calculate Cooling Degree Days raster
     logger.debug("Calculating Cooling Degree Days")
@@ -178,9 +180,9 @@ def execute(args):
     # Calculate energy use raster (kWh) based on Cooling Degree Days
     cdd_kwh_tif = workspace_dir / "cdd_kwh.tif"
     grouped_scalar_calculation(
-        cdd_tif,
+        str(cdd_tif),
         args["lulc_tif"],
-        cdd_kwh_tif,
+        str(cdd_kwh_tif),
         dd_energy_df["lucode"].to_list(),
         dd_energy_df["kwh_per_cdd"].to_list()
     )
@@ -188,12 +190,19 @@ def execute(args):
     # Calculate energy use raster ($) based on Cooling Degree Days
     cdd_cost_tif = workspace_dir / "cdd_cost.tif"
     grouped_scalar_calculation(
-        cdd_kwh_tif,
+        str(cdd_kwh_tif),
         args["lulc_tif"],
-        cdd_cost_tif,
+        str(cdd_cost_tif),
         dd_energy_df["lucode"].to_list(),
         dd_energy_df["cost_per_kwh"].to_list()
     )
+    stats_dict = pygeoprocessing.zonal_statistics(
+        (str(cdd_cost_tif), 1),
+        args['aoi_vector_path'],
+        polygons_might_overlap=False)
+    logger.info(stats_dict)
+    _add_zonal_stats_dict_to_vector(
+        args['aoi_vector_path'], stats_dict, cdd_cost_tif.stem, 'sum')
 
     # Calculate Mortality Risk
     logger.debug("Calculating Relative Mortality Risk")
@@ -445,16 +454,15 @@ def grouped_scalar_calculation(
         None
 
     """
-    # Ensure path variables are Path objects
-    base_raster_path = Path(base_raster_path)
-    category_raster_path = Path(category_raster_path)
-    target_raster_path = Path(target_raster_path)
+    # base_raster_path = Path(base_raster_path)
+    # category_raster_path = Path(category_raster_path)
+    # target_raster_path = Path(target_raster_path)
 
-    base_raster_info = pygeoprocessing.get_raster_info(str(base_raster_path))
+    base_raster_info = pygeoprocessing.get_raster_info(base_raster_path)
     base_raster_nodata = base_raster_info["nodata"][0]
 
     category_raster_nodata = pygeoprocessing.get_raster_info(
-        str(category_raster_path))["nodata"][0]
+        category_raster_path)["nodata"][0]
 
     # Calculate kWh map
     grouped_scalar_op = MultiplyRasterByScalarList(
@@ -462,9 +470,62 @@ def grouped_scalar_calculation(
     )
 
     pygeoprocessing.raster_calculator(
-        [(str(base_raster_path), 1), (str(category_raster_path), 1)],
+        [(base_raster_path, 1), (category_raster_path, 1)],
         grouped_scalar_op,
-        str(target_raster_path),
+        target_raster_path,
         gdal.GDT_Float32,
         base_raster_nodata,
     )
+
+
+def _add_zonal_stats_dict_to_vector(
+        vector_path, stats_map, field_name, aggregate_field_id):
+    """Add a new field to a shapefile with values from a dictionary.
+
+    Args:
+        vector_path (string): a path to a vector whose FIDs
+            correspond with the keys in `stats_map`.
+        stats_map (dict): a dictionary in the format generated by
+            pygeoprocessing.zonal_statistics that contains at least the key
+            value of `aggregate_field_id` per feature id.
+        field_name (str): a string for the name of the new field to add to
+            the target vector.
+        aggregate_field_id (string): one of 'min' 'max' 'sum' 'mean' 'count'
+            or 'nodata_count' as defined by pygeoprocessing.zonal_statistics.
+
+    Returns:
+        None
+
+    """
+    vector = gdal.OpenEx(
+        vector_path, gdal.OF_VECTOR | gdal.GA_Update)
+    layer = vector.GetLayer()
+    for idx, field in enumerate(layer.schema):
+        if field.name == field_name:
+            layer.DeleteField(idx)
+
+    # Create the new field
+    field_defn = ogr.FieldDefn(field_name, ogr.OFTReal)
+    field_defn.SetWidth(24)
+    field_defn.SetPrecision(11)
+    layer.CreateField(field_defn)
+
+    # Get the number of features (polygons) and iterate through each
+    layer.ResetReading()
+    for feature in layer:
+        feature_fid = feature.GetFID()
+
+        # Using the unique feature ID, index into the
+        # dictionary to get the corresponding value
+        # only write a value if zonal stats found valid pixels in the polygon:
+        if stats_map[feature_fid]['count'] > 0:
+            if aggregate_field_id == 'mean':
+                field_val = float(
+                    stats_map[feature_fid]['sum']) / stats_map[feature_fid]['count']
+            else:
+                field_val = float(stats_map[feature_fid][aggregate_field_id])
+
+            # Set the value for the new field
+            feature.SetField(field_name, field_val)
+
+            layer.SetFeature(feature)

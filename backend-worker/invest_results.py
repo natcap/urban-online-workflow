@@ -115,11 +115,12 @@ def urban_cooling(workspace_dir):
     there will be only one result to return.
 
     Return:
-        urban_cooling_results (dict) : A python dictionary with a single
-            key of 'avg_tmp_v' and it's corresponding value.
+        urban_cooling_results (dict) : A python dictionary of urban cooling
+            & census metrics summarized in the AOI.
     """
     LOGGER.info('Doing Urban Cooling valuation')
-    args = {
+    uhi_vector_path = os.path.join(workspace_dir, 'uhi_results.shp')
+    valuation_args = {
         'workspace_dir': os.path.join(workspace_dir, 'valuation'),
         'city': 'San Antonio',
         'lulc_tif': os.path.join(workspace_dir, 'intermediate', 'lulc.tif'),
@@ -129,21 +130,25 @@ def urban_cooling(workspace_dir):
             'placeholder_ucm_energy_parameters.csv'),
         'mortality_risk_path': os.path.join(
             INVEST_BASE_PATH, 'biophysical_tables',
-            'guo_et_al_2014_mortality_risk.csv')
+            'guo_et_al_2014_mortality_risk.csv'),
+        'aoi_vector_path': uhi_vector_path
     }
-    ucm_valuation.execute(args)
+    ucm_valuation.execute(valuation_args)
 
     LOGGER.info('Gathering Urban Cooling Model results')
-    uhi_vector_path = os.path.join(workspace_dir, 'uhi_results.shp')
-    value_field = 'avg_tmp_v'
-    avg_tmp_dict = _read_field_from_vector(uhi_vector_path, 'FID', value_field)
-    # Currently only aggregating over one large bounding box, so only one entry
-    feat_key = list(avg_tmp_dict.keys())[0]
-    urban_cooling_results = {value_field: avg_tmp_dict[feat_key]}
+    urban_cooling_results = {}
+    summary_field_list = ['avg_tmp_v', 'cdd_cost']
+    for value_field in summary_field_list:
+        fid_metric_dict = _read_field_from_vector(
+            uhi_vector_path, 'FID', value_field)
+        # Only aggregating over one large serviceshed, so only one entry
+        feat_key = list(fid_metric_dict.keys())[0]
+        urban_cooling_results[value_field] = fid_metric_dict[feat_key]
 
     LOGGER.info('Gathering Census data from AOI')
     census_data = {'census': _extract_census_from_aoi(uhi_vector_path)}
     results = {**urban_cooling_results, **census_data}
+    LOGGER.info(results)
     results_json_path = os.path.join(workspace_dir, "derived_results.json")
     with open(results_json_path, "w") as fp:
         json.dump(results, fp)
