@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
 import {
-  Divider,
   HTMLSelect,
   HTMLTable,
   Icon,
@@ -14,7 +13,7 @@ const METRICS = {
     precision: 2,
   },
   cdd_cost: {
-    label: 'cooling cost',
+    label: 'change in cooling cost',
     units: 'USD',
     precision: 0,
   },
@@ -39,9 +38,6 @@ export default function Results(props) {
   } = props;
 
   const [scenarioName, setScenarioName] = useState(null);
-  const [temperature, setTemperature] = useState(null);
-  const [coolingCost, setCoolingCost] = useState(null);
-  const [carbon, setCarbon] = useState(null);
   const [table, setTable] = useState(null);
   const [scenarioNames, setScenarioNames] = useState([]);
   const [fromLULC, setFromLULC] = useState('');
@@ -53,16 +49,16 @@ export default function Results(props) {
   };
 
   useEffect(() => {
-    console.log(results)
     const data = {};
     const names = Object.keys(results).filter((key) => key !== 'baseline');
     names.forEach((name) => {
       data[name] = {};
       Object.entries(METRICS).forEach(([metric, obj]) => {
-        data[name][obj.label] = {
+        data[name][metric] = {
           value: results[name][metric] - results['baseline'][metric],
           units: obj.units,
           precision: obj.precision,
+          label: obj.label,
         };
       });
     });
@@ -80,9 +76,6 @@ export default function Results(props) {
 
   useEffect(() => {
     if (scenarioName) {
-      setTemperature(parseFloat(table[scenarioName][METRICS['avg_tmp_v'].label].value));
-      setCoolingCost(parseFloat(table[scenarioName][METRICS['cdd_cost'].label].value));
-      setCarbon(parseFloat(table[scenarioName][METRICS['tot_c_cur'].label].value));
       const to = (scenarioDescriptions[scenarioName]['nlcd'].length)
         ? `
             ${scenarioDescriptions[scenarioName]['nlcd'].join(', ')}
@@ -91,7 +84,7 @@ export default function Results(props) {
         : '';
       setToLULC(to);
     }
-  }, [scenarioName]);
+  }, [scenarioName]); // TODO: this hook not running on study area switch
 
   const landcoverDescription = (
     <>
@@ -106,38 +99,44 @@ export default function Results(props) {
     </>
   );
 
-  const tempDirection = (temperature >= 0) ? 'increase' : 'decrease';
-  const carbonDirection = (carbon >= 0) ? 'increase' : 'decrease';
-  const paragraphs = (
-    <ul>
-      <li>
-        <Icon icon="Flash" />
-        <p>
+  let paragraphs;
+  if (table && table[scenarioName]) {
+    const temperature = table[scenarioName]['avg_tmp_v'].value;
+    const coolingCost = table[scenarioName]['cdd_cost'].value;
+    const carbon = table[scenarioName]['tot_c_cur'].value;
+    const tempDirection = (temperature >= 0) ? 'increase' : 'decrease';
+    const carbonDirection = (carbon >= 0) ? 'increase' : 'decrease';
+    paragraphs = (
+      <ul>
+        <li>
+          <Icon icon="Flash" />
+          <p>
+            <span>
+              The average daytime high <b>temperature</b> during August is expected to
+              <b> {tempDirection} by {Math.abs(temperature).toFixed(METRICS.avg_tmp_v.precision)} &deg;F </b>
+              for areas within {COOLING_DISTANCE} of <b>{studyAreaName}</b>.
+            </span>
+          </p>
+          <p>
+            <span>
+              This represents an <b>{tempDirection} </b>
+              in total cooling costs by
+              <b> ${Math.abs(coolingCost).toFixed(METRICS.cdd_cost.precision)}</b>
+            </span>
+          </p>
+        </li>
+        <br />
+        <li>
+          <Icon icon="tree" />
           <span>
-            The average daytime high <b>temperature</b> during August is expected to
-            <b> {tempDirection} by {Math.abs(temperature).toFixed(METRICS.avg_tmp_v.precision)} &deg;F </b>
-            for areas within {COOLING_DISTANCE} of <b>{studyAreaName}</b>.
+            Carbon storage is expected to
+            <b> {carbonDirection} by {Math.abs(carbon).toFixed(METRICS.tot_c_cur.precision)} </b>
+            metric tons
           </span>
-        </p>
-        <p>
-          <span>
-            This represents an <b>{tempDirection} </b>
-            in total cooling costs by
-            <b> ${Math.abs(coolingCost).toFixed(METRICS.cdd_cost.precision)}</b>
-          </span>
-        </p>
-      </li>
-      <br />
-      <li>
-        <Icon icon="tree" />
-        <span>
-          Carbon storage is expected to
-          <b> {carbonDirection} by {Math.abs(carbon).toFixed(METRICS.tot_c_cur.precision)} </b>
-          metric tons
-        </span>
-      </li>
-    </ul>
-  );
+        </li>
+      </ul>
+    );
+  }
 
   const { census } = results.baseline;
   let populationTable;
@@ -163,7 +162,7 @@ export default function Results(props) {
     );
   }
 
-  if (census && census.poverty) {    
+  if (census && census.poverty) {
     povertyPar = (
       <ul>
         <li>
