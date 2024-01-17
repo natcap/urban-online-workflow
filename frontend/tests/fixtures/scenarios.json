@@ -6,7 +6,7 @@
         "study_area_id": 75,
         "lulc_url_result": "/foo/opt/appdata/scenarios/14/14_lulc_crop.tif",
         "lulc_url_base": "NLCD_2016_epsg3857.tif",
-        "lulc_stats": "{\"21\": 4, \"22\": 4}"
+        "lulc_stats": "{\"nlcd\": {\"11\": 5396}, \"nlud\": {\"1\": 5396}, \"tree\": {\"0\": 5396}}"
     },
     {
         "name": "a1",
@@ -15,7 +15,7 @@
         "study_area_id": 75,
         "lulc_url_result": "/foo/opt/appdata/scenarios/15/15_lulc_fill.tif",
         "lulc_url_base": "NLCD_2016_epsg3857.tif",
-        "lulc_stats": "{\"11\": 8}"
+        "lulc_stats": "{\"nlcd\": {\"11\": 5396}, \"nlud\": {\"1\": 5396}, \"tree\": {\"0\": 5396}}"
     },
     {
         "name": "b1",
@@ -24,6 +24,6 @@
         "study_area_id": 75,
         "lulc_url_result": "/foo/opt/appdata/scenarios/16/16_lulc_fill.tif",
         "lulc_url_base": "NLCD_2016_epsg3857.tif",
-        "lulc_stats": "{\"21\": 8}"
+        "lulc_stats": "{\"nlcd\": {\"11\": 5396}, \"nlud\": {\"1\": 5396}, \"tree\": {\"0\": 5396}}"
     }
 ]

@@ -47,7 +47,7 @@ _ALBERS_EQUAL_AREA_SRS.ImportFromProj4(  # more terse than WKT
     '+datum=WGS84 +units=m +no_defs')
 _ALBERS_EQUAL_AREA_SRS.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
 
-NLCD_FILENAME = 'NLCD_2016_epsg3857.tif'
+NLCD_FILENAME = 'lulc_overlay_3857.tif'
 NLCD_RASTER_PATHS = {
     'vsigs': f'/vsigs/natcap-urban-online-datasets-public/{NLCD_FILENAME}',
     'docker': f'/opt/appdata/{NLCD_FILENAME}',
@@ -64,13 +64,6 @@ if _NLCD_RASTER_INFO is None:
     raise AssertionError(
         f"Could not open {NLCD_FILENAME} at any known locations")
 LOGGER.info(f"Using NLCD at {NLCD_RASTER_PATH}")
-NLCD_COLOR_TABLE_PATH = os.path.join(
-    os.path.dirname(NLCD_RASTER_PATH), 'NLCD_2016.lulcdata.json')
-
-with open(NLCD_COLOR_TABLE_PATH, 'r') as file:
-    table = json.loads(file.read())
-NLCD_COLORS = {int(lulc_code): data['color'] for lulc_code, data
-               in table.items()}
 
 NLCD_SRS_WKT = _NLCD_RASTER_INFO['projection_wkt']
 _NLCD_SRS = osr.SpatialReference()
@@ -175,7 +168,7 @@ class Tests(unittest.TestCase):
             os.path.join(self.workspace_dir, 'parcel.shp'),
             _WEB_MERCATOR_SRS.ExportToWkt(), 'ESRI Shapefile')
 
-        _create_new_lulc(parcel.wkt, gtiff_path)
+        _create_new_lulc(parcel.wkt, gtiff_path, include_pixel_values=True)
 
         raster_info = pygeoprocessing.get_raster_info(gtiff_path)
 
@@ -222,49 +215,6 @@ class Tests(unittest.TestCase):
 
         wallpaper_parcel(parcel.wkt, pattern.wkt, NLCD_RASTER_PATH,
                          target_raster_path, self.workspace_dir)
-
-    def test_wallpaper_nlcd(self):
-        # University of Texas: San Antonio, selected by hand in QGIS
-        # Coordinates are in EPSG:3857 "Web Mercator"
-        point_over_san_antonio = shapely.geometry.Point(
-            -10965275.57, 3429693.30)
-        parcel = point_over_san_antonio.buffer(100)
-
-        # Apache Creek, urban residential area, San Antonio, TX.
-        # Selected by hand in QGIS.  Coordinates are in EPSG:3857 "Web
-        # Mercator"
-        # Near the intersection of South Laredo street and South Zarzamora
-        # Street.
-        pattern = shapely.geometry.box(
-            *shapely.geometry.Point(
-                -10968418.16, 3429347.98).buffer(100).bounds)
-
-        # write this output to a file for testing
-        pygeoprocessing.geoprocessing.shapely_geometry_to_vector(
-            [pattern],
-            os.path.join(self.workspace_dir, 'pattern_webmercator.geojson'),
-            _WEB_MERCATOR_SRS.ExportToWkt(), 'GeoJSON')
-
-        target_raster_path = os.path.join(
-            self.workspace_dir, 'wallpapered_raster.tif')
-
-        wallpaper_parcel(parcel.wkt, pattern.wkt, NLCD_RASTER_PATH,
-                         target_raster_path, self.workspace_dir)
-
-        thumbnail = os.path.join('thumbnail_pattern.png')
-        make_thumbnail(pattern.wkt, NLCD_COLORS, thumbnail, self.workspace_dir)
-
-    def test_thumbnail(self):
-        # University of Texas: San Antonio, selected by hand in QGIS
-        # Coordinates are in EPSG:3857 "Web Mercator"
-        point_over_san_antonio = shapely.geometry.Point(
-            -10965275.57, 3429693.30)
-
-        # Raster units are in meters (mercator)
-        parcel = point_over_san_antonio.buffer(100)
-
-        thumbnail = os.path.join(self.workspace_dir, 'thumbnail.png')
-        make_thumbnail(parcel.wkt, NLCD_COLORS, thumbnail)
 
     def test_get_bioregion(self):
         # University of Texas: San Antonio, selected by hand in QGIS
@@ -431,7 +381,8 @@ def fill_parcel(parcel_wkt_epsg3857, fill_lulc_class,
         ogr_geom_type=OGR_GEOMETRY_TYPES[parcel_geom.type]
     )
 
-    _create_new_lulc(parcel_wkt_epsg3857, target_lulc_path)
+    _create_new_lulc(
+        parcel_wkt_epsg3857, target_lulc_path, include_pixel_values=True)
     pygeoprocessing.geoprocessing.rasterize(
         parcel_vector_path, target_lulc_path, [fill_lulc_class],
         option_list=['ALL_TOUCHED=TRUE'])
@@ -755,28 +706,6 @@ def do_work(host, port, outputs_location):
                                 job_args['lulc_source_url']
                             ),
                         }
-                    }
-                }
-            elif job_type == JOBTYPE_PATTERN_THUMBNAIL:
-                thumbnails_dir = os.path.join(
-                    model_outputs_dir, 'thumbnails')
-                if not os.path.exists(thumbnails_dir):
-                    os.makedirs(thumbnails_dir)
-                pattern_id = server_args['pattern_id']
-                thumbnail_path = os.path.join(
-                    thumbnails_dir,
-                    f'pattern_{pattern_id}_thumbnail.png')
-                make_thumbnail(
-                    pattern_wkt_epsg3857=job_args['pattern_wkt'],
-                    colors_dict=NLCD_COLORS,
-                    target_thumbnail_path=thumbnail_path,
-                    working_dir=thumbnails_dir
-                )
-                LOGGER.info(f"Thumbnail written to {thumbnail_path}")
-
-                data = {
-                    'result': {
-                        'pattern_thumbnail_path': thumbnail_path,
                     }
                 }
             elif job_type == JOBTYPE_INVEST:

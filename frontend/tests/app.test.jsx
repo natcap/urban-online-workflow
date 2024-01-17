@@ -26,6 +26,10 @@ vi.mock('../src/requests', () => {
     runInvest: () => JOBS,
     getInvestResults: () => INVEST_RESULT,
     getPatterns: () => null,
+    getNLUDTier2: () => [],
+    getNLUDTier3: () => [],
+    getNLCD: () => [],
+    getLucode: () => null,
   };
 });
 
@@ -82,7 +86,9 @@ test('results panel is linked to map layers', async () => {
   expect(radioB).toBeChecked();
 });
 
-test('wallpapering toggle is linked to map layers', async () => {
+// Wallpapering is currently disabled.
+// https://github.com/natcap/urban-online-workflow/issues/125
+test.skip('wallpapering toggle is linked to map layers', async () => {
   const user = userEvent.setup();
   const screen = renderAppWithResults();
 

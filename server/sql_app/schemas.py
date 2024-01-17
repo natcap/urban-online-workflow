@@ -222,3 +222,9 @@ class ParcelFill(BaseModel):
     class Config:
         orm_mode = True
 
+
+class LulcRequest(BaseModel):
+    nlud_tier_2: str
+    nlud_tier_3: str
+    nlcd: str
+    tree: str

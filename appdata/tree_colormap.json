@@ -1,0 +1,18 @@
+{
+    "0": {
+        "color": "#ffffff",
+        "name": "none"
+    },
+    "1": {
+        "color": "#e5f5e0",
+        "name": "low"
+    },
+    "2": {
+        "color": "#a1d99b",
+        "name": "medium"
+    },
+    "3": {
+        "color": "#31a354",
+        "name": "high"
+    }
+}
