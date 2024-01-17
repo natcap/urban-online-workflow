@@ -3,15 +3,14 @@ import React, { useState } from 'react';
 import {
   Button,
   InputGroup,
-  HTMLSelect,
   Radio,
   RadioGroup,
   Spinner
 } from '@blueprintjs/core';
 
 import useInterval from '../hooks/useInterval';
-import landuseCodes from '../../../appdata/NLCD_2016.lulcdata.json';
 import WallpaperingMenu from './wallpaperingMenu';
+import LulcMenu from './lulcMenu';
 import {
   createScenario,
   getJobStatus,
@@ -32,7 +31,7 @@ export default function ScenarioBuilder(props) {
     scenarioNames,
   } = props;
 
-  const [singleLULC, setSingleLULC] = useState(Object.keys(landuseCodes)[0]);
+  const [singleLULC, setSingleLULC] = useState(null);
   const [conversionOption, setConversionOption] = useState('fill');
   const [scenarioName, setScenarioName] = useState('');
   const [scenarioID, setScenarioID] = useState(null);
@@ -65,7 +64,7 @@ export default function ScenarioBuilder(props) {
         currentScenarioID
       );
     }
-    if (conversionOption === 'fill' && singleLULC) {
+    if (conversionOption === 'fill' && Number.isInteger(singleLULC)) {
       jid = await lulcFill(singleLULC, currentScenarioID);
     }
     setJobID(jid);
@@ -75,46 +74,28 @@ export default function ScenarioBuilder(props) {
     return <div />;
   }
 
-  let scenarioDescription = '';
-  if (conversionOption === 'wallpaper' && selectedPattern) {
-    scenarioDescription = (
-      <span>
-        Create a scenario by <em>wallpapering</em> with <em>{selectedPattern.label}</em>
-      </span>
-    );
-  }
-  if (conversionOption === 'fill' && singleLULC) {
-    scenarioDescription = (
-      <span>
-        Create a scenario by <em>filling</em> with <em>{landuseCodes[singleLULC].name}</em>
-      </span>
-    );
-  }
-
   return (
-    <form>
+    <form className="panel">
       <label className="sidebar-subheading">
-        Modify the landuse in this study area:
+        Create a scenario:
       </label>
+      <p><em>choose new landuse and landcover for the study area</em></p>
       <RadioGroup
         className="conversion-radio"
         inline
         onChange={(event) => setConversionOption(event.target.value)}
         selectedValue={conversionOption}
       >
-        <Radio key="wallpaper" value="wallpaper" label="wallpaper" />
         <Radio key="fill" value="fill" label="fill" />
+        <Radio key="wallpaper" value="wallpaper" label="wallpaper" disabled/>
       </RadioGroup>
-      <div className="panel">
+      <div>
         {
           (conversionOption === 'fill')
             ? (
-              <HTMLSelect
-                onChange={(event) => setSingleLULC(event.target.value)}
-              >
-                {Object.entries(landuseCodes)
-                  .map(([code, data]) => <option key={code} value={code}>{data.name}</option>)}
-              </HTMLSelect>
+              <LulcMenu
+                setLucode={setSingleLULC}
+              />
             )
             : (
               <WallpaperingMenu
@@ -128,8 +109,10 @@ export default function ScenarioBuilder(props) {
             )
         }
       </div>
-      <div id="scenario-input-label" className="sidebar-subheading">
-        {scenarioDescription}
+      <div id="scenario-input-label">
+        {/*TODO: This subscript is a note to self, related to
+        https://github.com/natcap/urban-online-workflow/issues/124*/}
+        <sub>{singleLULC}</sub>
         {
           (jobID)
             ? <Spinner size="20" />

@@ -1,0 +1,788 @@
+lucode,code,nlud_simple_class,nlud_simple_subclass,nlud_simple,nlcd,nlcd_lulc,nlcd_colors,tree,tree_canopy_cover,tree_colors,frequency
+0,1110,Waterbody,Natural,1,11,Open Water,#476BA0,0,none,#ffffff,18981
+1,1111,Waterbody,Natural,1,11,Open Water,#476BA0,1,low,#e5f5e0,8155
+2,1112,Waterbody,Natural,1,11,Open Water,#476BA0,2,medium,#a1d99b,4113
+3,1113,Waterbody,Natural,1,11,Open Water,#476BA0,3,high,#31a354,105
+8,1210,Waterbody,Natural,1,21,"Developed, Open Space",#DDC9C9,0,none,#ffffff,37
+9,1211,Waterbody,Natural,1,21,"Developed, Open Space",#DDC9C9,1,low,#e5f5e0,218
+10,1212,Waterbody,Natural,1,21,"Developed, Open Space",#DDC9C9,2,medium,#a1d99b,114
+11,1213,Waterbody,Natural,1,21,"Developed, Open Space",#DDC9C9,3,high,#31a354,13
+12,1220,Waterbody,Natural,1,22,"Developed, Low Intensity",#D89382,0,none,#ffffff,11
+13,1221,Waterbody,Natural,1,22,"Developed, Low Intensity",#D89382,1,low,#e5f5e0,138
+14,1222,Waterbody,Natural,1,22,"Developed, Low Intensity",#D89382,2,medium,#a1d99b,68
+15,1223,Waterbody,Natural,1,22,"Developed, Low Intensity",#D89382,3,high,#31a354,1
+16,1230,Waterbody,Natural,1,23,"Developed, Medium Intensity",#ED0000,0,none,#ffffff,10
+17,1231,Waterbody,Natural,1,23,"Developed, Medium Intensity",#ED0000,1,low,#e5f5e0,211
+18,1232,Waterbody,Natural,1,23,"Developed, Medium Intensity",#ED0000,2,medium,#a1d99b,70
+20,1240,Waterbody,Natural,1,24,"Developed, High Intensity",#AA0000,0,none,#ffffff,9
+21,1241,Waterbody,Natural,1,24,"Developed, High Intensity",#AA0000,1,low,#e5f5e0,122
+22,1242,Waterbody,Natural,1,24,"Developed, High Intensity",#AA0000,2,medium,#a1d99b,32
+24,1310,Waterbody,Natural,1,31,Barren Land (Rock/Sand/Clay),#B2ADA3,0,none,#ffffff,12
+25,1311,Waterbody,Natural,1,31,Barren Land (Rock/Sand/Clay),#B2ADA3,1,low,#e5f5e0,130
+26,1312,Waterbody,Natural,1,31,Barren Land (Rock/Sand/Clay),#B2ADA3,2,medium,#a1d99b,27
+28,1410,Waterbody,Natural,1,41,Deciduous Forest,#68AA63,0,none,#ffffff,1
+29,1411,Waterbody,Natural,1,41,Deciduous Forest,#68AA63,1,low,#e5f5e0,45
+30,1412,Waterbody,Natural,1,41,Deciduous Forest,#68AA63,2,medium,#a1d99b,170
+31,1413,Waterbody,Natural,1,41,Deciduous Forest,#68AA63,3,high,#31a354,18
+33,1421,Waterbody,Natural,1,42,Evergreen Forest,#1C6330,1,low,#e5f5e0,45
+34,1422,Waterbody,Natural,1,42,Evergreen Forest,#1C6330,2,medium,#a1d99b,213
+35,1423,Waterbody,Natural,1,42,Evergreen Forest,#1C6330,3,high,#31a354,19
+37,1431,Waterbody,Natural,1,43,Mixed Forest,#B5C98E,1,low,#e5f5e0,37
+38,1432,Waterbody,Natural,1,43,Mixed Forest,#B5C98E,2,medium,#a1d99b,179
+39,1433,Waterbody,Natural,1,43,Mixed Forest,#B5C98E,3,high,#31a354,11
+44,1520,Waterbody,Natural,1,52,Scrub/Shrub,#CCBA7C,0,none,#ffffff,3
+45,1521,Waterbody,Natural,1,52,Scrub/Shrub,#CCBA7C,1,low,#e5f5e0,853
+46,1522,Waterbody,Natural,1,52,Scrub/Shrub,#CCBA7C,2,medium,#a1d99b,757
+47,1523,Waterbody,Natural,1,52,Scrub/Shrub,#CCBA7C,3,high,#31a354,2
+48,1710,Waterbody,Natural,1,71,Grassland/Herbaceous,#E2E2C1,0,none,#ffffff,1
+49,1711,Waterbody,Natural,1,71,Grassland/Herbaceous,#E2E2C1,1,low,#e5f5e0,108
+50,1712,Waterbody,Natural,1,71,Grassland/Herbaceous,#E2E2C1,2,medium,#a1d99b,130
+51,1713,Waterbody,Natural,1,71,Grassland/Herbaceous,#E2E2C1,3,high,#31a354,5
+65,1811,Waterbody,Natural,1,81,Pasture/Hay,#DBD83D,1,low,#e5f5e0,96
+66,1812,Waterbody,Natural,1,81,Pasture/Hay,#DBD83D,2,medium,#a1d99b,23
+69,1821,Waterbody,Natural,1,82,Cultivated Crops,#AA7028,1,low,#e5f5e0,21
+70,1822,Waterbody,Natural,1,82,Cultivated Crops,#AA7028,2,medium,#a1d99b,4
+82,2112,Waterbody,Wetland,2,11,Open Water,#476BA0,2,medium,#a1d99b,2
+83,2113,Waterbody,Wetland,2,11,Open Water,#476BA0,3,high,#31a354,2
+110,2412,Waterbody,Wetland,2,41,Deciduous Forest,#68AA63,2,medium,#a1d99b,1
+126,2522,Waterbody,Wetland,2,52,Scrub/Shrub,#CCBA7C,2,medium,#a1d99b,2
+152,2900,Waterbody,Wetland,2,90,Woody Wetlands,#BAD8EA,0,none,#ffffff,11
+153,2901,Waterbody,Wetland,2,90,Woody Wetlands,#BAD8EA,1,low,#e5f5e0,6168
+154,2902,Waterbody,Wetland,2,90,Woody Wetlands,#BAD8EA,2,medium,#a1d99b,50384
+155,2903,Waterbody,Wetland,2,90,Woody Wetlands,#BAD8EA,3,high,#31a354,8061
+156,2950,Waterbody,Wetland,2,95,Emergent Herbaceous Wetlands,#70A3BA,0,none,#ffffff,83
+157,2951,Waterbody,Wetland,2,95,Emergent Herbaceous Wetlands,#70A3BA,1,low,#e5f5e0,1838
+158,2952,Waterbody,Wetland,2,95,Emergent Herbaceous Wetlands,#70A3BA,2,medium,#a1d99b,2694
+159,2953,Waterbody,Wetland,2,95,Emergent Herbaceous Wetlands,#70A3BA,3,high,#31a354,146
+160,3110,Waterbody,Artificial,3,11,Open Water,#476BA0,0,none,#ffffff,3
+161,3111,Waterbody,Artificial,3,11,Open Water,#476BA0,1,low,#e5f5e0,79
+162,3112,Waterbody,Artificial,3,11,Open Water,#476BA0,2,medium,#a1d99b,109
+163,3113,Waterbody,Artificial,3,11,Open Water,#476BA0,3,high,#31a354,21
+169,3211,Waterbody,Artificial,3,21,"Developed, Open Space",#DDC9C9,1,low,#e5f5e0,25
+170,3212,Waterbody,Artificial,3,21,"Developed, Open Space",#DDC9C9,2,medium,#a1d99b,6
+173,3221,Waterbody,Artificial,3,22,"Developed, Low Intensity",#D89382,1,low,#e5f5e0,59
+174,3222,Waterbody,Artificial,3,22,"Developed, Low Intensity",#D89382,2,medium,#a1d99b,2
+176,3230,Waterbody,Artificial,3,23,"Developed, Medium Intensity",#ED0000,0,none,#ffffff,3
+177,3231,Waterbody,Artificial,3,23,"Developed, Medium Intensity",#ED0000,1,low,#e5f5e0,188
+178,3232,Waterbody,Artificial,3,23,"Developed, Medium Intensity",#ED0000,2,medium,#a1d99b,28
+180,3240,Waterbody,Artificial,3,24,"Developed, High Intensity",#AA0000,0,none,#ffffff,20
+181,3241,Waterbody,Artificial,3,24,"Developed, High Intensity",#AA0000,1,low,#e5f5e0,99
+182,3242,Waterbody,Artificial,3,24,"Developed, High Intensity",#AA0000,2,medium,#a1d99b,15
+184,3310,Waterbody,Artificial,3,31,Barren Land (Rock/Sand/Clay),#B2ADA3,0,none,#ffffff,5
+185,3311,Waterbody,Artificial,3,31,Barren Land (Rock/Sand/Clay),#B2ADA3,1,low,#e5f5e0,16
+186,3312,Waterbody,Artificial,3,31,Barren Land (Rock/Sand/Clay),#B2ADA3,2,medium,#a1d99b,55
+187,3313,Waterbody,Artificial,3,31,Barren Land (Rock/Sand/Clay),#B2ADA3,3,high,#31a354,8
+190,3412,Waterbody,Artificial,3,41,Deciduous Forest,#68AA63,2,medium,#a1d99b,1
+191,3413,Waterbody,Artificial,3,41,Deciduous Forest,#68AA63,3,high,#31a354,1
+193,3421,Waterbody,Artificial,3,42,Evergreen Forest,#1C6330,1,low,#e5f5e0,2
+194,3422,Waterbody,Artificial,3,42,Evergreen Forest,#1C6330,2,medium,#a1d99b,3
+205,3521,Waterbody,Artificial,3,52,Scrub/Shrub,#CCBA7C,1,low,#e5f5e0,40
+206,3522,Waterbody,Artificial,3,52,Scrub/Shrub,#CCBA7C,2,medium,#a1d99b,4
+209,3711,Waterbody,Artificial,3,71,Grassland/Herbaceous,#E2E2C1,1,low,#e5f5e0,4
+210,3712,Waterbody,Artificial,3,71,Grassland/Herbaceous,#E2E2C1,2,medium,#a1d99b,1
+225,3811,Waterbody,Artificial,3,81,Pasture/Hay,#DBD83D,1,low,#e5f5e0,51
+229,3821,Waterbody,Artificial,3,82,Cultivated Crops,#AA7028,1,low,#e5f5e0,1
+328,11210,Residential,Dense urban,11,21,"Developed, Open Space",#DDC9C9,0,none,#ffffff,68
+329,11211,Residential,Dense urban,11,21,"Developed, Open Space",#DDC9C9,1,low,#e5f5e0,15115
+330,11212,Residential,Dense urban,11,21,"Developed, Open Space",#DDC9C9,2,medium,#a1d99b,5066
+331,11213,Residential,Dense urban,11,21,"Developed, Open Space",#DDC9C9,3,high,#31a354,124
+332,11220,Residential,Dense urban,11,22,"Developed, Low Intensity",#D89382,0,none,#ffffff,308
+333,11221,Residential,Dense urban,11,22,"Developed, Low Intensity",#D89382,1,low,#e5f5e0,81307
+334,11222,Residential,Dense urban,11,22,"Developed, Low Intensity",#D89382,2,medium,#a1d99b,17829
+335,11223,Residential,Dense urban,11,22,"Developed, Low Intensity",#D89382,3,high,#31a354,74
+336,11230,Residential,Dense urban,11,23,"Developed, Medium Intensity",#ED0000,0,none,#ffffff,852
+337,11231,Residential,Dense urban,11,23,"Developed, Medium Intensity",#ED0000,1,low,#e5f5e0,127265
+338,11232,Residential,Dense urban,11,23,"Developed, Medium Intensity",#ED0000,2,medium,#a1d99b,23343
+339,11233,Residential,Dense urban,11,23,"Developed, Medium Intensity",#ED0000,3,high,#31a354,94
+340,11240,Residential,Dense urban,11,24,"Developed, High Intensity",#AA0000,0,none,#ffffff,695
+341,11241,Residential,Dense urban,11,24,"Developed, High Intensity",#AA0000,1,low,#e5f5e0,28271
+342,11242,Residential,Dense urban,11,24,"Developed, High Intensity",#AA0000,2,medium,#a1d99b,3530
+343,11243,Residential,Dense urban,11,24,"Developed, High Intensity",#AA0000,3,high,#31a354,29
+408,12210,Residential,Urban,12,21,"Developed, Open Space",#DDC9C9,0,none,#ffffff,277
+409,12211,Residential,Urban,12,21,"Developed, Open Space",#DDC9C9,1,low,#e5f5e0,72032
+410,12212,Residential,Urban,12,21,"Developed, Open Space",#DDC9C9,2,medium,#a1d99b,48473
+411,12213,Residential,Urban,12,21,"Developed, Open Space",#DDC9C9,3,high,#31a354,3795
+412,12220,Residential,Urban,12,22,"Developed, Low Intensity",#D89382,0,none,#ffffff,670
+413,12221,Residential,Urban,12,22,"Developed, Low Intensity",#D89382,1,low,#e5f5e0,122789
+414,12222,Residential,Urban,12,22,"Developed, Low Intensity",#D89382,2,medium,#a1d99b,65814
+415,12223,Residential,Urban,12,22,"Developed, Low Intensity",#D89382,3,high,#31a354,1780
+416,12230,Residential,Urban,12,23,"Developed, Medium Intensity",#ED0000,0,none,#ffffff,1947
+417,12231,Residential,Urban,12,23,"Developed, Medium Intensity",#ED0000,1,low,#e5f5e0,148268
+418,12232,Residential,Urban,12,23,"Developed, Medium Intensity",#ED0000,2,medium,#a1d99b,45730
+419,12233,Residential,Urban,12,23,"Developed, Medium Intensity",#ED0000,3,high,#31a354,1090
+420,12240,Residential,Urban,12,24,"Developed, High Intensity",#AA0000,0,none,#ffffff,1993
+421,12241,Residential,Urban,12,24,"Developed, High Intensity",#AA0000,1,low,#e5f5e0,53389
+422,12242,Residential,Urban,12,24,"Developed, High Intensity",#AA0000,2,medium,#a1d99b,5819
+423,12243,Residential,Urban,12,24,"Developed, High Intensity",#AA0000,3,high,#31a354,191
+428,12410,Residential,Urban,12,41,Deciduous Forest,#68AA63,0,none,#ffffff,7
+429,12411,Residential,Urban,12,41,Deciduous Forest,#68AA63,1,low,#e5f5e0,2061
+430,12412,Residential,Urban,12,41,Deciduous Forest,#68AA63,2,medium,#a1d99b,9675
+431,12413,Residential,Urban,12,41,Deciduous Forest,#68AA63,3,high,#31a354,585
+432,12420,Residential,Urban,12,42,Evergreen Forest,#1C6330,0,none,#ffffff,15
+433,12421,Residential,Urban,12,42,Evergreen Forest,#1C6330,1,low,#e5f5e0,4977
+434,12422,Residential,Urban,12,42,Evergreen Forest,#1C6330,2,medium,#a1d99b,26217
+435,12423,Residential,Urban,12,42,Evergreen Forest,#1C6330,3,high,#31a354,8863
+436,12430,Residential,Urban,12,43,Mixed Forest,#B5C98E,0,none,#ffffff,1
+437,12431,Residential,Urban,12,43,Mixed Forest,#B5C98E,1,low,#e5f5e0,227
+438,12432,Residential,Urban,12,43,Mixed Forest,#B5C98E,2,medium,#a1d99b,1477
+439,12433,Residential,Urban,12,43,Mixed Forest,#B5C98E,3,high,#31a354,100
+444,12520,Residential,Urban,12,52,Scrub/Shrub,#CCBA7C,0,none,#ffffff,57
+445,12521,Residential,Urban,12,52,Scrub/Shrub,#CCBA7C,1,low,#e5f5e0,29049
+446,12522,Residential,Urban,12,52,Scrub/Shrub,#CCBA7C,2,medium,#a1d99b,17594
+447,12523,Residential,Urban,12,52,Scrub/Shrub,#CCBA7C,3,high,#31a354,56
+448,12710,Residential,Urban,12,71,Grassland/Herbaceous,#E2E2C1,0,none,#ffffff,38
+449,12711,Residential,Urban,12,71,Grassland/Herbaceous,#E2E2C1,1,low,#e5f5e0,5316
+450,12712,Residential,Urban,12,71,Grassland/Herbaceous,#E2E2C1,2,medium,#a1d99b,1541
+451,12713,Residential,Urban,12,71,Grassland/Herbaceous,#E2E2C1,3,high,#31a354,136
+465,12811,Residential,Urban,12,81,Pasture/Hay,#DBD83D,1,low,#e5f5e0,781
+466,12812,Residential,Urban,12,81,Pasture/Hay,#DBD83D,2,medium,#a1d99b,83
+469,12821,Residential,Urban,12,82,Cultivated Crops,#AA7028,1,low,#e5f5e0,916
+470,12822,Residential,Urban,12,82,Cultivated Crops,#AA7028,2,medium,#a1d99b,177
+488,13210,Residential,Suburban,13,21,"Developed, Open Space",#DDC9C9,0,none,#ffffff,109
+489,13211,Residential,Suburban,13,21,"Developed, Open Space",#DDC9C9,1,low,#e5f5e0,22432
+490,13212,Residential,Suburban,13,21,"Developed, Open Space",#DDC9C9,2,medium,#a1d99b,17317
+491,13213,Residential,Suburban,13,21,"Developed, Open Space",#DDC9C9,3,high,#31a354,1927
+492,13220,Residential,Suburban,13,22,"Developed, Low Intensity",#D89382,0,none,#ffffff,232
+493,13221,Residential,Suburban,13,22,"Developed, Low Intensity",#D89382,1,low,#e5f5e0,19576
+494,13222,Residential,Suburban,13,22,"Developed, Low Intensity",#D89382,2,medium,#a1d99b,10928
+495,13223,Residential,Suburban,13,22,"Developed, Low Intensity",#D89382,3,high,#31a354,933
+496,13230,Residential,Suburban,13,23,"Developed, Medium Intensity",#ED0000,0,none,#ffffff,575
+497,13231,Residential,Suburban,13,23,"Developed, Medium Intensity",#ED0000,1,low,#e5f5e0,21023
+498,13232,Residential,Suburban,13,23,"Developed, Medium Intensity",#ED0000,2,medium,#a1d99b,6464
+499,13233,Residential,Suburban,13,23,"Developed, Medium Intensity",#ED0000,3,high,#31a354,918
+500,13240,Residential,Suburban,13,24,"Developed, High Intensity",#AA0000,0,none,#ffffff,599
+501,13241,Residential,Suburban,13,24,"Developed, High Intensity",#AA0000,1,low,#e5f5e0,13361
+502,13242,Residential,Suburban,13,24,"Developed, High Intensity",#AA0000,2,medium,#a1d99b,1651
+503,13243,Residential,Suburban,13,24,"Developed, High Intensity",#AA0000,3,high,#31a354,150
+508,13410,Residential,Suburban,13,41,Deciduous Forest,#68AA63,0,none,#ffffff,10
+509,13411,Residential,Suburban,13,41,Deciduous Forest,#68AA63,1,low,#e5f5e0,1456
+510,13412,Residential,Suburban,13,41,Deciduous Forest,#68AA63,2,medium,#a1d99b,9052
+511,13413,Residential,Suburban,13,41,Deciduous Forest,#68AA63,3,high,#31a354,568
+512,13420,Residential,Suburban,13,42,Evergreen Forest,#1C6330,0,none,#ffffff,13
+513,13421,Residential,Suburban,13,42,Evergreen Forest,#1C6330,1,low,#e5f5e0,3593
+514,13422,Residential,Suburban,13,42,Evergreen Forest,#1C6330,2,medium,#a1d99b,24395
+515,13423,Residential,Suburban,13,42,Evergreen Forest,#1C6330,3,high,#31a354,14208
+517,13431,Residential,Suburban,13,43,Mixed Forest,#B5C98E,1,low,#e5f5e0,185
+518,13432,Residential,Suburban,13,43,Mixed Forest,#B5C98E,2,medium,#a1d99b,1783
+519,13433,Residential,Suburban,13,43,Mixed Forest,#B5C98E,3,high,#31a354,110
+524,13520,Residential,Suburban,13,52,Scrub/Shrub,#CCBA7C,0,none,#ffffff,105
+525,13521,Residential,Suburban,13,52,Scrub/Shrub,#CCBA7C,1,low,#e5f5e0,26466
+526,13522,Residential,Suburban,13,52,Scrub/Shrub,#CCBA7C,2,medium,#a1d99b,16431
+527,13523,Residential,Suburban,13,52,Scrub/Shrub,#CCBA7C,3,high,#31a354,66
+528,13710,Residential,Suburban,13,71,Grassland/Herbaceous,#E2E2C1,0,none,#ffffff,128
+529,13711,Residential,Suburban,13,71,Grassland/Herbaceous,#E2E2C1,1,low,#e5f5e0,5031
+530,13712,Residential,Suburban,13,71,Grassland/Herbaceous,#E2E2C1,2,medium,#a1d99b,1127
+531,13713,Residential,Suburban,13,71,Grassland/Herbaceous,#E2E2C1,3,high,#31a354,247
+545,13811,Residential,Suburban,13,81,Pasture/Hay,#DBD83D,1,low,#e5f5e0,3468
+546,13812,Residential,Suburban,13,81,Pasture/Hay,#DBD83D,2,medium,#a1d99b,132
+548,13820,Residential,Suburban,13,82,Cultivated Crops,#AA7028,0,none,#ffffff,1
+549,13821,Residential,Suburban,13,82,Cultivated Crops,#AA7028,1,low,#e5f5e0,2169
+550,13822,Residential,Suburban,13,82,Cultivated Crops,#AA7028,2,medium,#a1d99b,168
+572,14220,Residential,Exurban,14,22,"Developed, Low Intensity",#D89382,0,none,#ffffff,142
+573,14221,Residential,Exurban,14,22,"Developed, Low Intensity",#D89382,1,low,#e5f5e0,18437
+574,14222,Residential,Exurban,14,22,"Developed, Low Intensity",#D89382,2,medium,#a1d99b,4704
+575,14223,Residential,Exurban,14,22,"Developed, Low Intensity",#D89382,3,high,#31a354,161
+588,14410,Residential,Exurban,14,41,Deciduous Forest,#68AA63,0,none,#ffffff,13
+589,14411,Residential,Exurban,14,41,Deciduous Forest,#68AA63,1,low,#e5f5e0,10326
+590,14412,Residential,Exurban,14,41,Deciduous Forest,#68AA63,2,medium,#a1d99b,34716
+591,14413,Residential,Exurban,14,41,Deciduous Forest,#68AA63,3,high,#31a354,918
+592,14420,Residential,Exurban,14,42,Evergreen Forest,#1C6330,0,none,#ffffff,21
+593,14421,Residential,Exurban,14,42,Evergreen Forest,#1C6330,1,low,#e5f5e0,9303
+594,14422,Residential,Exurban,14,42,Evergreen Forest,#1C6330,2,medium,#a1d99b,65106
+595,14423,Residential,Exurban,14,42,Evergreen Forest,#1C6330,3,high,#31a354,47702
+597,14431,Residential,Exurban,14,43,Mixed Forest,#B5C98E,1,low,#e5f5e0,1572
+598,14432,Residential,Exurban,14,43,Mixed Forest,#B5C98E,2,medium,#a1d99b,14715
+599,14433,Residential,Exurban,14,43,Mixed Forest,#B5C98E,3,high,#31a354,180
+604,14520,Residential,Exurban,14,52,Scrub/Shrub,#CCBA7C,0,none,#ffffff,239
+605,14521,Residential,Exurban,14,52,Scrub/Shrub,#CCBA7C,1,low,#e5f5e0,236140
+606,14522,Residential,Exurban,14,52,Scrub/Shrub,#CCBA7C,2,medium,#a1d99b,114760
+607,14523,Residential,Exurban,14,52,Scrub/Shrub,#CCBA7C,3,high,#31a354,459
+608,14710,Residential,Exurban,14,71,Grassland/Herbaceous,#E2E2C1,0,none,#ffffff,134
+609,14711,Residential,Exurban,14,71,Grassland/Herbaceous,#E2E2C1,1,low,#e5f5e0,20300
+610,14712,Residential,Exurban,14,71,Grassland/Herbaceous,#E2E2C1,2,medium,#a1d99b,4383
+611,14713,Residential,Exurban,14,71,Grassland/Herbaceous,#E2E2C1,3,high,#31a354,499
+624,14810,Residential,Exurban,14,81,Pasture/Hay,#DBD83D,0,none,#ffffff,94
+625,14811,Residential,Exurban,14,81,Pasture/Hay,#DBD83D,1,low,#e5f5e0,105285
+626,14812,Residential,Exurban,14,81,Pasture/Hay,#DBD83D,2,medium,#a1d99b,3384
+628,14820,Residential,Exurban,14,82,Cultivated Crops,#AA7028,0,none,#ffffff,41
+629,14821,Residential,Exurban,14,82,Cultivated Crops,#AA7028,1,low,#e5f5e0,20983
+630,14822,Residential,Exurban,14,82,Cultivated Crops,#AA7028,2,medium,#a1d99b,1172
+631,14823,Residential,Exurban,14,82,Cultivated Crops,#AA7028,3,high,#31a354,23
+668,15410,Residential,Rural,15,41,Deciduous Forest,#68AA63,0,none,#ffffff,19
+669,15411,Residential,Rural,15,41,Deciduous Forest,#68AA63,1,low,#e5f5e0,5355
+670,15412,Residential,Rural,15,41,Deciduous Forest,#68AA63,2,medium,#a1d99b,22991
+671,15413,Residential,Rural,15,41,Deciduous Forest,#68AA63,3,high,#31a354,1534
+672,15420,Residential,Rural,15,42,Evergreen Forest,#1C6330,0,none,#ffffff,21
+673,15421,Residential,Rural,15,42,Evergreen Forest,#1C6330,1,low,#e5f5e0,7750
+674,15422,Residential,Rural,15,42,Evergreen Forest,#1C6330,2,medium,#a1d99b,55966
+675,15423,Residential,Rural,15,42,Evergreen Forest,#1C6330,3,high,#31a354,46923
+677,15431,Residential,Rural,15,43,Mixed Forest,#B5C98E,1,low,#e5f5e0,644
+678,15432,Residential,Rural,15,43,Mixed Forest,#B5C98E,2,medium,#a1d99b,8322
+679,15433,Residential,Rural,15,43,Mixed Forest,#B5C98E,3,high,#31a354,226
+684,15520,Residential,Rural,15,52,Scrub/Shrub,#CCBA7C,0,none,#ffffff,459
+685,15521,Residential,Rural,15,52,Scrub/Shrub,#CCBA7C,1,low,#e5f5e0,130462
+686,15522,Residential,Rural,15,52,Scrub/Shrub,#CCBA7C,2,medium,#a1d99b,71344
+687,15523,Residential,Rural,15,52,Scrub/Shrub,#CCBA7C,3,high,#31a354,561
+688,15710,Residential,Rural,15,71,Grassland/Herbaceous,#E2E2C1,0,none,#ffffff,97
+689,15711,Residential,Rural,15,71,Grassland/Herbaceous,#E2E2C1,1,low,#e5f5e0,13208
+690,15712,Residential,Rural,15,71,Grassland/Herbaceous,#E2E2C1,2,medium,#a1d99b,3598
+691,15713,Residential,Rural,15,71,Grassland/Herbaceous,#E2E2C1,3,high,#31a354,870
+704,15810,Residential,Rural,15,81,Pasture/Hay,#DBD83D,0,none,#ffffff,34
+705,15811,Residential,Rural,15,81,Pasture/Hay,#DBD83D,1,low,#e5f5e0,62407
+706,15812,Residential,Rural,15,81,Pasture/Hay,#DBD83D,2,medium,#a1d99b,2261
+707,15813,Residential,Rural,15,81,Pasture/Hay,#DBD83D,3,high,#31a354,2
+708,15820,Residential,Rural,15,82,Cultivated Crops,#AA7028,0,none,#ffffff,40
+709,15821,Residential,Rural,15,82,Cultivated Crops,#AA7028,1,low,#e5f5e0,18818
+710,15822,Residential,Rural,15,82,Cultivated Crops,#AA7028,2,medium,#a1d99b,924
+720,20110,Commercial,,20,11,Open Water,#476BA0,0,none,#ffffff,143
+721,20111,Commercial,,20,11,Open Water,#476BA0,1,low,#e5f5e0,242
+722,20112,Commercial,,20,11,Open Water,#476BA0,2,medium,#a1d99b,88
+728,20210,Commercial,,20,21,"Developed, Open Space",#DDC9C9,0,none,#ffffff,11
+729,20211,Commercial,,20,21,"Developed, Open Space",#DDC9C9,1,low,#e5f5e0,3377
+730,20212,Commercial,,20,21,"Developed, Open Space",#DDC9C9,2,medium,#a1d99b,1010
+731,20213,Commercial,,20,21,"Developed, Open Space",#DDC9C9,3,high,#31a354,18
+732,20220,Commercial,,20,22,"Developed, Low Intensity",#D89382,0,none,#ffffff,57
+733,20221,Commercial,,20,22,"Developed, Low Intensity",#D89382,1,low,#e5f5e0,3513
+734,20222,Commercial,,20,22,"Developed, Low Intensity",#D89382,2,medium,#a1d99b,630
+735,20223,Commercial,,20,22,"Developed, Low Intensity",#D89382,3,high,#31a354,7
+736,20230,Commercial,,20,23,"Developed, Medium Intensity",#ED0000,0,none,#ffffff,312
+737,20231,Commercial,,20,23,"Developed, Medium Intensity",#ED0000,1,low,#e5f5e0,8188
+738,20232,Commercial,,20,23,"Developed, Medium Intensity",#ED0000,2,medium,#a1d99b,808
+739,20233,Commercial,,20,23,"Developed, Medium Intensity",#ED0000,3,high,#31a354,2
+740,20240,Commercial,,20,24,"Developed, High Intensity",#AA0000,0,none,#ffffff,841
+741,20241,Commercial,,20,24,"Developed, High Intensity",#AA0000,1,low,#e5f5e0,13268
+742,20242,Commercial,,20,24,"Developed, High Intensity",#AA0000,2,medium,#a1d99b,1272
+743,20243,Commercial,,20,24,"Developed, High Intensity",#AA0000,3,high,#31a354,3
+744,20310,Commercial,,20,31,Barren Land (Rock/Sand/Clay),#B2ADA3,0,none,#ffffff,189
+745,20311,Commercial,,20,31,Barren Land (Rock/Sand/Clay),#B2ADA3,1,low,#e5f5e0,1285
+746,20312,Commercial,,20,31,Barren Land (Rock/Sand/Clay),#B2ADA3,2,medium,#a1d99b,33
+749,20411,Commercial,,20,41,Deciduous Forest,#68AA63,1,low,#e5f5e0,203
+750,20412,Commercial,,20,41,Deciduous Forest,#68AA63,2,medium,#a1d99b,2461
+751,20413,Commercial,,20,41,Deciduous Forest,#68AA63,3,high,#31a354,25
+753,20421,Commercial,,20,42,Evergreen Forest,#1C6330,1,low,#e5f5e0,284
+754,20422,Commercial,,20,42,Evergreen Forest,#1C6330,2,medium,#a1d99b,3220
+755,20423,Commercial,,20,42,Evergreen Forest,#1C6330,3,high,#31a354,1295
+757,20431,Commercial,,20,43,Mixed Forest,#B5C98E,1,low,#e5f5e0,24
+758,20432,Commercial,,20,43,Mixed Forest,#B5C98E,2,medium,#a1d99b,325
+759,20433,Commercial,,20,43,Mixed Forest,#B5C98E,3,high,#31a354,4
+764,20520,Commercial,,20,52,Scrub/Shrub,#CCBA7C,0,none,#ffffff,40
+765,20521,Commercial,,20,52,Scrub/Shrub,#CCBA7C,1,low,#e5f5e0,9993
+766,20522,Commercial,,20,52,Scrub/Shrub,#CCBA7C,2,medium,#a1d99b,6311
+767,20523,Commercial,,20,52,Scrub/Shrub,#CCBA7C,3,high,#31a354,14
+768,20710,Commercial,,20,71,Grassland/Herbaceous,#E2E2C1,0,none,#ffffff,41
+769,20711,Commercial,,20,71,Grassland/Herbaceous,#E2E2C1,1,low,#e5f5e0,4291
+770,20712,Commercial,,20,71,Grassland/Herbaceous,#E2E2C1,2,medium,#a1d99b,160
+784,20810,Commercial,,20,81,Pasture/Hay,#DBD83D,0,none,#ffffff,1
+785,20811,Commercial,,20,81,Pasture/Hay,#DBD83D,1,low,#e5f5e0,513
+786,20812,Commercial,,20,81,Pasture/Hay,#DBD83D,2,medium,#a1d99b,12
+789,20821,Commercial,,20,82,Cultivated Crops,#AA7028,1,low,#e5f5e0,1086
+790,20822,Commercial,,20,82,Cultivated Crops,#AA7028,2,medium,#a1d99b,100
+793,20901,Commercial,,20,90,Woody Wetlands,#BAD8EA,1,low,#e5f5e0,70
+794,20902,Commercial,,20,90,Woody Wetlands,#BAD8EA,2,medium,#a1d99b,657
+795,20903,Commercial,,20,90,Woody Wetlands,#BAD8EA,3,high,#31a354,29
+796,20950,Commercial,,20,95,Emergent Herbaceous Wetlands,#70A3BA,0,none,#ffffff,1
+797,20951,Commercial,,20,95,Emergent Herbaceous Wetlands,#70A3BA,1,low,#e5f5e0,34
+798,20952,Commercial,,20,95,Emergent Herbaceous Wetlands,#70A3BA,2,medium,#a1d99b,23
+799,20953,Commercial,,20,95,Emergent Herbaceous Wetlands,#70A3BA,3,high,#31a354,1
+800,30110,Industrial,,30,11,Open Water,#476BA0,0,none,#ffffff,218
+801,30111,Industrial,,30,11,Open Water,#476BA0,1,low,#e5f5e0,374
+802,30112,Industrial,,30,11,Open Water,#476BA0,2,medium,#a1d99b,170
+803,30113,Industrial,,30,11,Open Water,#476BA0,3,high,#31a354,8
+808,30210,Industrial,,30,21,"Developed, Open Space",#DDC9C9,0,none,#ffffff,71
+809,30211,Industrial,,30,21,"Developed, Open Space",#DDC9C9,1,low,#e5f5e0,15038
+810,30212,Industrial,,30,21,"Developed, Open Space",#DDC9C9,2,medium,#a1d99b,5622
+811,30213,Industrial,,30,21,"Developed, Open Space",#DDC9C9,3,high,#31a354,372
+812,30220,Industrial,,30,22,"Developed, Low Intensity",#D89382,0,none,#ffffff,341
+813,30221,Industrial,,30,22,"Developed, Low Intensity",#D89382,1,low,#e5f5e0,16420
+814,30222,Industrial,,30,22,"Developed, Low Intensity",#D89382,2,medium,#a1d99b,4681
+815,30223,Industrial,,30,22,"Developed, Low Intensity",#D89382,3,high,#31a354,182
+816,30230,Industrial,,30,23,"Developed, Medium Intensity",#ED0000,0,none,#ffffff,1339
+817,30231,Industrial,,30,23,"Developed, Medium Intensity",#ED0000,1,low,#e5f5e0,24789
+818,30232,Industrial,,30,23,"Developed, Medium Intensity",#ED0000,2,medium,#a1d99b,4048
+819,30233,Industrial,,30,23,"Developed, Medium Intensity",#ED0000,3,high,#31a354,98
+820,30240,Industrial,,30,24,"Developed, High Intensity",#AA0000,0,none,#ffffff,2711
+821,30241,Industrial,,30,24,"Developed, High Intensity",#AA0000,1,low,#e5f5e0,25393
+822,30242,Industrial,,30,24,"Developed, High Intensity",#AA0000,2,medium,#a1d99b,1619
+823,30243,Industrial,,30,24,"Developed, High Intensity",#AA0000,3,high,#31a354,25
+824,30310,Industrial,,30,31,Barren Land (Rock/Sand/Clay),#B2ADA3,0,none,#ffffff,1306
+825,30311,Industrial,,30,31,Barren Land (Rock/Sand/Clay),#B2ADA3,1,low,#e5f5e0,4347
+826,30312,Industrial,,30,31,Barren Land (Rock/Sand/Clay),#B2ADA3,2,medium,#a1d99b,899
+827,30313,Industrial,,30,31,Barren Land (Rock/Sand/Clay),#B2ADA3,3,high,#31a354,87
+829,30411,Industrial,,30,41,Deciduous Forest,#68AA63,1,low,#e5f5e0,900
+830,30412,Industrial,,30,41,Deciduous Forest,#68AA63,2,medium,#a1d99b,4485
+831,30413,Industrial,,30,41,Deciduous Forest,#68AA63,3,high,#31a354,394
+832,30420,Industrial,,30,42,Evergreen Forest,#1C6330,0,none,#ffffff,10
+833,30421,Industrial,,30,42,Evergreen Forest,#1C6330,1,low,#e5f5e0,3270
+834,30422,Industrial,,30,42,Evergreen Forest,#1C6330,2,medium,#a1d99b,28118
+835,30423,Industrial,,30,42,Evergreen Forest,#1C6330,3,high,#31a354,38883
+837,30431,Industrial,,30,43,Mixed Forest,#B5C98E,1,low,#e5f5e0,137
+838,30432,Industrial,,30,43,Mixed Forest,#B5C98E,2,medium,#a1d99b,1913
+839,30433,Industrial,,30,43,Mixed Forest,#B5C98E,3,high,#31a354,84
+844,30520,Industrial,,30,52,Scrub/Shrub,#CCBA7C,0,none,#ffffff,157
+845,30521,Industrial,,30,52,Scrub/Shrub,#CCBA7C,1,low,#e5f5e0,33208
+846,30522,Industrial,,30,52,Scrub/Shrub,#CCBA7C,2,medium,#a1d99b,19824
+847,30523,Industrial,,30,52,Scrub/Shrub,#CCBA7C,3,high,#31a354,511
+848,30710,Industrial,,30,71,Grassland/Herbaceous,#E2E2C1,0,none,#ffffff,107
+849,30711,Industrial,,30,71,Grassland/Herbaceous,#E2E2C1,1,low,#e5f5e0,4866
+850,30712,Industrial,,30,71,Grassland/Herbaceous,#E2E2C1,2,medium,#a1d99b,856
+851,30713,Industrial,,30,71,Grassland/Herbaceous,#E2E2C1,3,high,#31a354,254
+864,30810,Industrial,,30,81,Pasture/Hay,#DBD83D,0,none,#ffffff,3
+865,30811,Industrial,,30,81,Pasture/Hay,#DBD83D,1,low,#e5f5e0,9962
+866,30812,Industrial,,30,81,Pasture/Hay,#DBD83D,2,medium,#a1d99b,310
+867,30813,Industrial,,30,81,Pasture/Hay,#DBD83D,3,high,#31a354,1
+869,30821,Industrial,,30,82,Cultivated Crops,#AA7028,1,low,#e5f5e0,3284
+870,30822,Industrial,,30,82,Cultivated Crops,#AA7028,2,medium,#a1d99b,257
+873,30901,Industrial,,30,90,Woody Wetlands,#BAD8EA,1,low,#e5f5e0,320
+874,30902,Industrial,,30,90,Woody Wetlands,#BAD8EA,2,medium,#a1d99b,3764
+875,30903,Industrial,,30,90,Woody Wetlands,#BAD8EA,3,high,#31a354,689
+876,30950,Industrial,,30,95,Emergent Herbaceous Wetlands,#70A3BA,0,none,#ffffff,2
+877,30951,Industrial,,30,95,Emergent Herbaceous Wetlands,#70A3BA,1,low,#e5f5e0,68
+878,30952,Industrial,,30,95,Emergent Herbaceous Wetlands,#70A3BA,2,medium,#a1d99b,108
+879,30953,Industrial,,30,95,Emergent Herbaceous Wetlands,#70A3BA,3,high,#31a354,6
+880,40110,Institutional,,40,11,Open Water,#476BA0,0,none,#ffffff,22
+881,40111,Institutional,,40,11,Open Water,#476BA0,1,low,#e5f5e0,247
+882,40112,Institutional,,40,11,Open Water,#476BA0,2,medium,#a1d99b,173
+883,40113,Institutional,,40,11,Open Water,#476BA0,3,high,#31a354,3
+888,40210,Institutional,,40,21,"Developed, Open Space",#DDC9C9,0,none,#ffffff,38
+889,40211,Institutional,,40,21,"Developed, Open Space",#DDC9C9,1,low,#e5f5e0,10703
+890,40212,Institutional,,40,21,"Developed, Open Space",#DDC9C9,2,medium,#a1d99b,4691
+891,40213,Institutional,,40,21,"Developed, Open Space",#DDC9C9,3,high,#31a354,546
+892,40220,Institutional,,40,22,"Developed, Low Intensity",#D89382,0,none,#ffffff,97
+893,40221,Institutional,,40,22,"Developed, Low Intensity",#D89382,1,low,#e5f5e0,10325
+894,40222,Institutional,,40,22,"Developed, Low Intensity",#D89382,2,medium,#a1d99b,4304
+895,40223,Institutional,,40,22,"Developed, Low Intensity",#D89382,3,high,#31a354,135
+896,40230,Institutional,,40,23,"Developed, Medium Intensity",#ED0000,0,none,#ffffff,419
+897,40231,Institutional,,40,23,"Developed, Medium Intensity",#ED0000,1,low,#e5f5e0,18682
+898,40232,Institutional,,40,23,"Developed, Medium Intensity",#ED0000,2,medium,#a1d99b,4572
+899,40233,Institutional,,40,23,"Developed, Medium Intensity",#ED0000,3,high,#31a354,46
+900,40240,Institutional,,40,24,"Developed, High Intensity",#AA0000,0,none,#ffffff,495
+901,40241,Institutional,,40,24,"Developed, High Intensity",#AA0000,1,low,#e5f5e0,13655
+902,40242,Institutional,,40,24,"Developed, High Intensity",#AA0000,2,medium,#a1d99b,1784
+903,40243,Institutional,,40,24,"Developed, High Intensity",#AA0000,3,high,#31a354,4
+904,40310,Institutional,,40,31,Barren Land (Rock/Sand/Clay),#B2ADA3,0,none,#ffffff,23
+905,40311,Institutional,,40,31,Barren Land (Rock/Sand/Clay),#B2ADA3,1,low,#e5f5e0,221
+906,40312,Institutional,,40,31,Barren Land (Rock/Sand/Clay),#B2ADA3,2,medium,#a1d99b,75
+909,40411,Institutional,,40,41,Deciduous Forest,#68AA63,1,low,#e5f5e0,459
+910,40412,Institutional,,40,41,Deciduous Forest,#68AA63,2,medium,#a1d99b,2212
+911,40413,Institutional,,40,41,Deciduous Forest,#68AA63,3,high,#31a354,171
+912,40420,Institutional,,40,42,Evergreen Forest,#1C6330,0,none,#ffffff,1
+913,40421,Institutional,,40,42,Evergreen Forest,#1C6330,1,low,#e5f5e0,825
+914,40422,Institutional,,40,42,Evergreen Forest,#1C6330,2,medium,#a1d99b,4832
+915,40423,Institutional,,40,42,Evergreen Forest,#1C6330,3,high,#31a354,3435
+917,40431,Institutional,,40,43,Mixed Forest,#B5C98E,1,low,#e5f5e0,88
+918,40432,Institutional,,40,43,Mixed Forest,#B5C98E,2,medium,#a1d99b,631
+919,40433,Institutional,,40,43,Mixed Forest,#B5C98E,3,high,#31a354,5
+924,40520,Institutional,,40,52,Scrub/Shrub,#CCBA7C,0,none,#ffffff,18
+925,40521,Institutional,,40,52,Scrub/Shrub,#CCBA7C,1,low,#e5f5e0,10773
+926,40522,Institutional,,40,52,Scrub/Shrub,#CCBA7C,2,medium,#a1d99b,6225
+927,40523,Institutional,,40,52,Scrub/Shrub,#CCBA7C,3,high,#31a354,56
+928,40710,Institutional,,40,71,Grassland/Herbaceous,#E2E2C1,0,none,#ffffff,14
+929,40711,Institutional,,40,71,Grassland/Herbaceous,#E2E2C1,1,low,#e5f5e0,826
+930,40712,Institutional,,40,71,Grassland/Herbaceous,#E2E2C1,2,medium,#a1d99b,191
+931,40713,Institutional,,40,71,Grassland/Herbaceous,#E2E2C1,3,high,#31a354,58
+945,40811,Institutional,,40,81,Pasture/Hay,#DBD83D,1,low,#e5f5e0,1062
+946,40812,Institutional,,40,81,Pasture/Hay,#DBD83D,2,medium,#a1d99b,19
+949,40821,Institutional,,40,82,Cultivated Crops,#AA7028,1,low,#e5f5e0,1014
+950,40822,Institutional,,40,82,Cultivated Crops,#AA7028,2,medium,#a1d99b,197
+953,40901,Institutional,,40,90,Woody Wetlands,#BAD8EA,1,low,#e5f5e0,155
+954,40902,Institutional,,40,90,Woody Wetlands,#BAD8EA,2,medium,#a1d99b,1689
+955,40903,Institutional,,40,90,Woody Wetlands,#BAD8EA,3,high,#31a354,1036
+957,40951,Institutional,,40,95,Emergent Herbaceous Wetlands,#70A3BA,1,low,#e5f5e0,19
+958,40952,Institutional,,40,95,Emergent Herbaceous Wetlands,#70A3BA,2,medium,#a1d99b,20
+968,51210,Transportation,Airport,51,21,"Developed, Open Space",#DDC9C9,0,none,#ffffff,12
+969,51211,Transportation,Airport,51,21,"Developed, Open Space",#DDC9C9,1,low,#e5f5e0,2866
+970,51212,Transportation,Airport,51,21,"Developed, Open Space",#DDC9C9,2,medium,#a1d99b,108
+972,51220,Transportation,Airport,51,22,"Developed, Low Intensity",#D89382,0,none,#ffffff,47
+973,51221,Transportation,Airport,51,22,"Developed, Low Intensity",#D89382,1,low,#e5f5e0,1681
+974,51222,Transportation,Airport,51,22,"Developed, Low Intensity",#D89382,2,medium,#a1d99b,29
+976,51230,Transportation,Airport,51,23,"Developed, Medium Intensity",#ED0000,0,none,#ffffff,231
+977,51231,Transportation,Airport,51,23,"Developed, Medium Intensity",#ED0000,1,low,#e5f5e0,2791
+978,51232,Transportation,Airport,51,23,"Developed, Medium Intensity",#ED0000,2,medium,#a1d99b,8
+980,51240,Transportation,Airport,51,24,"Developed, High Intensity",#AA0000,0,none,#ffffff,914
+981,51241,Transportation,Airport,51,24,"Developed, High Intensity",#AA0000,1,low,#e5f5e0,3837
+982,51242,Transportation,Airport,51,24,"Developed, High Intensity",#AA0000,2,medium,#a1d99b,43
+984,51310,Transportation,Airport,51,31,Barren Land (Rock/Sand/Clay),#B2ADA3,0,none,#ffffff,1
+985,51311,Transportation,Airport,51,31,Barren Land (Rock/Sand/Clay),#B2ADA3,1,low,#e5f5e0,1
+989,51411,Transportation,Airport,51,41,Deciduous Forest,#68AA63,1,low,#e5f5e0,1
+990,51412,Transportation,Airport,51,41,Deciduous Forest,#68AA63,2,medium,#a1d99b,15
+993,51421,Transportation,Airport,51,42,Evergreen Forest,#1C6330,1,low,#e5f5e0,1
+994,51422,Transportation,Airport,51,42,Evergreen Forest,#1C6330,2,medium,#a1d99b,8
+995,51423,Transportation,Airport,51,42,Evergreen Forest,#1C6330,3,high,#31a354,1
+1004,51520,Transportation,Airport,51,52,Scrub/Shrub,#CCBA7C,0,none,#ffffff,1
+1005,51521,Transportation,Airport,51,52,Scrub/Shrub,#CCBA7C,1,low,#e5f5e0,2023
+1006,51522,Transportation,Airport,51,52,Scrub/Shrub,#CCBA7C,2,medium,#a1d99b,135
+1008,51710,Transportation,Airport,51,71,Grassland/Herbaceous,#E2E2C1,0,none,#ffffff,1
+1009,51711,Transportation,Airport,51,71,Grassland/Herbaceous,#E2E2C1,1,low,#e5f5e0,41
+1025,51811,Transportation,Airport,51,81,Pasture/Hay,#DBD83D,1,low,#e5f5e0,43
+1026,51812,Transportation,Airport,51,81,Pasture/Hay,#DBD83D,2,medium,#a1d99b,7
+1029,51821,Transportation,Airport,51,82,Cultivated Crops,#AA7028,1,low,#e5f5e0,4
+1033,51901,Transportation,Airport,51,90,Woody Wetlands,#BAD8EA,1,low,#e5f5e0,24
+1034,51902,Transportation,Airport,51,90,Woody Wetlands,#BAD8EA,2,medium,#a1d99b,88
+1035,51903,Transportation,Airport,51,90,Woody Wetlands,#BAD8EA,3,high,#31a354,4
+1041,52111,Transportation,Road and Rail,52,11,Open Water,#476BA0,1,low,#e5f5e0,1
+1049,52211,Transportation,Road and Rail,52,21,"Developed, Open Space",#DDC9C9,1,low,#e5f5e0,2856
+1050,52212,Transportation,Road and Rail,52,21,"Developed, Open Space",#DDC9C9,2,medium,#a1d99b,1262
+1051,52213,Transportation,Road and Rail,52,21,"Developed, Open Space",#DDC9C9,3,high,#31a354,12
+1052,52220,Transportation,Road and Rail,52,22,"Developed, Low Intensity",#D89382,0,none,#ffffff,17
+1053,52221,Transportation,Road and Rail,52,22,"Developed, Low Intensity",#D89382,1,low,#e5f5e0,10035
+1054,52222,Transportation,Road and Rail,52,22,"Developed, Low Intensity",#D89382,2,medium,#a1d99b,1608
+1055,52223,Transportation,Road and Rail,52,22,"Developed, Low Intensity",#D89382,3,high,#31a354,11
+1056,52230,Transportation,Road and Rail,52,23,"Developed, Medium Intensity",#ED0000,0,none,#ffffff,53
+1057,52231,Transportation,Road and Rail,52,23,"Developed, Medium Intensity",#ED0000,1,low,#e5f5e0,16943
+1058,52232,Transportation,Road and Rail,52,23,"Developed, Medium Intensity",#ED0000,2,medium,#a1d99b,1174
+1059,52233,Transportation,Road and Rail,52,23,"Developed, Medium Intensity",#ED0000,3,high,#31a354,10
+1060,52240,Transportation,Road and Rail,52,24,"Developed, High Intensity",#AA0000,0,none,#ffffff,52
+1061,52241,Transportation,Road and Rail,52,24,"Developed, High Intensity",#AA0000,1,low,#e5f5e0,14032
+1062,52242,Transportation,Road and Rail,52,24,"Developed, High Intensity",#AA0000,2,medium,#a1d99b,1129
+1063,52243,Transportation,Road and Rail,52,24,"Developed, High Intensity",#AA0000,3,high,#31a354,12
+1065,52311,Transportation,Road and Rail,52,31,Barren Land (Rock/Sand/Clay),#B2ADA3,1,low,#e5f5e0,41
+1066,52312,Transportation,Road and Rail,52,31,Barren Land (Rock/Sand/Clay),#B2ADA3,2,medium,#a1d99b,6
+1069,52411,Transportation,Road and Rail,52,41,Deciduous Forest,#68AA63,1,low,#e5f5e0,11
+1070,52412,Transportation,Road and Rail,52,41,Deciduous Forest,#68AA63,2,medium,#a1d99b,103
+1071,52413,Transportation,Road and Rail,52,41,Deciduous Forest,#68AA63,3,high,#31a354,2
+1073,52421,Transportation,Road and Rail,52,42,Evergreen Forest,#1C6330,1,low,#e5f5e0,3
+1074,52422,Transportation,Road and Rail,52,42,Evergreen Forest,#1C6330,2,medium,#a1d99b,96
+1075,52423,Transportation,Road and Rail,52,42,Evergreen Forest,#1C6330,3,high,#31a354,3
+1077,52431,Transportation,Road and Rail,52,43,Mixed Forest,#B5C98E,1,low,#e5f5e0,4
+1078,52432,Transportation,Road and Rail,52,43,Mixed Forest,#B5C98E,2,medium,#a1d99b,98
+1079,52433,Transportation,Road and Rail,52,43,Mixed Forest,#B5C98E,3,high,#31a354,1
+1084,52520,Transportation,Road and Rail,52,52,Scrub/Shrub,#CCBA7C,0,none,#ffffff,4
+1085,52521,Transportation,Road and Rail,52,52,Scrub/Shrub,#CCBA7C,1,low,#e5f5e0,1363
+1086,52522,Transportation,Road and Rail,52,52,Scrub/Shrub,#CCBA7C,2,medium,#a1d99b,994
+1089,52711,Transportation,Road and Rail,52,71,Grassland/Herbaceous,#E2E2C1,1,low,#e5f5e0,41
+1090,52712,Transportation,Road and Rail,52,71,Grassland/Herbaceous,#E2E2C1,2,medium,#a1d99b,6
+1105,52811,Transportation,Road and Rail,52,81,Pasture/Hay,#DBD83D,1,low,#e5f5e0,65
+1106,52812,Transportation,Road and Rail,52,81,Pasture/Hay,#DBD83D,2,medium,#a1d99b,5
+1109,52821,Transportation,Road and Rail,52,82,Cultivated Crops,#AA7028,1,low,#e5f5e0,161
+1110,52822,Transportation,Road and Rail,52,82,Cultivated Crops,#AA7028,2,medium,#a1d99b,5
+1113,52901,Transportation,Road and Rail,52,90,Woody Wetlands,#BAD8EA,1,low,#e5f5e0,37
+1114,52902,Transportation,Road and Rail,52,90,Woody Wetlands,#BAD8EA,2,medium,#a1d99b,133
+1115,52903,Transportation,Road and Rail,52,90,Woody Wetlands,#BAD8EA,3,high,#31a354,3
+1117,52951,Transportation,Road and Rail,52,95,Emergent Herbaceous Wetlands,#70A3BA,1,low,#e5f5e0,2
+1118,52952,Transportation,Road and Rail,52,95,Emergent Herbaceous Wetlands,#70A3BA,2,medium,#a1d99b,7
+1120,53110,Transportation,Other,53,11,Open Water,#476BA0,0,none,#ffffff,7
+1121,53111,Transportation,Other,53,11,Open Water,#476BA0,1,low,#e5f5e0,127
+1122,53112,Transportation,Other,53,11,Open Water,#476BA0,2,medium,#a1d99b,104
+1123,53113,Transportation,Other,53,11,Open Water,#476BA0,3,high,#31a354,46
+1128,53210,Transportation,Other,53,21,"Developed, Open Space",#DDC9C9,0,none,#ffffff,8
+1129,53211,Transportation,Other,53,21,"Developed, Open Space",#DDC9C9,1,low,#e5f5e0,4842
+1130,53212,Transportation,Other,53,21,"Developed, Open Space",#DDC9C9,2,medium,#a1d99b,1763
+1131,53213,Transportation,Other,53,21,"Developed, Open Space",#DDC9C9,3,high,#31a354,94
+1132,53220,Transportation,Other,53,22,"Developed, Low Intensity",#D89382,0,none,#ffffff,63
+1133,53221,Transportation,Other,53,22,"Developed, Low Intensity",#D89382,1,low,#e5f5e0,3782
+1134,53222,Transportation,Other,53,22,"Developed, Low Intensity",#D89382,2,medium,#a1d99b,1088
+1135,53223,Transportation,Other,53,22,"Developed, Low Intensity",#D89382,3,high,#31a354,35
+1136,53230,Transportation,Other,53,23,"Developed, Medium Intensity",#ED0000,0,none,#ffffff,333
+1137,53231,Transportation,Other,53,23,"Developed, Medium Intensity",#ED0000,1,low,#e5f5e0,5100
+1138,53232,Transportation,Other,53,23,"Developed, Medium Intensity",#ED0000,2,medium,#a1d99b,823
+1139,53233,Transportation,Other,53,23,"Developed, Medium Intensity",#ED0000,3,high,#31a354,29
+1140,53240,Transportation,Other,53,24,"Developed, High Intensity",#AA0000,0,none,#ffffff,726
+1141,53241,Transportation,Other,53,24,"Developed, High Intensity",#AA0000,1,low,#e5f5e0,4634
+1142,53242,Transportation,Other,53,24,"Developed, High Intensity",#AA0000,2,medium,#a1d99b,392
+1143,53243,Transportation,Other,53,24,"Developed, High Intensity",#AA0000,3,high,#31a354,3
+1144,53310,Transportation,Other,53,31,Barren Land (Rock/Sand/Clay),#B2ADA3,0,none,#ffffff,10
+1145,53311,Transportation,Other,53,31,Barren Land (Rock/Sand/Clay),#B2ADA3,1,low,#e5f5e0,254
+1146,53312,Transportation,Other,53,31,Barren Land (Rock/Sand/Clay),#B2ADA3,2,medium,#a1d99b,135
+1147,53313,Transportation,Other,53,31,Barren Land (Rock/Sand/Clay),#B2ADA3,3,high,#31a354,8
+1148,53410,Transportation,Other,53,41,Deciduous Forest,#68AA63,0,none,#ffffff,1
+1149,53411,Transportation,Other,53,41,Deciduous Forest,#68AA63,1,low,#e5f5e0,260
+1150,53412,Transportation,Other,53,41,Deciduous Forest,#68AA63,2,medium,#a1d99b,1301
+1151,53413,Transportation,Other,53,41,Deciduous Forest,#68AA63,3,high,#31a354,34
+1152,53420,Transportation,Other,53,42,Evergreen Forest,#1C6330,0,none,#ffffff,1
+1153,53421,Transportation,Other,53,42,Evergreen Forest,#1C6330,1,low,#e5f5e0,777
+1154,53422,Transportation,Other,53,42,Evergreen Forest,#1C6330,2,medium,#a1d99b,3366
+1155,53423,Transportation,Other,53,42,Evergreen Forest,#1C6330,3,high,#31a354,1183
+1157,53431,Transportation,Other,53,43,Mixed Forest,#B5C98E,1,low,#e5f5e0,23
+1158,53432,Transportation,Other,53,43,Mixed Forest,#B5C98E,2,medium,#a1d99b,534
+1159,53433,Transportation,Other,53,43,Mixed Forest,#B5C98E,3,high,#31a354,17
+1164,53520,Transportation,Other,53,52,Scrub/Shrub,#CCBA7C,0,none,#ffffff,17
+1165,53521,Transportation,Other,53,52,Scrub/Shrub,#CCBA7C,1,low,#e5f5e0,8821
+1166,53522,Transportation,Other,53,52,Scrub/Shrub,#CCBA7C,2,medium,#a1d99b,5269
+1167,53523,Transportation,Other,53,52,Scrub/Shrub,#CCBA7C,3,high,#31a354,10
+1168,53710,Transportation,Other,53,71,Grassland/Herbaceous,#E2E2C1,0,none,#ffffff,5
+1169,53711,Transportation,Other,53,71,Grassland/Herbaceous,#E2E2C1,1,low,#e5f5e0,3355
+1170,53712,Transportation,Other,53,71,Grassland/Herbaceous,#E2E2C1,2,medium,#a1d99b,238
+1171,53713,Transportation,Other,53,71,Grassland/Herbaceous,#E2E2C1,3,high,#31a354,32
+1185,53811,Transportation,Other,53,81,Pasture/Hay,#DBD83D,1,low,#e5f5e0,3511
+1186,53812,Transportation,Other,53,81,Pasture/Hay,#DBD83D,2,medium,#a1d99b,416
+1188,53820,Transportation,Other,53,82,Cultivated Crops,#AA7028,0,none,#ffffff,6
+1189,53821,Transportation,Other,53,82,Cultivated Crops,#AA7028,1,low,#e5f5e0,7319
+1190,53822,Transportation,Other,53,82,Cultivated Crops,#AA7028,2,medium,#a1d99b,81
+1193,53901,Transportation,Other,53,90,Woody Wetlands,#BAD8EA,1,low,#e5f5e0,78
+1194,53902,Transportation,Other,53,90,Woody Wetlands,#BAD8EA,2,medium,#a1d99b,1215
+1195,53903,Transportation,Other,53,90,Woody Wetlands,#BAD8EA,3,high,#31a354,329
+1197,53951,Transportation,Other,53,95,Emergent Herbaceous Wetlands,#70A3BA,1,low,#e5f5e0,28
+1198,53952,Transportation,Other,53,95,Emergent Herbaceous Wetlands,#70A3BA,2,medium,#a1d99b,40
+1208,60210,Other Development,,60,21,"Developed, Open Space",#DDC9C9,0,none,#ffffff,456
+1209,60211,Other Development,,60,21,"Developed, Open Space",#DDC9C9,1,low,#e5f5e0,121213
+1210,60212,Other Development,,60,21,"Developed, Open Space",#DDC9C9,2,medium,#a1d99b,30670
+1211,60213,Other Development,,60,21,"Developed, Open Space",#DDC9C9,3,high,#31a354,2187
+1212,60220,Other Development,,60,22,"Developed, Low Intensity",#D89382,0,none,#ffffff,873
+1213,60221,Other Development,,60,22,"Developed, Low Intensity",#D89382,1,low,#e5f5e0,57053
+1214,60222,Other Development,,60,22,"Developed, Low Intensity",#D89382,2,medium,#a1d99b,11048
+1215,60223,Other Development,,60,22,"Developed, Low Intensity",#D89382,3,high,#31a354,494
+1216,60230,Other Development,,60,23,"Developed, Medium Intensity",#ED0000,0,none,#ffffff,2064
+1217,60231,Other Development,,60,23,"Developed, Medium Intensity",#ED0000,1,low,#e5f5e0,58606
+1218,60232,Other Development,,60,23,"Developed, Medium Intensity",#ED0000,2,medium,#a1d99b,7278
+1219,60233,Other Development,,60,23,"Developed, Medium Intensity",#ED0000,3,high,#31a354,243
+1220,60240,Other Development,,60,24,"Developed, High Intensity",#AA0000,0,none,#ffffff,2718
+1221,60241,Other Development,,60,24,"Developed, High Intensity",#AA0000,1,low,#e5f5e0,39151
+1222,60242,Other Development,,60,24,"Developed, High Intensity",#AA0000,2,medium,#a1d99b,2410
+1223,60243,Other Development,,60,24,"Developed, High Intensity",#AA0000,3,high,#31a354,58
+1233,60421,Other Development,,60,42,Evergreen Forest,#1C6330,1,low,#e5f5e0,1
+1234,60422,Other Development,,60,42,Evergreen Forest,#1C6330,2,medium,#a1d99b,1
+1245,60521,Other Development,,60,52,Scrub/Shrub,#CCBA7C,1,low,#e5f5e0,32
+1265,60811,Other Development,,60,81,Pasture/Hay,#DBD83D,1,low,#e5f5e0,4
+1269,60821,Other Development,,60,82,Cultivated Crops,#AA7028,1,low,#e5f5e0,3
+1280,70110,Agriculture,,70,11,Open Water,#476BA0,0,none,#ffffff,88
+1281,70111,Agriculture,,70,11,Open Water,#476BA0,1,low,#e5f5e0,380
+1282,70112,Agriculture,,70,11,Open Water,#476BA0,2,medium,#a1d99b,90
+1288,70210,Agriculture,,70,21,"Developed, Open Space",#DDC9C9,0,none,#ffffff,2
+1289,70211,Agriculture,,70,21,"Developed, Open Space",#DDC9C9,1,low,#e5f5e0,1509
+1290,70212,Agriculture,,70,21,"Developed, Open Space",#DDC9C9,2,medium,#a1d99b,78
+1291,70213,Agriculture,,70,21,"Developed, Open Space",#DDC9C9,3,high,#31a354,10
+1292,70220,Agriculture,,70,22,"Developed, Low Intensity",#D89382,0,none,#ffffff,6
+1293,70221,Agriculture,,70,22,"Developed, Low Intensity",#D89382,1,low,#e5f5e0,1486
+1294,70222,Agriculture,,70,22,"Developed, Low Intensity",#D89382,2,medium,#a1d99b,231
+1295,70223,Agriculture,,70,22,"Developed, Low Intensity",#D89382,3,high,#31a354,19
+1296,70230,Agriculture,,70,23,"Developed, Medium Intensity",#ED0000,0,none,#ffffff,4
+1297,70231,Agriculture,,70,23,"Developed, Medium Intensity",#ED0000,1,low,#e5f5e0,2460
+1298,70232,Agriculture,,70,23,"Developed, Medium Intensity",#ED0000,2,medium,#a1d99b,437
+1299,70233,Agriculture,,70,23,"Developed, Medium Intensity",#ED0000,3,high,#31a354,14
+1301,70241,Agriculture,,70,24,"Developed, High Intensity",#AA0000,1,low,#e5f5e0,350
+1302,70242,Agriculture,,70,24,"Developed, High Intensity",#AA0000,2,medium,#a1d99b,115
+1303,70243,Agriculture,,70,24,"Developed, High Intensity",#AA0000,3,high,#31a354,8
+1304,70310,Agriculture,,70,31,Barren Land (Rock/Sand/Clay),#B2ADA3,0,none,#ffffff,370
+1305,70311,Agriculture,,70,31,Barren Land (Rock/Sand/Clay),#B2ADA3,1,low,#e5f5e0,3139
+1306,70312,Agriculture,,70,31,Barren Land (Rock/Sand/Clay),#B2ADA3,2,medium,#a1d99b,514
+1307,70313,Agriculture,,70,31,Barren Land (Rock/Sand/Clay),#B2ADA3,3,high,#31a354,103
+1308,70410,Agriculture,,70,41,Deciduous Forest,#68AA63,0,none,#ffffff,3
+1309,70411,Agriculture,,70,41,Deciduous Forest,#68AA63,1,low,#e5f5e0,159
+1310,70412,Agriculture,,70,41,Deciduous Forest,#68AA63,2,medium,#a1d99b,607
+1311,70413,Agriculture,,70,41,Deciduous Forest,#68AA63,3,high,#31a354,16
+1312,70420,Agriculture,,70,42,Evergreen Forest,#1C6330,0,none,#ffffff,6
+1313,70421,Agriculture,,70,42,Evergreen Forest,#1C6330,1,low,#e5f5e0,127
+1314,70422,Agriculture,,70,42,Evergreen Forest,#1C6330,2,medium,#a1d99b,285
+1315,70423,Agriculture,,70,42,Evergreen Forest,#1C6330,3,high,#31a354,11
+1317,70431,Agriculture,,70,43,Mixed Forest,#B5C98E,1,low,#e5f5e0,40
+1318,70432,Agriculture,,70,43,Mixed Forest,#B5C98E,2,medium,#a1d99b,329
+1319,70433,Agriculture,,70,43,Mixed Forest,#B5C98E,3,high,#31a354,3
+1324,70520,Agriculture,,70,52,Scrub/Shrub,#CCBA7C,0,none,#ffffff,83
+1325,70521,Agriculture,,70,52,Scrub/Shrub,#CCBA7C,1,low,#e5f5e0,24011
+1326,70522,Agriculture,,70,52,Scrub/Shrub,#CCBA7C,2,medium,#a1d99b,2779
+1327,70523,Agriculture,,70,52,Scrub/Shrub,#CCBA7C,3,high,#31a354,5
+1328,70710,Agriculture,,70,71,Grassland/Herbaceous,#E2E2C1,0,none,#ffffff,80
+1329,70711,Agriculture,,70,71,Grassland/Herbaceous,#E2E2C1,1,low,#e5f5e0,7357
+1330,70712,Agriculture,,70,71,Grassland/Herbaceous,#E2E2C1,2,medium,#a1d99b,491
+1331,70713,Agriculture,,70,71,Grassland/Herbaceous,#E2E2C1,3,high,#31a354,16
+1344,70810,Agriculture,,70,81,Pasture/Hay,#DBD83D,0,none,#ffffff,120
+1345,70811,Agriculture,,70,81,Pasture/Hay,#DBD83D,1,low,#e5f5e0,57830
+1346,70812,Agriculture,,70,81,Pasture/Hay,#DBD83D,2,medium,#a1d99b,1764
+1347,70813,Agriculture,,70,81,Pasture/Hay,#DBD83D,3,high,#31a354,3
+1348,70820,Agriculture,,70,82,Cultivated Crops,#AA7028,0,none,#ffffff,205
+1349,70821,Agriculture,,70,82,Cultivated Crops,#AA7028,1,low,#e5f5e0,186607
+1350,70822,Agriculture,,70,82,Cultivated Crops,#AA7028,2,medium,#a1d99b,1964
+1353,70901,Agriculture,,70,90,Woody Wetlands,#BAD8EA,1,low,#e5f5e0,231
+1354,70902,Agriculture,,70,90,Woody Wetlands,#BAD8EA,2,medium,#a1d99b,585
+1355,70903,Agriculture,,70,90,Woody Wetlands,#BAD8EA,3,high,#31a354,15
+1356,70950,Agriculture,,70,95,Emergent Herbaceous Wetlands,#70A3BA,0,none,#ffffff,1
+1357,70951,Agriculture,,70,95,Emergent Herbaceous Wetlands,#70A3BA,1,low,#e5f5e0,93
+1358,70952,Agriculture,,70,95,Emergent Herbaceous Wetlands,#70A3BA,2,medium,#a1d99b,54
+1359,70953,Agriculture,,70,95,Emergent Herbaceous Wetlands,#70A3BA,3,high,#31a354,1
+1361,80111,Rangeland,,80,11,Open Water,#476BA0,1,low,#e5f5e0,56
+1362,80112,Rangeland,,80,11,Open Water,#476BA0,2,medium,#a1d99b,14
+1368,80210,Rangeland,,80,21,"Developed, Open Space",#DDC9C9,0,none,#ffffff,4
+1369,80211,Rangeland,,80,21,"Developed, Open Space",#DDC9C9,1,low,#e5f5e0,1209
+1370,80212,Rangeland,,80,21,"Developed, Open Space",#DDC9C9,2,medium,#a1d99b,38
+1371,80213,Rangeland,,80,21,"Developed, Open Space",#DDC9C9,3,high,#31a354,1
+1372,80220,Rangeland,,80,22,"Developed, Low Intensity",#D89382,0,none,#ffffff,1
+1373,80221,Rangeland,,80,22,"Developed, Low Intensity",#D89382,1,low,#e5f5e0,180
+1374,80222,Rangeland,,80,22,"Developed, Low Intensity",#D89382,2,medium,#a1d99b,33
+1376,80230,Rangeland,,80,23,"Developed, Medium Intensity",#ED0000,0,none,#ffffff,1
+1377,80231,Rangeland,,80,23,"Developed, Medium Intensity",#ED0000,1,low,#e5f5e0,294
+1378,80232,Rangeland,,80,23,"Developed, Medium Intensity",#ED0000,2,medium,#a1d99b,58
+1379,80233,Rangeland,,80,23,"Developed, Medium Intensity",#ED0000,3,high,#31a354,1
+1381,80241,Rangeland,,80,24,"Developed, High Intensity",#AA0000,1,low,#e5f5e0,48
+1382,80242,Rangeland,,80,24,"Developed, High Intensity",#AA0000,2,medium,#a1d99b,10
+1384,80310,Rangeland,,80,31,Barren Land (Rock/Sand/Clay),#B2ADA3,0,none,#ffffff,21
+1385,80311,Rangeland,,80,31,Barren Land (Rock/Sand/Clay),#B2ADA3,1,low,#e5f5e0,291
+1386,80312,Rangeland,,80,31,Barren Land (Rock/Sand/Clay),#B2ADA3,2,medium,#a1d99b,63
+1387,80313,Rangeland,,80,31,Barren Land (Rock/Sand/Clay),#B2ADA3,3,high,#31a354,1
+1388,80410,Rangeland,,80,41,Deciduous Forest,#68AA63,0,none,#ffffff,1
+1389,80411,Rangeland,,80,41,Deciduous Forest,#68AA63,1,low,#e5f5e0,89
+1390,80412,Rangeland,,80,41,Deciduous Forest,#68AA63,2,medium,#a1d99b,59
+1393,80421,Rangeland,,80,42,Evergreen Forest,#1C6330,1,low,#e5f5e0,69
+1394,80422,Rangeland,,80,42,Evergreen Forest,#1C6330,2,medium,#a1d99b,38
+1395,80423,Rangeland,,80,42,Evergreen Forest,#1C6330,3,high,#31a354,3
+1397,80431,Rangeland,,80,43,Mixed Forest,#B5C98E,1,low,#e5f5e0,14
+1398,80432,Rangeland,,80,43,Mixed Forest,#B5C98E,2,medium,#a1d99b,35
+1404,80520,Rangeland,,80,52,Scrub/Shrub,#CCBA7C,0,none,#ffffff,511
+1405,80521,Rangeland,,80,52,Scrub/Shrub,#CCBA7C,1,low,#e5f5e0,208040
+1406,80522,Rangeland,,80,52,Scrub/Shrub,#CCBA7C,2,medium,#a1d99b,102308
+1407,80523,Rangeland,,80,52,Scrub/Shrub,#CCBA7C,3,high,#31a354,995
+1408,80710,Rangeland,,80,71,Grassland/Herbaceous,#E2E2C1,0,none,#ffffff,89
+1409,80711,Rangeland,,80,71,Grassland/Herbaceous,#E2E2C1,1,low,#e5f5e0,16213
+1410,80712,Rangeland,,80,71,Grassland/Herbaceous,#E2E2C1,2,medium,#a1d99b,2919
+1411,80713,Rangeland,,80,71,Grassland/Herbaceous,#E2E2C1,3,high,#31a354,672
+1424,80810,Rangeland,,80,81,Pasture/Hay,#DBD83D,0,none,#ffffff,8
+1425,80811,Rangeland,,80,81,Pasture/Hay,#DBD83D,1,low,#e5f5e0,15816
+1426,80812,Rangeland,,80,81,Pasture/Hay,#DBD83D,2,medium,#a1d99b,190
+1428,80820,Rangeland,,80,82,Cultivated Crops,#AA7028,0,none,#ffffff,11
+1429,80821,Rangeland,,80,82,Cultivated Crops,#AA7028,1,low,#e5f5e0,17696
+1430,80822,Rangeland,,80,82,Cultivated Crops,#AA7028,2,medium,#a1d99b,207
+1433,80901,Rangeland,,80,90,Woody Wetlands,#BAD8EA,1,low,#e5f5e0,128
+1434,80902,Rangeland,,80,90,Woody Wetlands,#BAD8EA,2,medium,#a1d99b,106
+1435,80903,Rangeland,,80,90,Woody Wetlands,#BAD8EA,3,high,#31a354,6
+1437,80951,Rangeland,,80,95,Emergent Herbaceous Wetlands,#70A3BA,1,low,#e5f5e0,54
+1438,80952,Rangeland,,80,95,Emergent Herbaceous Wetlands,#70A3BA,2,medium,#a1d99b,46
+1439,80953,Rangeland,,80,95,Emergent Herbaceous Wetlands,#70A3BA,3,high,#31a354,1
+1440,90110,Extractive/Mining,,90,11,Open Water,#476BA0,0,none,#ffffff,8
+1441,90111,Extractive/Mining,,90,11,Open Water,#476BA0,1,low,#e5f5e0,66
+1442,90112,Extractive/Mining,,90,11,Open Water,#476BA0,2,medium,#a1d99b,19
+1448,90210,Extractive/Mining,,90,21,"Developed, Open Space",#DDC9C9,0,none,#ffffff,6
+1449,90211,Extractive/Mining,,90,21,"Developed, Open Space",#DDC9C9,1,low,#e5f5e0,1304
+1450,90212,Extractive/Mining,,90,21,"Developed, Open Space",#DDC9C9,2,medium,#a1d99b,292
+1451,90213,Extractive/Mining,,90,21,"Developed, Open Space",#DDC9C9,3,high,#31a354,14
+1452,90220,Extractive/Mining,,90,22,"Developed, Low Intensity",#D89382,0,none,#ffffff,63
+1453,90221,Extractive/Mining,,90,22,"Developed, Low Intensity",#D89382,1,low,#e5f5e0,1691
+1454,90222,Extractive/Mining,,90,22,"Developed, Low Intensity",#D89382,2,medium,#a1d99b,404
+1455,90223,Extractive/Mining,,90,22,"Developed, Low Intensity",#D89382,3,high,#31a354,18
+1456,90230,Extractive/Mining,,90,23,"Developed, Medium Intensity",#ED0000,0,none,#ffffff,207
+1457,90231,Extractive/Mining,,90,23,"Developed, Medium Intensity",#ED0000,1,low,#e5f5e0,2275
+1458,90232,Extractive/Mining,,90,23,"Developed, Medium Intensity",#ED0000,2,medium,#a1d99b,331
+1459,90233,Extractive/Mining,,90,23,"Developed, Medium Intensity",#ED0000,3,high,#31a354,41
+1460,90240,Extractive/Mining,,90,24,"Developed, High Intensity",#AA0000,0,none,#ffffff,207
+1461,90241,Extractive/Mining,,90,24,"Developed, High Intensity",#AA0000,1,low,#e5f5e0,1709
+1462,90242,Extractive/Mining,,90,24,"Developed, High Intensity",#AA0000,2,medium,#a1d99b,78
+1463,90243,Extractive/Mining,,90,24,"Developed, High Intensity",#AA0000,3,high,#31a354,1
+1464,90310,Extractive/Mining,,90,31,Barren Land (Rock/Sand/Clay),#B2ADA3,0,none,#ffffff,632
+1465,90311,Extractive/Mining,,90,31,Barren Land (Rock/Sand/Clay),#B2ADA3,1,low,#e5f5e0,1628
+1466,90312,Extractive/Mining,,90,31,Barren Land (Rock/Sand/Clay),#B2ADA3,2,medium,#a1d99b,267
+1467,90313,Extractive/Mining,,90,31,Barren Land (Rock/Sand/Clay),#B2ADA3,3,high,#31a354,45
+1469,90411,Extractive/Mining,,90,41,Deciduous Forest,#68AA63,1,low,#e5f5e0,67
+1470,90412,Extractive/Mining,,90,41,Deciduous Forest,#68AA63,2,medium,#a1d99b,181
+1471,90413,Extractive/Mining,,90,41,Deciduous Forest,#68AA63,3,high,#31a354,1
+1472,90420,Extractive/Mining,,90,42,Evergreen Forest,#1C6330,0,none,#ffffff,3
+1473,90421,Extractive/Mining,,90,42,Evergreen Forest,#1C6330,1,low,#e5f5e0,181
+1474,90422,Extractive/Mining,,90,42,Evergreen Forest,#1C6330,2,medium,#a1d99b,796
+1475,90423,Extractive/Mining,,90,42,Evergreen Forest,#1C6330,3,high,#31a354,240
+1477,90431,Extractive/Mining,,90,43,Mixed Forest,#B5C98E,1,low,#e5f5e0,15
+1478,90432,Extractive/Mining,,90,43,Mixed Forest,#B5C98E,2,medium,#a1d99b,235
+1479,90433,Extractive/Mining,,90,43,Mixed Forest,#B5C98E,3,high,#31a354,5
+1484,90520,Extractive/Mining,,90,52,Scrub/Shrub,#CCBA7C,0,none,#ffffff,30
+1485,90521,Extractive/Mining,,90,52,Scrub/Shrub,#CCBA7C,1,low,#e5f5e0,3222
+1486,90522,Extractive/Mining,,90,52,Scrub/Shrub,#CCBA7C,2,medium,#a1d99b,1080
+1487,90523,Extractive/Mining,,90,52,Scrub/Shrub,#CCBA7C,3,high,#31a354,1
+1488,90710,Extractive/Mining,,90,71,Grassland/Herbaceous,#E2E2C1,0,none,#ffffff,10
+1489,90711,Extractive/Mining,,90,71,Grassland/Herbaceous,#E2E2C1,1,low,#e5f5e0,340
+1490,90712,Extractive/Mining,,90,71,Grassland/Herbaceous,#E2E2C1,2,medium,#a1d99b,60
+1491,90713,Extractive/Mining,,90,71,Grassland/Herbaceous,#E2E2C1,3,high,#31a354,6
+1504,90810,Extractive/Mining,,90,81,Pasture/Hay,#DBD83D,0,none,#ffffff,3
+1505,90811,Extractive/Mining,,90,81,Pasture/Hay,#DBD83D,1,low,#e5f5e0,851
+1506,90812,Extractive/Mining,,90,81,Pasture/Hay,#DBD83D,2,medium,#a1d99b,66
+1508,90820,Extractive/Mining,,90,82,Cultivated Crops,#AA7028,0,none,#ffffff,27
+1509,90821,Extractive/Mining,,90,82,Cultivated Crops,#AA7028,1,low,#e5f5e0,2963
+1510,90822,Extractive/Mining,,90,82,Cultivated Crops,#AA7028,2,medium,#a1d99b,30
+1513,90901,Extractive/Mining,,90,90,Woody Wetlands,#BAD8EA,1,low,#e5f5e0,26
+1514,90902,Extractive/Mining,,90,90,Woody Wetlands,#BAD8EA,2,medium,#a1d99b,241
+1515,90903,Extractive/Mining,,90,90,Woody Wetlands,#BAD8EA,3,high,#31a354,34
+1517,90951,Extractive/Mining,,90,95,Emergent Herbaceous Wetlands,#70A3BA,1,low,#e5f5e0,5
+1548,100410,Timber,,100,41,Deciduous Forest,#68AA63,0,none,#ffffff,21
+1549,100411,Timber,,100,41,Deciduous Forest,#68AA63,1,low,#e5f5e0,12462
+1550,100412,Timber,,100,41,Deciduous Forest,#68AA63,2,medium,#a1d99b,36939
+1551,100413,Timber,,100,41,Deciduous Forest,#68AA63,3,high,#31a354,1558
+1552,100420,Timber,,100,42,Evergreen Forest,#1C6330,0,none,#ffffff,33
+1553,100421,Timber,,100,42,Evergreen Forest,#1C6330,1,low,#e5f5e0,16658
+1554,100422,Timber,,100,42,Evergreen Forest,#1C6330,2,medium,#a1d99b,93524
+1555,100423,Timber,,100,42,Evergreen Forest,#1C6330,3,high,#31a354,137804
+1556,100430,Timber,,100,43,Mixed Forest,#B5C98E,0,none,#ffffff,2
+1557,100431,Timber,,100,43,Mixed Forest,#B5C98E,1,low,#e5f5e0,985
+1558,100432,Timber,,100,43,Mixed Forest,#B5C98E,2,medium,#a1d99b,11345
+1559,100433,Timber,,100,43,Mixed Forest,#B5C98E,3,high,#31a354,216
+1624,110310,Barren,,110,31,Barren Land (Rock/Sand/Clay),#B2ADA3,0,none,#ffffff,3682
+1625,110311,Barren,,110,31,Barren Land (Rock/Sand/Clay),#B2ADA3,1,low,#e5f5e0,19293
+1626,110312,Barren,,110,31,Barren Land (Rock/Sand/Clay),#B2ADA3,2,medium,#a1d99b,4522
+1627,110313,Barren,,110,31,Barren Land (Rock/Sand/Clay),#B2ADA3,3,high,#31a354,684
+1680,120110,Undifferentiated park,,120,11,Open Water,#476BA0,0,none,#ffffff,56
+1681,120111,Undifferentiated park,,120,11,Open Water,#476BA0,1,low,#e5f5e0,38
+1682,120112,Undifferentiated park,,120,11,Open Water,#476BA0,2,medium,#a1d99b,1
+1688,120210,Undifferentiated park,,120,21,"Developed, Open Space",#DDC9C9,0,none,#ffffff,1
+1689,120211,Undifferentiated park,,120,21,"Developed, Open Space",#DDC9C9,1,low,#e5f5e0,271
+1690,120212,Undifferentiated park,,120,21,"Developed, Open Space",#DDC9C9,2,medium,#a1d99b,97
+1691,120213,Undifferentiated park,,120,21,"Developed, Open Space",#DDC9C9,3,high,#31a354,9
+1692,120220,Undifferentiated park,,120,22,"Developed, Low Intensity",#D89382,0,none,#ffffff,1
+1693,120221,Undifferentiated park,,120,22,"Developed, Low Intensity",#D89382,1,low,#e5f5e0,191
+1694,120222,Undifferentiated park,,120,22,"Developed, Low Intensity",#D89382,2,medium,#a1d99b,32
+1697,120231,Undifferentiated park,,120,23,"Developed, Medium Intensity",#ED0000,1,low,#e5f5e0,83
+1698,120232,Undifferentiated park,,120,23,"Developed, Medium Intensity",#ED0000,2,medium,#a1d99b,11
+1701,120241,Undifferentiated park,,120,24,"Developed, High Intensity",#AA0000,1,low,#e5f5e0,12
+1710,120412,Undifferentiated park,,120,41,Deciduous Forest,#68AA63,2,medium,#a1d99b,18
+1713,120421,Undifferentiated park,,120,42,Evergreen Forest,#1C6330,1,low,#e5f5e0,17
+1714,120422,Undifferentiated park,,120,42,Evergreen Forest,#1C6330,2,medium,#a1d99b,107
+1715,120423,Undifferentiated park,,120,42,Evergreen Forest,#1C6330,3,high,#31a354,899
+1717,120431,Undifferentiated park,,120,43,Mixed Forest,#B5C98E,1,low,#e5f5e0,2
+1725,120521,Undifferentiated park,,120,52,Scrub/Shrub,#CCBA7C,1,low,#e5f5e0,137
+1726,120522,Undifferentiated park,,120,52,Scrub/Shrub,#CCBA7C,2,medium,#a1d99b,31
+1729,120711,Undifferentiated park,,120,71,Grassland/Herbaceous,#E2E2C1,1,low,#e5f5e0,15
+1744,120810,Undifferentiated park,,120,81,Pasture/Hay,#DBD83D,0,none,#ffffff,1
+1745,120811,Undifferentiated park,,120,81,Pasture/Hay,#DBD83D,1,low,#e5f5e0,18
+1753,120901,Undifferentiated park,,120,90,Woody Wetlands,#BAD8EA,1,low,#e5f5e0,14
+1754,120902,Undifferentiated park,,120,90,Woody Wetlands,#BAD8EA,2,medium,#a1d99b,255
+1755,120903,Undifferentiated park,,120,90,Woody Wetlands,#BAD8EA,3,high,#31a354,39
+1757,120951,Undifferentiated park,,120,95,Emergent Herbaceous Wetlands,#70A3BA,1,low,#e5f5e0,4
+1849,132211,Developed park,Golf course,132,21,"Developed, Open Space",#DDC9C9,1,low,#e5f5e0,319
+1850,132212,Developed park,Golf course,132,21,"Developed, Open Space",#DDC9C9,2,medium,#a1d99b,1
+1853,132221,Developed park,Golf course,132,22,"Developed, Low Intensity",#D89382,1,low,#e5f5e0,32
+1857,132231,Developed park,Golf course,132,23,"Developed, Medium Intensity",#ED0000,1,low,#e5f5e0,19
+1861,132241,Developed park,Golf course,132,24,"Developed, High Intensity",#AA0000,1,low,#e5f5e0,1
+2033,134421,Developed park,Other,134,42,Evergreen Forest,#1C6330,1,low,#e5f5e0,1
+2081,140111,Natural park,,140,11,Open Water,#476BA0,1,low,#e5f5e0,10
+2082,140112,Natural park,,140,11,Open Water,#476BA0,2,medium,#a1d99b,1
+2089,140211,Natural park,,140,21,"Developed, Open Space",#DDC9C9,1,low,#e5f5e0,413
+2090,140212,Natural park,,140,21,"Developed, Open Space",#DDC9C9,2,medium,#a1d99b,155
+2091,140213,Natural park,,140,21,"Developed, Open Space",#DDC9C9,3,high,#31a354,3
+2093,140221,Natural park,,140,22,"Developed, Low Intensity",#D89382,1,low,#e5f5e0,298
+2094,140222,Natural park,,140,22,"Developed, Low Intensity",#D89382,2,medium,#a1d99b,86
+2097,140231,Natural park,,140,23,"Developed, Medium Intensity",#ED0000,1,low,#e5f5e0,199
+2098,140232,Natural park,,140,23,"Developed, Medium Intensity",#ED0000,2,medium,#a1d99b,33
+2099,140233,Natural park,,140,23,"Developed, Medium Intensity",#ED0000,3,high,#31a354,1
+2101,140241,Natural park,,140,24,"Developed, High Intensity",#AA0000,1,low,#e5f5e0,41
+2102,140242,Natural park,,140,24,"Developed, High Intensity",#AA0000,2,medium,#a1d99b,5
+2109,140411,Natural park,,140,41,Deciduous Forest,#68AA63,1,low,#e5f5e0,15
+2110,140412,Natural park,,140,41,Deciduous Forest,#68AA63,2,medium,#a1d99b,60
+2111,140413,Natural park,,140,41,Deciduous Forest,#68AA63,3,high,#31a354,4
+2113,140421,Natural park,,140,42,Evergreen Forest,#1C6330,1,low,#e5f5e0,13
+2114,140422,Natural park,,140,42,Evergreen Forest,#1C6330,2,medium,#a1d99b,55
+2115,140423,Natural park,,140,42,Evergreen Forest,#1C6330,3,high,#31a354,11
+2117,140431,Natural park,,140,43,Mixed Forest,#B5C98E,1,low,#e5f5e0,7
+2118,140432,Natural park,,140,43,Mixed Forest,#B5C98E,2,medium,#a1d99b,18
+2125,140521,Natural park,,140,52,Scrub/Shrub,#CCBA7C,1,low,#e5f5e0,392
+2126,140522,Natural park,,140,52,Scrub/Shrub,#CCBA7C,2,medium,#a1d99b,210
+2129,140711,Natural park,,140,71,Grassland/Herbaceous,#E2E2C1,1,low,#e5f5e0,14
+2130,140712,Natural park,,140,71,Grassland/Herbaceous,#E2E2C1,2,medium,#a1d99b,1
+2145,140811,Natural park,,140,81,Pasture/Hay,#DBD83D,1,low,#e5f5e0,382
+2146,140812,Natural park,,140,81,Pasture/Hay,#DBD83D,2,medium,#a1d99b,25
+2149,140821,Natural park,,140,82,Cultivated Crops,#AA7028,1,low,#e5f5e0,26
+2150,140822,Natural park,,140,82,Cultivated Crops,#AA7028,2,medium,#a1d99b,4
+2153,140901,Natural park,,140,90,Woody Wetlands,#BAD8EA,1,low,#e5f5e0,88
+2154,140902,Natural park,,140,90,Woody Wetlands,#BAD8EA,2,medium,#a1d99b,530
+2155,140903,Natural park,,140,90,Woody Wetlands,#BAD8EA,3,high,#31a354,60
+2157,140951,Natural park,,140,95,Emergent Herbaceous Wetlands,#70A3BA,1,low,#e5f5e0,9
+2158,140952,Natural park,,140,95,Emergent Herbaceous Wetlands,#70A3BA,2,medium,#a1d99b,9
+2241,152111,Conservation,Public-limited access,152,11,Open Water,#476BA0,1,low,#e5f5e0,13
+2242,152112,Conservation,Public-limited access,152,11,Open Water,#476BA0,2,medium,#a1d99b,8
+2250,152212,Conservation,Public-limited access,152,21,"Developed, Open Space",#DDC9C9,2,medium,#a1d99b,1
+2253,152221,Conservation,Public-limited access,152,22,"Developed, Low Intensity",#D89382,1,low,#e5f5e0,2
+2254,152222,Conservation,Public-limited access,152,22,"Developed, Low Intensity",#D89382,2,medium,#a1d99b,2
+2258,152232,Conservation,Public-limited access,152,23,"Developed, Medium Intensity",#ED0000,2,medium,#a1d99b,1
+2261,152241,Conservation,Public-limited access,152,24,"Developed, High Intensity",#AA0000,1,low,#e5f5e0,3
+2270,152412,Conservation,Public-limited access,152,41,Deciduous Forest,#68AA63,2,medium,#a1d99b,2
+2274,152422,Conservation,Public-limited access,152,42,Evergreen Forest,#1C6330,2,medium,#a1d99b,4
+2285,152521,Conservation,Public-limited access,152,52,Scrub/Shrub,#CCBA7C,1,low,#e5f5e0,194
+2286,152522,Conservation,Public-limited access,152,52,Scrub/Shrub,#CCBA7C,2,medium,#a1d99b,14
+2289,152711,Conservation,Public-limited access,152,71,Grassland/Herbaceous,#E2E2C1,1,low,#e5f5e0,18
+2290,152712,Conservation,Public-limited access,152,71,Grassland/Herbaceous,#E2E2C1,2,medium,#a1d99b,1
+2305,152811,Conservation,Public-limited access,152,81,Pasture/Hay,#DBD83D,1,low,#e5f5e0,63
+2306,152812,Conservation,Public-limited access,152,81,Pasture/Hay,#DBD83D,2,medium,#a1d99b,5
+2309,152821,Conservation,Public-limited access,152,82,Cultivated Crops,#AA7028,1,low,#e5f5e0,44
+2313,152901,Conservation,Public-limited access,152,90,Woody Wetlands,#BAD8EA,1,low,#e5f5e0,1

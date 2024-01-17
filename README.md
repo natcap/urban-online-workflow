@@ -19,11 +19,19 @@ $ docker compose up --build
 `http://localhost:8000/docs`
 
 ## Data Requirements
-local path which mounts in container - (bucket where source file can be found)
-`appdata/NLCD_2016_epsg3857.tif` (natcap-urban-online-datasets-**public**)
-`appdata/invest-data/CGIAR_et0_annual_epsg_3857.tif` (natcap-urban-online-datasets)
-`appdata/invest-data/OE_Bioregions_3857.shp` (natcap-urban-online-datasets)
-`appdata/invest-data/acs_tract_3857.gpkg` (natcap-urban-online-datasets)
-`appdata/invest-data/acs_tract_poverty.csv` (natcap-urban-online-datasets)
-`appdata/invest-data/acs_tract_race.csv` (natcap-urban-online-datasets)
+These are data used by the python worker. Download these to your local
+`appdata/` folder to run the app locally. Please reach out to repository maintainers to get access to these.
 
+local path which mounts in container | (bucket where source file can be found)
+- `appdata/lulc_overlay_3857.tif` | (natcap-urban-online-datasets-**public**)
+- `appdata/invest-data/CGIAR_et0_annual_epsg_3857.tif` | (natcap-urban-online-datasets)
+- `appdata/invest-data/acs_tract_3857.gpkg` | (natcap-urban-online-datasets)
+- `appdata/invest-data/acs_tract_poverty.csv` | (natcap-urban-online-datasets)
+- `appdata/invest-data/acs_tract_race.csv` | (natcap-urban-online-datasets)
+
+## Necessary API tokens
+Currently need to add a `.env` file to `frontend/` with necessary API tokens. Please reach out to repository maintainers to get access to these.
+
+## Necessary software for development
+- Docker
+- Git

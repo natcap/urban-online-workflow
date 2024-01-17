@@ -1,9 +1,0 @@
-,lucode,building type,kwh_per_cdd,kwh_per_hdd,cost_per_kwh,bioregion,bio_desc
-88,80,residential 75,1.35,1.65,0.706666667,NA18,Great Basin & Columbia Steppe (NA18)
-89,81,residential 75,1.35,1.65,0.706666667,NA18,Great Basin & Columbia Steppe (NA18)
-90,82,commercial 75,27.0,33.0,0.8325,NA18,Great Basin & Columbia Steppe (NA18)
-91,83,industrial 75,27.0,33.0,0.62,NA18,Great Basin & Columbia Steppe (NA18)
-92,84,mixed use 75,1.35,1.65,0.769583333,NA18,Great Basin & Columbia Steppe (NA18)
-93,85,mixed use 75,1.35,1.65,0.769583333,NA18,Great Basin & Columbia Steppe (NA18)
-94,86,commercial 75,27.0,33.0,0.8325,NA18,Great Basin & Columbia Steppe (NA18)
-95,88,commercial 100,36.0,44.0,0.8325,NA18,Great Basin & Columbia Steppe (NA18)

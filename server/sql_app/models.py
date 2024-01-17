@@ -74,7 +74,7 @@ class Scenario(Base):
     name = Column(String, index=True)
     lulc_url_result = Column(String)
     lulc_stats = Column(String)
-    lulc_url_base = Column(String, default="NLCD_2016_epsg3857.tif")
+    lulc_url_base = Column(String, default="lulc_overlay_3857.tif")
     operation = Column(String)
     # each scenario has an associated study area owner
     study_area_id = Column(String, ForeignKey("study_area.id"))
@@ -134,3 +134,18 @@ class InvestResult(Base):
     serviceshed = Column(String)
 
     #scenario = relationship("Scenario", back_populates="invest_results")
+
+
+class LulcCrosswalk(Base):
+    """Lookup table for landuse-landcover codes and labels."""
+    __tablename__ = "lulc_crosswalk"
+
+    lucode = Column(Integer, primary_key=True)
+    nlud_simple_class = Column(String)
+    nlud_simple_subclass = Column(String)
+    nlud_simple = Column(Integer)
+    nlcd = Column(Integer)
+    nlcd_lulc = Column(String)
+    tree = Column(Integer)
+    tree_canopy_cover = Column(String)
+

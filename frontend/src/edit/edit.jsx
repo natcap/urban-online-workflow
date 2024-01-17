@@ -15,6 +15,16 @@ import InvestRunner from './investRunner';
 import Results from './results';
 import { getInvestResults } from '../requests';
 
+import nlcdLookup from '../../../appdata/nlcd_colormap.json';
+import nludLookup from '../../../appdata/nlud_colormap.json';
+import treeLookup from '../../../appdata/tree_colormap.json';
+
+const LULC_LOOKUP = {
+  nlcd: nlcdLookup,
+  nlud: nludLookup,
+  tree: treeLookup,
+};
+
 FocusStyleManager.onlyShowFocusOnTabs();
 
 export default function EditMenu(props) {
@@ -66,19 +76,28 @@ export default function EditMenu(props) {
       // of the area changed and just list those.
       const descriptions = {};
       scenarios.forEach((scenario) => {
-        const sorted = Object.entries(JSON.parse(scenario.lulc_stats))
-          .sort(([, a], [, b]) => b - a);
-        const sortedClasses = sorted.map((x) => x[0]);
-        const sortedValues = sorted.map((x) => x[1]);
-        const total = sortedValues.reduce((partial, a) => partial + a, 0);
-        let x = 0;
-        let i = 0;
-        while (x < total / 2) {
-          x += sortedValues[i];
-          i++;
-        }
-        const topClasses = sortedClasses.slice(0, i);
-        descriptions[scenario.name] = topClasses;
+        const stats = JSON.parse(scenario.lulc_stats);
+        descriptions[scenario.name] = {
+          nlcd: [],
+          nlud: [],
+        };
+        ['nlcd', 'nlud'].forEach((lulcType) => {
+          const sorted = Object.entries(stats[lulcType])
+            .sort(([, a], [, b]) => b - a);
+          const sortedClasses = sorted.map((x) => x[0]);
+          const sortedValues = sorted.map((x) => x[1]);
+          const total = sortedValues.reduce((partial, a) => partial + a, 0);
+          let x = 0;
+          let i = 0;
+          while (x < total / 2) {
+            x += sortedValues[i];
+            i++;
+          }
+          const topClasses = sortedClasses.slice(0, i);
+          descriptions[scenario.name][lulcType] = topClasses.map(
+            (code) => LULC_LOOKUP[lulcType][code].name
+          );
+        });
       });
       setScenarioDescriptions(descriptions);
       (async () => {
@@ -152,7 +171,12 @@ export default function EditMenu(props) {
                       />
                       <br />
                       <InvestRunner
-                        completeResults={scenarios.length === Object.keys(results).length}
+                        completeResults={
+                          scenarios.every((scene) => (
+                            results[scene.name]
+                            && Object.keys(results[scene.name]).length
+                          ))
+                        }
                         scenarios={scenarios}
                         setInvestResults={setInvestResults}
                         setActiveTab={setActiveTab}
@@ -165,7 +189,11 @@ export default function EditMenu(props) {
           )}
         />
         {
-          (Object.keys(results).length && scenarioDescriptions)
+          (
+            results.baseline
+            && Object.keys(results.baseline).length
+            && scenarioDescriptions
+          )
             ? (
               <Tab
                 id="results"

@@ -34,7 +34,7 @@ import { Button, Icon } from '@blueprintjs/core';
 
 import ParcelControl from './parcelControl';
 import LegendControl from './legendControl';
-import { lulcTileLayer } from './lulcLayer';
+import { lulcTileLayer, getStyle } from './lulcLayer';
 import LayerPanel from './LayerPanel';
 import {
   satelliteLayer,
@@ -53,17 +53,8 @@ import {
 
 import { publicUrl } from '../utils';
 
-const BASE_LULC_URL = 'https://storage.googleapis.com/natcap-urban-online-datasets-public/NLCD_2016_epsg3857.tif'
-const GEOTIFF_SOURCE_OPTIONS = {
-  allowFullFile: true,
-  blockSize: 256,
-  maxRanges: 1, // doesn't seem to work as advertised
-  headers: {
-    // 'range' is case-sensitive, despite the fact that browser & docs
-    // capitalize 'Range'.
-    // 'range': 'bytes=0-3356',
-  }
-};
+const GCS_BUCKET = 'https://storage.googleapis.com/natcap-urban-online-datasets-public';
+const BASE_LULC_URL = `${GCS_BUCKET}/lulc_overlay_3857.tif`
 const SCENARIO_LAYER_GROUP_NAME = 'Scenarios';
 
 // JSTS utilities
@@ -159,11 +150,13 @@ serviceshedLayer.setZIndex(3);
 // Set a default basemap to be visible
 satelliteLayer.setVisible(true);
 
+const lulcLayer = lulcTileLayer(BASE_LULC_URL, 'Landcover', 'base');
+
 const map = new Map({
   layers: [
     satelliteLayer,
     streetMapLayer,
-    lulcTileLayer(BASE_LULC_URL, 'Landcover', 'base'),
+    lulcLayer,
     parcelLayer,
     selectionLayer,
     hoveredLayer,
@@ -201,6 +194,7 @@ export default function MapComponent(props) {
   const [showLayerControl, setShowLayerControl] = useState(false);
   const [selectedParcel, setSelectedParcel] = useState(null);
   const [hoveredCode, setHoveredCode] = useState(null);
+  const [showLegendControl, setShowLegendControl] = useState(false);
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
 
@@ -241,6 +235,7 @@ export default function MapComponent(props) {
     map.getLayers().forEach(lyr => {
       if (lyr.get('title') === title) {
         lyr.setVisible(visible);
+        setShowLegendControl(lyr.get('type') === 'scenario-group')
       }
     });
     setMapLayers();
@@ -252,16 +247,25 @@ export default function MapComponent(props) {
         layer.setVisible(layer.get('title') === title);
       }
     });
+    setShowLegendControl(title === 'Landcover');
     setMapLayers();
   };
 
   const switchScenario = (title) => {
     map.getAllLayers().forEach((layer) => {
       if (layer.get('type') === 'scenario') {
-        layer.setVisible(layer.get('title') === title)
+        layer.setVisible(layer.get('title') === title);
       }
     });
     setMapLayers();
+  };
+
+  const setLulcStyle = (lulcType) => {
+    map.getAllLayers().forEach((layer) => {
+      if (layer.get('type') === 'scenario' || layer.get('title') === 'Landcover') {
+        layer.setStyle(getStyle(lulcType));
+      }
+    });
   };
 
   const toggleLayerControl = () => {
@@ -379,10 +383,10 @@ export default function MapComponent(props) {
           }
         }
       });
-      if (scenarioData) {
+      if (scenarioData && scenarioData[1]) { // check band [1] for nodata
         // Get here if a Scenario LULC is visible
         setHoveredCode(scenarioData[0].toString());
-      } else if (baseData) {
+      } else if (baseData && baseData[1]) {
         // Base LULC visible but no Scenario LULC visible
         setHoveredCode(baseData[0].toString());
       } else {
@@ -445,6 +449,7 @@ export default function MapComponent(props) {
       scenarioLayers.push(mostRecentLyr);
       scenarioLayerGroup.setLayers(new Collection(scenarioLayers));
       map.addLayer(scenarioLayerGroup);
+      setShowLegendControl(true);
     }
     clearSelection();
   }, [scenarios]);
@@ -511,7 +516,9 @@ export default function MapComponent(props) {
         immutableStudyArea={Boolean(scenarios.length)}
       />
       <LegendControl
+        show={showLegendControl}
         lulcCode={hoveredCode}
+        setLulcStyle={setLulcStyle}
       />
     </div>
   );

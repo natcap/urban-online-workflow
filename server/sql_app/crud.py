@@ -5,6 +5,7 @@ import logging
 import sys
 import time
 import uuid
+from collections import Counter
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -320,3 +321,49 @@ def update_invest(db: Session, scenario_id: int, job_id: int,
     db.commit()
     db.refresh(db_invest)
     return STATUS_SUCCESS
+
+
+def get_nlud_tier_2(db: Session):
+    data = db.query(models.LulcCrosswalk.nlud_simple_class).distinct()
+    LOGGER.info(data)
+    return data
+
+
+def get_nlud_tier_3(db: Session, nlud_tier_2: str):
+    return db.query(
+        models.LulcCrosswalk.nlud_simple_subclass).filter(
+        models.LulcCrosswalk.nlud_simple_class == nlud_tier_2).distinct()
+
+
+def get_nlcd(db: Session, nlud_tier_2: str, nlud_tier_3: str):
+    return db.query(
+        models.LulcCrosswalk.nlcd_lulc).filter(
+        models.LulcCrosswalk.nlud_simple_class == nlud_tier_2,
+        models.LulcCrosswalk.nlud_simple_subclass == nlud_tier_3).distinct()
+
+
+# TODO: this set of queries is not optimal because LulcCrosswalk is
+# not a normalized database. We could query more efficiently if it was
+# normalized into multiple tables.
+def get_lucode(db: Session, nlud_tier_2: str, nlud_tier_3: str, nlcd: str, tree: str):
+    return db.query(
+        models.LulcCrosswalk.lucode).filter(
+        models.LulcCrosswalk.nlud_simple_class == nlud_tier_2,
+        models.LulcCrosswalk.nlud_simple_subclass == nlud_tier_3,
+        models.LulcCrosswalk.nlcd_lulc == nlcd,
+        models.LulcCrosswalk.tree_canopy_cover == tree).first()
+
+
+def explode_lulc_counts(db: Session, stats_dict):
+    data = {
+        'nlcd': Counter(),
+        'nlud': Counter(),
+        'tree': Counter()
+    }
+    for lucode, count in stats_dict.items():
+        row = db.query(models.LulcCrosswalk).filter(
+            models.LulcCrosswalk.lucode == lucode).first()
+        data['nlud'][row.nlud_simple] += count
+        data['nlcd'][row.nlcd] += count
+        data['tree'][row.tree] += count
+    return data
