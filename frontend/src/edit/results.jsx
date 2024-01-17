@@ -13,6 +13,11 @@ const METRICS = {
     units: `${'\u00b0'}F`,
     precision: 2,
   },
+  cdd_cost: {
+    label: 'cooling cost',
+    units: 'USD',
+    precision: 0,
+  },
   tot_c_cur: {
     label: 'change in carbon stored',
     units: 'metric tons',
@@ -35,6 +40,7 @@ export default function Results(props) {
 
   const [scenarioName, setScenarioName] = useState(null);
   const [temperature, setTemperature] = useState(null);
+  const [coolingCost, setCoolingCost] = useState(null);
   const [carbon, setCarbon] = useState(null);
   const [table, setTable] = useState(null);
   const [scenarioNames, setScenarioNames] = useState([]);
@@ -47,6 +53,7 @@ export default function Results(props) {
   };
 
   useEffect(() => {
+    console.log(results)
     const data = {};
     const names = Object.keys(results).filter((key) => key !== 'baseline');
     names.forEach((name) => {
@@ -74,6 +81,7 @@ export default function Results(props) {
   useEffect(() => {
     if (scenarioName) {
       setTemperature(parseFloat(table[scenarioName][METRICS['avg_tmp_v'].label].value));
+      setCoolingCost(parseFloat(table[scenarioName][METRICS['cdd_cost'].label].value));
       setCarbon(parseFloat(table[scenarioName][METRICS['tot_c_cur'].label].value));
       const to = (scenarioDescriptions[scenarioName]['nlcd'].length)
         ? `
@@ -104,17 +112,28 @@ export default function Results(props) {
     <ul>
       <li>
         <Icon icon="Flash" />
-        <span>
-          The average daytime high <b>temperature</b> during August is 
-          expected to <b>{tempDirection} by {Math.abs(temperature).toFixed(2)} </b>
-          &deg;F for areas within {COOLING_DISTANCE} of <b>{studyAreaName}</b>.
-        </span>
+        <p>
+          <span>
+            The average daytime high <b>temperature</b> during August is expected to
+            <b> {tempDirection} by {Math.abs(temperature).toFixed(METRICS.avg_tmp_v.precision)} &deg;F </b>
+            for areas within {COOLING_DISTANCE} of <b>{studyAreaName}</b>.
+          </span>
+        </p>
+        <p>
+          <span>
+            This represents an <b>{tempDirection} </b>
+            in total cooling costs by
+            <b> ${Math.abs(coolingCost).toFixed(METRICS.cdd_cost.precision)}</b>
+          </span>
+        </p>
       </li>
       <br />
       <li>
         <Icon icon="tree" />
         <span>
-          Carbon storage is expected to <b>{carbonDirection} by {Math.abs(carbon).toFixed(0)}</b> metric tons
+          Carbon storage is expected to
+          <b> {carbonDirection} by {Math.abs(carbon).toFixed(METRICS.tot_c_cur.precision)} </b>
+          metric tons
         </span>
       </li>
     </ul>
