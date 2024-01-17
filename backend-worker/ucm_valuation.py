@@ -225,7 +225,7 @@ def execute(args):
 
         mortality_tif = workspace_dir / "mortality_risk.tif"
         mortality_risk_calculation(
-            args["air_temp_tif"], mortality_tif, city_mortality_risk_df
+            args["air_temp_tif"], str(mortality_tif), city_mortality_risk_df
         )
     else:
         logger.warning(
@@ -339,8 +339,8 @@ def cdd_calculation(
 
 
 def mortality_risk_calculation(
-    t_air_raster_path: pathlike,
-    target_mortality_path: pathlike,
+    t_air_raster_path: str,
+    target_mortality_path: str,
     mortality_risk_df: pd.DataFrame,
 ) -> None:
     """Raster calculator op to calculate Relative Mortality Risk based on the following function:
@@ -353,8 +353,8 @@ def mortality_risk_calculation(
             R1 = lower mortality risk
 
     Args:
-        t_air_raster_path (pathlike): Path to T air raster.
-        target_mortality_path (pathlike): Path to target mortality risk raster.
+        t_air_raster_path (string): Path to T air raster.
+        target_mortality_path (string): Path to target mortality risk raster.
         mortality_risk_df (DataFrame): Pandas DataFrame with columns for the temperature thresholds and associated
             mortality risk
 
@@ -362,11 +362,7 @@ def mortality_risk_calculation(
         None
 
     """
-    # Ensure path variables are Path objects
-    t_air_raster_path = Path(t_air_raster_path)
-    target_mortality_path = Path(target_mortality_path)
-
-    t_air_nodata = pygeoprocessing.get_raster_info(str(t_air_raster_path))["nodata"][0]
+    t_air_nodata = pygeoprocessing.get_raster_info(t_air_raster_path)["nodata"][0]
 
     def mortality_op(t_air_array):
         """
@@ -384,7 +380,7 @@ def mortality_risk_calculation(
         thresholds = ["01", "10", "mmtp", "90", "99"]
         lower_thresholds = thresholds[:-1]
         # Iterate through thresholds, except 99th percentile (since we linearly interpolate anything greater than 90th)
-        for i, t in enumerate(lower_thresholds[:-1]):
+        for i, t in enumerate(lower_thresholds):
             thresholds_df = mortality_risk_df.iloc[0]  # always only 1 row since we filtered by city
             # Temperature Thresholds
             lower_threshold = thresholds_df[f"t_{t}"]
@@ -419,15 +415,15 @@ def mortality_risk_calculation(
             # Actual calculation
             t_air_masked = t_air_array[current_mask]
             mortality[current_mask] = (t_air_masked - upper_threshold) / (
-                lower_threshold - upper_threshold
-            ) * (lower_risk - upper_risk) + upper_risk
+                lower_threshold - upper_threshold  # docstring says (upper - lower)
+            ) * (lower_risk - upper_risk) + upper_risk  # docstring says (upper - lower) + lower
 
         return mortality
 
     pygeoprocessing.raster_calculator(
-        [(str(t_air_raster_path), 1)],
+        [(t_air_raster_path, 1)],
         mortality_op,
-        str(target_mortality_path),
+        target_mortality_path,
         gdal.GDT_Float32,
         TARGET_NODATA,
     )
