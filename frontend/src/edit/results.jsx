@@ -84,7 +84,7 @@ export default function Results(props) {
         : '';
       setToLULC(to);
     }
-  }, [scenarioName]); // TODO: this hook not running on study area switch
+  }, [scenarioName]);
 
   const landcoverDescription = (
     <>

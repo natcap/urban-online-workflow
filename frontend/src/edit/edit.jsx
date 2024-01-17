@@ -67,7 +67,6 @@ export default function EditMenu(props) {
       }
     });
     setResults(data);
-    console.log('set invest results')
   };
 
   useEffect(() => {
