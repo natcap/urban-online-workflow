@@ -450,10 +450,6 @@ def grouped_scalar_calculation(
         None
 
     """
-    # base_raster_path = Path(base_raster_path)
-    # category_raster_path = Path(category_raster_path)
-    # target_raster_path = Path(target_raster_path)
-
     base_raster_info = pygeoprocessing.get_raster_info(base_raster_path)
     base_raster_nodata = base_raster_info["nodata"][0]
 
