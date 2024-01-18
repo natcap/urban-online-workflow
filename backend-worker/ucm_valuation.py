@@ -523,3 +523,8 @@ def _add_zonal_stats_dict_to_vector(
             feature.SetField(field_name, field_val)
 
             layer.SetFeature(feature)
+
+    feature = None
+    field_defn = None
+    layer = None
+    vector = None
