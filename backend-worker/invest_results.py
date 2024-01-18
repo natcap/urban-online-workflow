@@ -9,6 +9,7 @@ import pandas
 import pygeoprocessing
 
 from invest_args import INVEST_BASE_PATH
+import ucm_valuation
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
@@ -27,6 +28,7 @@ POVERTY_VARS = [
     'Household did not receive Food Stamps or SNAP in the past 12 months',
     'Household did not receive Food Stamps or SNAP in the past 12 months | Income in the past 12 months below poverty level',
     'Household did not receive Food Stamps or SNAP in the past 12 months | Income in the past 12 months at or above poverty level']
+
 
 def _read_field_from_vector(vector_path, key_field, value_field):
     """Read a field from a vector's first layer.
@@ -64,6 +66,7 @@ def carbon(workspace_dir):
         carbon_results (dict) : A python dictionary with keys as the output
             name and values as the aggregated sum.
     """
+    LOGGER.info('Gathering Carbon Model results')
     #carbon_output_dir = os.path.join(workspace_dir, 'intermediate_outputs')
     carbon_outputs = {
         'tot_c_cur': os.path.join(workspace_dir, 'tot_c_cur.tif'),
@@ -112,18 +115,40 @@ def urban_cooling(workspace_dir):
     there will be only one result to return.
 
     Return:
-        urban_cooling_results (dict) : A python dictionary with a single
-            key of 'avg_tmp_v' and it's corresponding value.
+        urban_cooling_results (dict) : A python dictionary of urban cooling
+            & census metrics summarized in the AOI.
     """
-
+    LOGGER.info('Doing Urban Cooling valuation')
     uhi_vector_path = os.path.join(workspace_dir, 'uhi_results.shp')
-    value_field = 'avg_tmp_v'
-    avg_tmp_dict = _read_field_from_vector(uhi_vector_path, 'FID', value_field)
-    # Currently only aggregating over one large bounding box, so only one entry
-    feat_key = list(avg_tmp_dict.keys())[0]
-    urban_cooling_results = {value_field: avg_tmp_dict[feat_key]}
+    valuation_args = {
+        'workspace_dir': os.path.join(workspace_dir, 'valuation'),
+        'city': 'San Antonio',
+        'lulc_tif': os.path.join(workspace_dir, 'intermediate', 'lulc.tif'),
+        'air_temp_tif': os.path.join(workspace_dir, 'intermediate', 'T_air.tif'),
+        'dd_energy_path': os.path.join(
+            INVEST_BASE_PATH, 'biophysical_tables',
+            'placeholder_ucm_energy_parameters.csv'),
+        'mortality_risk_path': os.path.join(
+            INVEST_BASE_PATH, 'biophysical_tables',
+            'guo_et_al_2014_mortality_risk.csv'),
+        'aoi_vector_path': uhi_vector_path
+    }
+    ucm_valuation.execute(valuation_args)
+
+    LOGGER.info('Gathering Urban Cooling Model results')
+    urban_cooling_results = {}
+    summary_field_list = ['avg_tmp_v', 'cdd_cost']
+    for value_field in summary_field_list:
+        fid_metric_dict = _read_field_from_vector(
+            uhi_vector_path, 'FID', value_field)
+        # Only aggregating over one large serviceshed, so only one entry
+        feat_key = list(fid_metric_dict.keys())[0]
+        urban_cooling_results[value_field] = fid_metric_dict[feat_key]
+
+    LOGGER.info('Gathering Census data from AOI')
     census_data = {'census': _extract_census_from_aoi(uhi_vector_path)}
     results = {**urban_cooling_results, **census_data}
+    LOGGER.info(results)
     results_json_path = os.path.join(workspace_dir, "derived_results.json")
     with open(results_json_path, "w") as fp:
         json.dump(results, fp)
