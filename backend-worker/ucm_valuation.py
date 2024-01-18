@@ -147,6 +147,8 @@ def execute(args):
     workspace_dir = Path(args["workspace_dir"])
     workspace_dir.mkdir(exist_ok=True)
 
+    # Skipping the HDD calcs because we only modeled
+    # air temps for the month of August in San Antonio, TX.
     # # Calculate Heating Degree Days raster
     # logger.debug(f"Calculating Heating Degree Days")
     # hdd_tif = workspace_dir / "hdd.tif"
