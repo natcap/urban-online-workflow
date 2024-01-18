@@ -1,3 +1,8 @@
+"""
+Based on https://planetarycomputer.microsoft.com/dataset/ms-buildings#Example-Notebook
+The resulting GPKG is hosted on GCS natcap-urban-online-datasets
+"""
+
 import subprocess
 
 import dask_geopandas
@@ -47,4 +52,4 @@ data.to_parquet('buildings.parquet')
 
 # parquet driver requires libgdal-arrow-parquet, which is only supported in gdal>=3.8
 subprocess.run(
-    ['ogr2ogr', '-f', 'GPKG', 'buildings.gpkg', 'buildings.parquet'])
+    ['ogr2ogr', '-f', 'GPKG', 'buildings_san_antonio.gpkg', 'buildings.parquet'])
