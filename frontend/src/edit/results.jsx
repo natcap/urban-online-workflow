@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
 import {
-  Divider,
   HTMLSelect,
   HTMLTable,
   Icon,
@@ -12,6 +11,11 @@ const METRICS = {
     label: 'change in temperature',
     units: `${'\u00b0'}F`,
     precision: 2,
+  },
+  cdd_cost: {
+    label: 'change in cooling cost',
+    units: 'USD',
+    precision: 0,
   },
   tot_c_cur: {
     label: 'change in carbon stored',
@@ -34,8 +38,6 @@ export default function Results(props) {
   } = props;
 
   const [scenarioName, setScenarioName] = useState(null);
-  const [temperature, setTemperature] = useState(null);
-  const [carbon, setCarbon] = useState(null);
   const [table, setTable] = useState(null);
   const [scenarioNames, setScenarioNames] = useState([]);
   const [fromLULC, setFromLULC] = useState('');
@@ -52,10 +54,11 @@ export default function Results(props) {
     names.forEach((name) => {
       data[name] = {};
       Object.entries(METRICS).forEach(([metric, obj]) => {
-        data[name][obj.label] = {
+        data[name][metric] = {
           value: results[name][metric] - results['baseline'][metric],
           units: obj.units,
           precision: obj.precision,
+          label: obj.label,
         };
       });
     });
@@ -73,8 +76,6 @@ export default function Results(props) {
 
   useEffect(() => {
     if (scenarioName) {
-      setTemperature(parseFloat(table[scenarioName][METRICS['avg_tmp_v'].label].value));
-      setCarbon(parseFloat(table[scenarioName][METRICS['tot_c_cur'].label].value));
       const to = (scenarioDescriptions[scenarioName]['nlcd'].length)
         ? `
             ${scenarioDescriptions[scenarioName]['nlcd'].join(', ')}
@@ -98,50 +99,89 @@ export default function Results(props) {
     </>
   );
 
-  const tempDirection = (temperature >= 0) ? 'increase' : 'decrease';
-  const carbonDirection = (carbon >= 0) ? 'increase' : 'decrease';
-  const paragraphs = (
-    <ul>
-      <li>
-        <Icon icon="Flash" />
-        <span>
-          The average daytime high <b>temperature</b> during August is 
-          expected to <b>{tempDirection} by {Math.abs(temperature).toFixed(2)} </b>
-          &deg;F for areas within {COOLING_DISTANCE} of <b>{studyAreaName}</b>.
-        </span>
-      </li>
-      <br />
-      <li>
-        <Icon icon="tree" />
-        <span>
-          Carbon storage is expected to <b>{carbonDirection} by {Math.abs(carbon).toFixed(0)}</b> metric tons
-        </span>
-      </li>
-    </ul>
-  );
+  let paragraphs;
+  if (table && table[scenarioName]) {
+    const temperature = table[scenarioName]['avg_tmp_v'].value;
+    const coolingCost = table[scenarioName]['cdd_cost'].value;
+    const carbon = table[scenarioName]['tot_c_cur'].value;
+    const tempDirection = (temperature >= 0) ? 'increase' : 'decrease';
+    const carbonDirection = (carbon >= 0) ? 'increase' : 'decrease';
+    paragraphs = (
+      <ul>
+        <li>
+          <Icon icon="Flash" />
+          <p>
+            <span>
+              The average daytime high <b>temperature</b> during August is expected to
+              <b> {tempDirection} by {Math.abs(temperature).toFixed(METRICS.avg_tmp_v.precision)} &deg;F </b>
+              for areas within {COOLING_DISTANCE} of <b>{studyAreaName}</b>.
+            </span>
+          </p>
+          <p>
+            <span>
+              This represents an <b>{tempDirection} </b>
+              in total cooling costs by
+              <b> ${Math.abs(coolingCost).toFixed(METRICS.cdd_cost.precision)}</b>
+            </span>
+          </p>
+        </li>
+        <br />
+        <li>
+          <Icon icon="tree" />
+          <span>
+            Carbon storage is expected to
+            <b> {carbonDirection} by {Math.abs(carbon).toFixed(METRICS.tot_c_cur.precision)} </b>
+            metric tons
+          </span>
+        </li>
+      </ul>
+    );
+  }
 
   const { census } = results.baseline;
-  const populations = Object.entries(census.race)
-    .sort(([, a], [, b]) => b - a);
+  let populationTable;
+  let povertyPar;
+  if (census && census.race) {
+    const populations = Object.entries(census.race)
+      .sort(([, a], [, b]) => b - a);
 
-  const povertyPar = (
-    <ul>
-      <li>
-        <b>{census.poverty[HOUSE_SNAP]} households received</b> Food Stamps or SNAP.
-      </li>
-      <p className="hanging-indent">
-        Of those households, <b>{census.poverty[`${HOUSE_SNAP} | ${INCOME_BELOW}`]} were below poverty level </b>
-        and <b>{census.poverty[`${HOUSE_SNAP} | ${INCOME_ABOVE}`]} were above</b>.
-      </p>
-      <li>
-        <b>{census.poverty[HOUSE_NO_SNAP]} households did not receive</b> Food Stamps or SNAP.
-      </li>
-      <p className="hanging-indent">
-        Of those households, <b>{census.poverty[`${HOUSE_NO_SNAP} | ${INCOME_BELOW}`]} were below poverty level </b>
-        and <b>{census.poverty[`${HOUSE_NO_SNAP} | ${INCOME_ABOVE}`]} were above</b>.
-      </p>
-    </ul>
-  );
+    populationTable = (
+      <div>
+        <h3>Population by race</h3>
+        <HTMLTable className="bp4-html-table-condensed">
+          <tbody>
+            {populations.map(([group, count]) => (
+              <tr key={group}>
+                <td key="group">{group}</td>
+                <td key="count">{count}</td>
+              </tr>
+            ))}
+          </tbody>
+        </HTMLTable>
+      </div>
+    );
+  }
+
+  if (census && census.poverty) {
+    povertyPar = (
+      <ul>
+        <li>
+          <b>{census.poverty[HOUSE_SNAP]} households received</b> Food Stamps or SNAP.
+        </li>
+        <p className="hanging-indent">
+          Of those households, <b>{census.poverty[`${HOUSE_SNAP} | ${INCOME_BELOW}`]} were below poverty level </b>
+          and <b>{census.poverty[`${HOUSE_SNAP} | ${INCOME_ABOVE}`]} were above</b>.
+        </p>
+        <li>
+          <b>{census.poverty[HOUSE_NO_SNAP]} households did not receive</b> Food Stamps or SNAP.
+        </li>
+        <p className="hanging-indent">
+          Of those households, <b>{census.poverty[`${HOUSE_NO_SNAP} | ${INCOME_BELOW}`]} were below poverty level </b>
+          and <b>{census.poverty[`${HOUSE_NO_SNAP} | ${INCOME_ABOVE}`]} were above</b>.
+        </p>
+      </ul>
+    );
+  }
 
   return (
     <div id="results" data-testid="results">
@@ -198,19 +238,7 @@ export default function Results(props) {
         Demographics of the impacted area:
       </h2>
       <div id="demographics-body">
-        <div>
-          <h3>Population by race</h3>
-          <HTMLTable className="bp4-html-table-condensed">
-            <tbody>
-              {populations.map(([group, count]) => (
-                <tr key={group}>
-                  <td key="group">{group}</td>
-                  <td key="count">{count}</td>
-                </tr>
-              ))}
-            </tbody>
-          </HTMLTable>
-        </div>
+        {populationTable}
         {/*<Divider />*/}
         <div id="acs-container">
           {povertyPar}
