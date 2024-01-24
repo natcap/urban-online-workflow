@@ -11,7 +11,6 @@ from osgeo import gdal
 from osgeo import ogr
 import pygeoprocessing
 
-import natcap.invest.utils
 
 pathlike = str | Path
 
@@ -81,9 +80,9 @@ class MultiplyRasterByScalarList(object):
         result[:] = self.base_nodata
 
         # Create valid mask
-        valid_mask = ~natcap.invest.utils.array_equals_nodata(
+        valid_mask = ~pygeoprocessing.array_equals_nodata(
             base_array, self.base_nodata
-        ) & ~natcap.invest.utils.array_equals_nodata(
+        ) & ~pygeoprocessing.array_equals_nodata(
             category_array, self.category_nodata
         )
 
