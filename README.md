@@ -15,6 +15,9 @@ or if you want to force a rebuild of the containers,
 $ docker compose up --build
 ```
 
+## App runs on
+`http://localhost:3000`
+
 ## View fastapi endpoint documentation
 `http://localhost:8000/docs`
 

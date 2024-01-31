@@ -74,6 +74,8 @@ def carbon(workspace_dir):
     #    'c_below_cur': os.path.join(carbon_output_dir, 'c_below_cur.tif'),
     #    'c_dead_cur': os.path.join(carbon_output_dir, 'c_dead_cur.tif'),
     #    'c_soil_cur': os.path.join(carbon_output_dir, 'c_soil_cur.tif'),
+    #    'c_embedded_cur': os.path.join(carbon_output_dir, 'c_embedded_cur.tif'),
+    #    'c_emissions_cur': os.path.join(carbon_output_dir, 'c_emissions_cur.tif'),
     }
 
     carbon_results = {}
