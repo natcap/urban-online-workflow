@@ -190,7 +190,7 @@ def urban_nature_access(workspace_dir):
     balance_dict = _read_field_from_vector(
         balance_vector_path, 'FID', value_field)
     # Currently only aggregating over one large bounding box, so only one entry
-    feat_key = balance_dict.keys()[0]
+    feat_key = list(balance_dict)[0]
     nature_access_results['ntr_bal_avg'] = balance_dict[feat_key]
     LOGGER.info(nature_access_results)
 
