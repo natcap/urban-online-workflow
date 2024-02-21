@@ -46,14 +46,11 @@ LOW_PRIORITY = 3
 MEDIUM_PRIORITY = 2
 HIGH_PRIORITY = 1
 
-# InVEST model list
+# The list of models that run
 INVEST_MODELS = [
-    # "pollination",
-    # "stormwater",
     "urban_cooling_model",
-    "carbon"
-    # "urban_flood_risk_mitigation",
-    # "urban_nature_access"
+    "carbon",
+    "urban_nature_access"
 ]
 
 JOB_TYPES = {

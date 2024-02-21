@@ -192,6 +192,7 @@ def urban_nature_access(workspace_dir):
     # Currently only aggregating over one large bounding box, so only one entry
     feat_key = balance_dict.keys()[0]
     nature_access_results['ntr_bal_avg'] = balance_dict[feat_key]
+    LOGGER.info(nature_access_results)
 
     results_json_path = os.path.join(workspace_dir, "derived_results.json")
     with open(results_json_path, "w") as fp:
