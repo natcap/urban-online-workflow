@@ -27,10 +27,44 @@ const METRICS = {
   nature_supply_percapita: {
     label: 'change in supply of natural areas',
     units: 'square meters per person',
-    precision: 0,
+    precision: 2,
   },
 };
 const COOLING_DISTANCE = '450 meters';
+
+function LandcoverDescription(props) {
+  const {
+    scenarioDescriptions,
+    scenarioName,
+  } = props;
+
+  const from = (scenarioDescriptions['baseline']['nlcd'].length)
+    ? `
+        ${scenarioDescriptions['baseline']['nlcd'].join(', ')}
+        ( ${scenarioDescriptions['baseline']['nlud'].join(', ')} )
+      `
+    : '';
+
+  const to = (scenarioDescriptions[scenarioName]['nlcd'].length)
+    ? `
+        ${scenarioDescriptions[scenarioName]['nlcd'].join(', ')}
+        ( ${scenarioDescriptions[scenarioName]['nlud'].join(', ')} )
+      `
+    : '';
+
+  return (
+    <>
+      <p className="hanging-indent">
+        <b>from: </b>
+        mostly <em>{from}</em>
+      </p>
+      <p className="hanging-indent">
+        <b>to: </b>
+        mostly <em>{to}</em>
+      </p>
+    </>
+  );
+}
 
 export default function Results(props) {
   const {
@@ -43,8 +77,6 @@ export default function Results(props) {
   const [scenarioName, setScenarioName] = useState(null);
   const [table, setTable] = useState(null);
   const [scenarioNames, setScenarioNames] = useState([]);
-  const [fromLULC, setFromLULC] = useState('');
-  const [toLULC, setToLULC] = useState('');
 
   const changeScenario = (name) => {
     setScenarioName(name);
@@ -66,42 +98,22 @@ export default function Results(props) {
         };
       });
     });
-    const from = (scenarioDescriptions['baseline']['nlcd'].length)
-      ? `
-          ${scenarioDescriptions['baseline']['nlcd'].join(', ')}
-          ( ${scenarioDescriptions['baseline']['nlud'].join(', ')} )
-        `
-      : '';
-    setFromLULC(from);
     setTable(data);
     setScenarioNames(names);
     setScenarioName(names.slice(-1)[0]);
   }, [results]);
 
-  useEffect(() => {
-    if (scenarioName) {
-      const to = (scenarioDescriptions[scenarioName]['nlcd'].length)
-        ? `
-            ${scenarioDescriptions[scenarioName]['nlcd'].join(', ')}
-            ( ${scenarioDescriptions[scenarioName]['nlud'].join(', ')} )
-          `
-        : '';
-      setToLULC(to);
-    }
-  }, [scenarioName]);
-
-  const landcoverDescription = (
-    <>
-      <p className="hanging-indent">
-        <b>from: </b>
-        mostly <em>{fromLULC}</em>
-      </p>
-      <p className="hanging-indent">
-        <b>to: </b>
-        mostly <em>{toLULC}</em>
-      </p>
-    </>
-  );
+  // useEffect(() => {
+  //   if (scenarioName) {
+  //     // const to = (scenarioDescriptions[scenarioName]['nlcd'].length)
+  //     //   ? `
+  //     //       ${scenarioDescriptions[scenarioName]['nlcd'].join(', ')}
+  //     //       ( ${scenarioDescriptions[scenarioName]['nlud'].join(', ')} )
+  //     //     `
+  //     //   : '';
+  //     // setToLULC(to);
+  //   }
+  // }, [scenarioName]);
 
   let paragraphs;
   if (table && table[scenarioName]) {
@@ -118,10 +130,13 @@ export default function Results(props) {
     const natureSupplyPercentChange = (natureSupplyDelta / natureSupplyBase) * 100;
     const natureDirection = (natureSupplyDelta >= 0) ? 'increase' : 'decrease';
     const natureBalance = results['baseline']['ntr_bal_avg'];
-    const natureBalanceLabel = (natureBalance >= 0) ? 'surplus' : 'deficit';
+    const natureBalanceScen = results[scenarioName]['ntr_bal_avg'];
+    // const natureBalanceLabel = (natureBalance >= 0) ? 'surplus' : 'deficit';
     console.log(natureSupplyDelta)
     console.log(natureBalance)
+    console.log(natureBalanceScen)
     const natureBalanceDemandMet = ((natureBalance + 16.7) / 16.17) * 100;
+    const natureBalanceDemandMetScenario = ((natureBalanceScen + 16.7) / 16.17) * 100;
     paragraphs = (
       <ul>
         <li>
@@ -155,9 +170,9 @@ export default function Results(props) {
           <Icon icon="walk" />
           <span>
             Nature accessibility is expected to
-            <b> {natureDirection} by {Math.abs(natureSupplyPercentChange).toFixed(METRICS.nature_supply_percapita.precision)}% </b>
-            in an area where the average person has access to {natureBalanceDemandMet.toFixed(METRICS.nature_supply_percapita.precision)}% of
-            the natural area that would meet the typical need.
+            <b> {natureDirection} by {Math.abs(natureSupplyPercentChange).toFixed(METRICS.nature_supply_percapita.precision)}%. </b>
+            In this study area the average person previously had access to {natureBalanceDemandMet.toFixed(METRICS.nature_supply_percapita.precision)}% of
+            the natural area that would meet the typical need. Now they have access to {natureBalanceDemandMetScenario.toFixed(METRICS.nature_supply_percapita.precision)}%.
           </span>
         </li>
       </ul>
@@ -179,7 +194,16 @@ export default function Results(props) {
           </HTMLSelect>
           <span style={{ 'paddingLeft': '2rem' }}>landcover (landuse) changed,</span>
         </h4>
-        {landcoverDescription}
+        {
+          (scenarioName)
+            ? (
+              <LandcoverDescription
+                scenarioDescriptions={scenarioDescriptions}
+                scenarioName={scenarioName}
+              />
+            )
+            : <div />
+        }
         <hr />
         {paragraphs}
       </div>
