@@ -6,6 +6,8 @@ import {
   Icon,
 } from '@blueprintjs/core';
 
+import ResultsDemographics from './resultsDemographics';
+
 const METRICS = {
   avg_tmp_v: {
     label: 'change in temperature',
@@ -22,12 +24,13 @@ const METRICS = {
     units: 'metric tons',
     precision: 0,
   },
+  nature_supply_percapita: {
+    label: 'change in supply of natural areas',
+    units: 'square meters per person',
+    precision: 0,
+  },
 };
 const COOLING_DISTANCE = '450 meters';
-const HOUSE_SNAP = 'Household received Food Stamps or SNAP in the past 12 months';
-const HOUSE_NO_SNAP = 'Household did not receive Food Stamps or SNAP in the past 12 months';
-const INCOME_BELOW = 'Income in the past 12 months below poverty level';
-const INCOME_ABOVE = 'Income in the past 12 months at or above poverty level';
 
 export default function Results(props) {
   const {
@@ -49,6 +52,7 @@ export default function Results(props) {
   };
 
   useEffect(() => {
+    console.log(results)
     const data = {};
     const names = Object.keys(results).filter((key) => key !== 'baseline');
     names.forEach((name) => {
@@ -103,9 +107,21 @@ export default function Results(props) {
   if (table && table[scenarioName]) {
     const temperature = table[scenarioName]['avg_tmp_v'].value;
     const coolingCost = table[scenarioName]['cdd_cost'].value;
-    const carbon = table[scenarioName]['tot_c_cur'].value;
     const tempDirection = (temperature >= 0) ? 'increase' : 'decrease';
+
+    const carbon = table[scenarioName]['tot_c_cur'].value;
     const carbonDirection = (carbon >= 0) ? 'increase' : 'decrease';
+
+    const natureSupplyScen = results[scenarioName]['nature_supply_percapita'];
+    const natureSupplyBase = results['baseline']['nature_supply_percapita'];
+    const natureSupplyDelta = natureSupplyScen - natureSupplyBase;
+    const natureSupplyPercentChange = (natureSupplyDelta / natureSupplyBase) * 100;
+    const natureDirection = (natureSupplyDelta >= 0) ? 'increase' : 'decrease';
+    const natureBalance = results['baseline']['ntr_bal_avg'];
+    const natureBalanceLabel = (natureBalance >= 0) ? 'surplus' : 'deficit';
+    console.log(natureSupplyDelta)
+    console.log(natureBalance)
+    const natureBalanceDemandMet = ((natureBalance + 16.7) / 16.17) * 100;
     paragraphs = (
       <ul>
         <li>
@@ -134,51 +150,16 @@ export default function Results(props) {
             metric tons
           </span>
         </li>
-      </ul>
-    );
-  }
-
-  const { census } = results.baseline;
-  let populationTable;
-  let povertyPar;
-  if (census && census.race) {
-    const populations = Object.entries(census.race)
-      .sort(([, a], [, b]) => b - a);
-
-    populationTable = (
-      <div>
-        <h3>Population by race</h3>
-        <HTMLTable className="bp4-html-table-condensed">
-          <tbody>
-            {populations.map(([group, count]) => (
-              <tr key={group}>
-                <td key="group">{group}</td>
-                <td key="count">{count}</td>
-              </tr>
-            ))}
-          </tbody>
-        </HTMLTable>
-      </div>
-    );
-  }
-
-  if (census && census.poverty) {
-    povertyPar = (
-      <ul>
+        <br />
         <li>
-          <b>{census.poverty[HOUSE_SNAP]} households received</b> Food Stamps or SNAP.
+          <Icon icon="walk" />
+          <span>
+            Nature accessibility is expected to
+            <b> {natureDirection} by {Math.abs(natureSupplyPercentChange).toFixed(METRICS.nature_supply_percapita.precision)}% </b>
+            in an area where the average person has access to {natureBalanceDemandMet.toFixed(METRICS.nature_supply_percapita.precision)}% of
+            the natural area that would meet the typical need.
+          </span>
         </li>
-        <p className="hanging-indent">
-          Of those households, <b>{census.poverty[`${HOUSE_SNAP} | ${INCOME_BELOW}`]} were below poverty level </b>
-          and <b>{census.poverty[`${HOUSE_SNAP} | ${INCOME_ABOVE}`]} were above</b>.
-        </p>
-        <li>
-          <b>{census.poverty[HOUSE_NO_SNAP]} households did not receive</b> Food Stamps or SNAP.
-        </li>
-        <p className="hanging-indent">
-          Of those households, <b>{census.poverty[`${HOUSE_NO_SNAP} | ${INCOME_BELOW}`]} were below poverty level </b>
-          and <b>{census.poverty[`${HOUSE_NO_SNAP} | ${INCOME_ABOVE}`]} were above</b>.
-        </p>
       </ul>
     );
   }
@@ -233,20 +214,9 @@ export default function Results(props) {
             </div>
           ) : <div />
       }
-      <h2 id="demographics-header">
-        <Icon icon="people" size="30"/>
-        Demographics of the impacted area:
-      </h2>
-      <div id="demographics-body">
-        {populationTable}
-        {/*<Divider />*/}
-        <div id="acs-container">
-          {povertyPar}
-        </div>
-      </div>
-      <div id="demographics-footer">
-        <p>Data from the American Community Survey, 2020</p>
-      </div>
+      <ResultsDemographics
+        census={results.baseline.census}
+      />
     </div>
   );
 }

@@ -50,6 +50,7 @@ export default function EditMenu(props) {
   const [scenarioDescriptions, setScenarioDescriptions] = useState(null);
 
   const setInvestResults = async () => {
+    console.log(scenarios)
     // Do results exist for these scenarios? We check after the investRunner
     // determines that all jobs completed. We also check anytime the
     // list of scenarios are updated, such as when the study area changes
