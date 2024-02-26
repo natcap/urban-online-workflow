@@ -25,12 +25,13 @@ const METRICS = {
     precision: 0,
   },
   nature_supply_percapita: {
-    label: 'change in supply of natural areas',
+    label: 'change in supply of nature',
     units: 'square meters per person',
-    precision: 2,
+    precision: 1,
   },
 };
 const COOLING_DISTANCE = '450 meters';
+const NAT_REQ_PERCAP = 16.7; // this is an UNA model paramamter
 
 function LandcoverDescription(props) {
   const {
@@ -66,6 +67,73 @@ function LandcoverDescription(props) {
   );
 }
 
+function ResultsDescription(props) {
+  const {
+    results,
+    deltaTable,
+    scenarioName,
+  } = props;
+
+  const temperature = deltaTable[scenarioName]['avg_tmp_v'].value;
+  const coolingCost = deltaTable[scenarioName]['cdd_cost'].value;
+  const tempDirection = (temperature >= 0) ? 'increase' : 'decrease';
+
+  const carbon = deltaTable[scenarioName]['tot_c_cur'].value;
+  const carbonDirection = (carbon >= 0) ? 'increase' : 'decrease';
+
+  const natureSupplyBase = results['baseline']['nature_supply_percapita'];
+  const natureSupplyDelta = deltaTable[scenarioName]['nature_supply_percapita'].value;
+  const natureSupplyPercentChange = (natureSupplyDelta / natureSupplyBase) * 100;
+  const natureDirection = (natureSupplyDelta >= 0) ? 'increase' : 'decrease';
+  const natureBalance = results['baseline']['ntr_bal_avg'];
+  const natureBalanceScen = results[scenarioName]['ntr_bal_avg'];
+  const natureBalanceDemandMet = (
+    (natureBalance + NAT_REQ_PERCAP) / NAT_REQ_PERCAP) * 100;
+  const natureBalanceDemandMetScenario = (
+    (natureBalanceScen + NAT_REQ_PERCAP) / NAT_REQ_PERCAP) * 100;
+
+  return (
+    <ul>
+      <li>
+        <Icon icon="Flash" />
+        <p>
+          <span>
+            The average daytime high <b>temperature</b> during August is expected to
+            <b> {tempDirection} by {Math.abs(temperature).toFixed(METRICS.avg_tmp_v.precision)} &deg;F </b>
+            for areas within the dashed white line.
+          </span>
+        </p>
+        <p>
+          <span>
+            This represents an <b>{tempDirection} </b>
+            in total cooling costs by
+            <b> ${Math.abs(coolingCost).toFixed(METRICS.cdd_cost.precision)}</b>
+          </span>
+        </p>
+      </li>
+      <br />
+      <li>
+        <Icon icon="tree" />
+        <span>
+          Carbon storage is expected to
+          <b> {carbonDirection} by {Math.abs(carbon).toFixed(METRICS.tot_c_cur.precision)} </b>
+          metric tons
+        </span>
+      </li>
+      <br />
+      <li>
+        <Icon icon="walk" />
+        <span>
+          Nature accessibility is expected to
+          <b> {natureDirection} by {Math.abs(natureSupplyPercentChange).toFixed(METRICS.nature_supply_percapita.precision)}%. </b>
+          In this study area the average person previously had access to {natureBalanceDemandMet.toFixed(METRICS.nature_supply_percapita.precision)}% of
+          the natural area that would meet the typical need. Now they have access to {natureBalanceDemandMetScenario.toFixed(METRICS.nature_supply_percapita.precision)}%.
+        </span>
+      </li>
+    </ul>
+  );
+}
+
 export default function Results(props) {
   const {
     results,
@@ -75,7 +143,7 @@ export default function Results(props) {
   } = props;
 
   const [scenarioName, setScenarioName] = useState(null);
-  const [table, setTable] = useState(null);
+  const [deltaTable, setDeltaTable] = useState(null);
   const [scenarioNames, setScenarioNames] = useState([]);
 
   const changeScenario = (name) => {
@@ -84,7 +152,6 @@ export default function Results(props) {
   };
 
   useEffect(() => {
-    console.log(results)
     const data = {};
     const names = Object.keys(results).filter((key) => key !== 'baseline');
     names.forEach((name) => {
@@ -98,86 +165,10 @@ export default function Results(props) {
         };
       });
     });
-    setTable(data);
+    setDeltaTable(data);
     setScenarioNames(names);
     setScenarioName(names.slice(-1)[0]);
   }, [results]);
-
-  // useEffect(() => {
-  //   if (scenarioName) {
-  //     // const to = (scenarioDescriptions[scenarioName]['nlcd'].length)
-  //     //   ? `
-  //     //       ${scenarioDescriptions[scenarioName]['nlcd'].join(', ')}
-  //     //       ( ${scenarioDescriptions[scenarioName]['nlud'].join(', ')} )
-  //     //     `
-  //     //   : '';
-  //     // setToLULC(to);
-  //   }
-  // }, [scenarioName]);
-
-  let paragraphs;
-  if (table && table[scenarioName]) {
-    const temperature = table[scenarioName]['avg_tmp_v'].value;
-    const coolingCost = table[scenarioName]['cdd_cost'].value;
-    const tempDirection = (temperature >= 0) ? 'increase' : 'decrease';
-
-    const carbon = table[scenarioName]['tot_c_cur'].value;
-    const carbonDirection = (carbon >= 0) ? 'increase' : 'decrease';
-
-    const natureSupplyScen = results[scenarioName]['nature_supply_percapita'];
-    const natureSupplyBase = results['baseline']['nature_supply_percapita'];
-    const natureSupplyDelta = natureSupplyScen - natureSupplyBase;
-    const natureSupplyPercentChange = (natureSupplyDelta / natureSupplyBase) * 100;
-    const natureDirection = (natureSupplyDelta >= 0) ? 'increase' : 'decrease';
-    const natureBalance = results['baseline']['ntr_bal_avg'];
-    const natureBalanceScen = results[scenarioName]['ntr_bal_avg'];
-    // const natureBalanceLabel = (natureBalance >= 0) ? 'surplus' : 'deficit';
-    console.log(natureSupplyDelta)
-    console.log(natureBalance)
-    console.log(natureBalanceScen)
-    const natureBalanceDemandMet = ((natureBalance + 16.7) / 16.17) * 100;
-    const natureBalanceDemandMetScenario = ((natureBalanceScen + 16.7) / 16.17) * 100;
-    paragraphs = (
-      <ul>
-        <li>
-          <Icon icon="Flash" />
-          <p>
-            <span>
-              The average daytime high <b>temperature</b> during August is expected to
-              <b> {tempDirection} by {Math.abs(temperature).toFixed(METRICS.avg_tmp_v.precision)} &deg;F </b>
-              for areas within {COOLING_DISTANCE} of <b>{studyAreaName}</b>.
-            </span>
-          </p>
-          <p>
-            <span>
-              This represents an <b>{tempDirection} </b>
-              in total cooling costs by
-              <b> ${Math.abs(coolingCost).toFixed(METRICS.cdd_cost.precision)}</b>
-            </span>
-          </p>
-        </li>
-        <br />
-        <li>
-          <Icon icon="tree" />
-          <span>
-            Carbon storage is expected to
-            <b> {carbonDirection} by {Math.abs(carbon).toFixed(METRICS.tot_c_cur.precision)} </b>
-            metric tons
-          </span>
-        </li>
-        <br />
-        <li>
-          <Icon icon="walk" />
-          <span>
-            Nature accessibility is expected to
-            <b> {natureDirection} by {Math.abs(natureSupplyPercentChange).toFixed(METRICS.nature_supply_percapita.precision)}%. </b>
-            In this study area the average person previously had access to {natureBalanceDemandMet.toFixed(METRICS.nature_supply_percapita.precision)}% of
-            the natural area that would meet the typical need. Now they have access to {natureBalanceDemandMetScenario.toFixed(METRICS.nature_supply_percapita.precision)}%.
-          </span>
-        </li>
-      </ul>
-    );
-  }
 
   return (
     <div id="results" data-testid="results">
@@ -195,17 +186,23 @@ export default function Results(props) {
           <span style={{ 'paddingLeft': '2rem' }}>landcover (landuse) changed,</span>
         </h4>
         {
-          (scenarioName)
+          (scenarioName && deltaTable)
             ? (
-              <LandcoverDescription
-                scenarioDescriptions={scenarioDescriptions}
-                scenarioName={scenarioName}
-              />
+              <>
+                <LandcoverDescription
+                  scenarioDescriptions={scenarioDescriptions}
+                  scenarioName={scenarioName}
+                />
+                <hr />
+                <ResultsDescription
+                  results={results}
+                  deltaTable={deltaTable}
+                  scenarioName={scenarioName}
+                />
+              </>
             )
             : <div />
         }
-        <hr />
-        {paragraphs}
       </div>
       {
         (scenarioNames.length > 1)
@@ -225,7 +222,7 @@ export default function Results(props) {
                   {scenarioNames.map((name) => (
                     <tr key={name}>
                       <th>{name}</th>
-                      {Object.values(table[name]).map((obj) => (
+                      {Object.values(deltaTable[name]).map((obj) => (
                         <td className="table-value" key={obj.units}>
                           {(obj.value > 0) ? `+${obj.value.toFixed(obj.precision)}` : obj.value.toFixed(obj.precision)}
                           <span className="units">{obj.units}</span>
