@@ -39,31 +39,29 @@ function LandcoverDescription(props) {
     scenarioName,
   } = props;
 
-  const from = (scenarioDescriptions['baseline']['nlcd'].length)
-    ? `
-        ${scenarioDescriptions['baseline']['nlcd'].join(', ')}
-        ( ${scenarioDescriptions['baseline']['nlud'].join(', ')} )
-      `
-    : '';
-
-  const to = (scenarioDescriptions[scenarioName]['nlcd'].length)
-    ? `
-        ${scenarioDescriptions[scenarioName]['nlcd'].join(', ')}
-        ( ${scenarioDescriptions[scenarioName]['nlud'].join(', ')} )
-      `
-    : '';
-
   return (
-    <>
-      <p className="hanging-indent">
-        <b>from: </b>
-        mostly <em>{from}</em>
-      </p>
-      <p className="hanging-indent">
-        <b>to: </b>
-        mostly <em>{to}</em>
-      </p>
-    </>
+    <HTMLTable id="landcover-description">
+      <tr>
+        <th className="col-header">from mostly:</th>
+        <th className="col-header">to:</th>
+        <td />
+      </tr>
+      <tr>
+        <td>{scenarioDescriptions['baseline']['nlcd'].join('\n')}</td>
+        <td>{scenarioDescriptions[scenarioName]['nlcd'].join('\n')}</td>
+        <td className="row-header">(landcover)</td>
+      </tr>
+      <tr>
+        <td>{scenarioDescriptions['baseline']['nlud'].join('\n')}</td>
+        <td>{scenarioDescriptions[scenarioName]['nlud'].join('\n')}</td>
+        <td className="row-header">(landuse)</td>
+      </tr>
+      <tr>
+        <td>{scenarioDescriptions['baseline']['tree']}</td>
+        <td>{scenarioDescriptions[scenarioName]['tree']}</td>
+        <td className="row-header">(tree cover)</td>
+      </tr>
+    </HTMLTable>
   );
 }
 
@@ -183,7 +181,9 @@ export default function Results(props) {
             {scenarioNames
               .map((name) => <option key={name} value={name}>{name}</option>)}
           </HTMLSelect>
-          <span style={{ 'paddingLeft': '2rem' }}>landcover (landuse) changed,</span>
+          <span style={{ 'paddingLeft': '2rem' }}>
+            the landscape changed:
+          </span>
         </h4>
         {
           (scenarioName && deltaTable)
@@ -211,7 +211,7 @@ export default function Results(props) {
               <p>
                 Each scenario's impact relative to baseline conditions:
               </p>
-              <HTMLTable>
+              <HTMLTable id="results-matrix">
                 <tbody>
                   <tr key="header">
                     <th key="blank" />

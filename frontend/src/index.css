@@ -326,21 +326,42 @@ html, body, #root, .App {
   align-items: center;
 }
 
-#results th, td {
-  vertical-align: bottom;
-  padding-right: 3rem;
-}
-
-#results table {
+#landcover-description {
+  width: 100%;
   border-collapse: collapse;
 }
 
-#results tr {
+#landcover-description tr {
+  border-bottom: 1px solid lightgray;
+}
+
+#landcover-description tr:last-child {
+  border-bottom: none;
+}
+
+#landcover-description th, td {
+  vertical-align: bottom;
+  white-space: pre-line;
+}
+
+#landcover-description .row-header {
+  font-style: italic;
+}
+
+#landcover-description .col-header {
+  padding-top: 0.2rem;
+  padding-bottom: 0.2rem;
+}
+
+#results-matrix {
+  border-collapse: collapse;
+}
+
+#results-matrix tr {
   border-bottom: 1px solid lightgray;
 }
 
 .units {
-/*  font-size: 0.8em;*/
   color: gray;
   padding-left: 0.5em;
 }

@@ -82,7 +82,7 @@ export default function EditMenu(props) {
           nlcd: [],
           nlud: [],
         };
-        ['nlcd', 'nlud'].forEach((lulcType) => {
+        ['nlcd', 'nlud', 'tree'].forEach((lulcType) => {
           const sorted = Object.entries(stats[lulcType])
             .sort(([, a], [, b]) => b - a);
           const sortedClasses = sorted.map((x) => x[0]);
