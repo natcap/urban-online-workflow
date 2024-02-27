@@ -34,6 +34,9 @@ export default function App() {
       area = await createStudyArea(sessionID, 'Untitled');
       setSavedStudyAreas([...savedStudyAreas, area]);
     }
+    // Clear scenarios from the previous study area to avoid child
+    // components rendering with them before receiving updated props
+    setScenarios([]);
     setStudyArea(area);
   };
 
@@ -120,6 +123,7 @@ export default function App() {
               serviceshedPath={serviceshedPath}
             />
             <EditMenu
+              key={studyArea.id}
               sessionID={sessionID}
               studyArea={studyArea}
               setHoveredParcel={setHoveredParcel}

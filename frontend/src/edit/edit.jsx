@@ -50,7 +50,6 @@ export default function EditMenu(props) {
   const [scenarioDescriptions, setScenarioDescriptions] = useState(null);
 
   const setInvestResults = async () => {
-    console.log(scenarios)
     // Do results exist for these scenarios? We check after the investRunner
     // determines that all jobs completed. We also check anytime the
     // list of scenarios are updated, such as when the study area changes
@@ -81,6 +80,7 @@ export default function EditMenu(props) {
         descriptions[scenario.name] = {
           nlcd: [],
           nlud: [],
+          tree: [],
         };
         ['nlcd', 'nlud', 'tree'].forEach((lulcType) => {
           const sorted = Object.entries(stats[lulcType])
@@ -100,9 +100,9 @@ export default function EditMenu(props) {
           );
         });
       });
-      setScenarioDescriptions(descriptions);
       (async () => {
         await setInvestResults();
+        setScenarioDescriptions(descriptions);
       })();
     }
   }, [scenarios]);
@@ -201,8 +201,8 @@ export default function EditMenu(props) {
                 title="results"
                 panel={(
                   <Results
+                    // key={studyArea.id}
                     results={results}
-                    studyAreaName={studyArea.name}
                     scenarioDescriptions={scenarioDescriptions}
                     setSelectedScenario={setSelectedScenario}
                   />

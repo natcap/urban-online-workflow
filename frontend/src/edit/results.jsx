@@ -135,7 +135,6 @@ function ResultsDescription(props) {
 export default function Results(props) {
   const {
     results,
-    studyAreaName,
     scenarioDescriptions,
     setSelectedScenario,
   } = props;
