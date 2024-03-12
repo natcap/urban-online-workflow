@@ -31,6 +31,7 @@ const METRICS = {
   },
 };
 const COOLING_DISTANCE = '450 meters';
+const NATURE_ACCESS_DISTANCE = '2 km';
 const NAT_REQ_PERCAP = 16.7; // this is an UNA model paramamter
 
 function LandcoverDescription(props) {
@@ -98,14 +99,14 @@ function ResultsDescription(props) {
           <span>
             The average daytime high <b>temperature</b> during August is expected to
             <b> {tempDirection} by {Math.abs(temperature).toFixed(METRICS.avg_tmp_v.precision)} &deg;F </b>
-            for areas within the dashed white line.
+            for areas within {COOLING_DISTANCE} of the selected parcels.
           </span>
         </p>
         <p>
           <span>
             This represents an <b>{tempDirection} </b>
             in total cooling costs by
-            <b> ${Math.abs(coolingCost).toFixed(METRICS.cdd_cost.precision)}</b>
+            <b> ${Math.abs(coolingCost).toFixed(METRICS.cdd_cost.precision)}</b>.
           </span>
         </p>
       </li>
@@ -115,7 +116,7 @@ function ResultsDescription(props) {
         <span>
           Carbon storage is expected to
           <b> {carbonDirection} by {Math.abs(carbon).toFixed(METRICS.tot_c_cur.precision)} </b>
-          metric tons
+          metric tons.
         </span>
       </li>
       <br />
@@ -124,6 +125,7 @@ function ResultsDescription(props) {
         <span>
           Nature accessibility is expected to
           <b> {natureDirection} by {Math.abs(natureSupplyPercentChange).toFixed(METRICS.nature_supply_percapita.precision)}%. </b>
+          within 2 kilometers of the selected parcels.
           In this study area the average person previously had access to {natureBalanceDemandMet.toFixed(METRICS.nature_supply_percapita.precision)}% of
           the natural area that would meet the typical need. Now they have access to {natureBalanceDemandMetScenario.toFixed(METRICS.nature_supply_percapita.precision)}%.
         </span>

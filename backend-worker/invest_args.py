@@ -81,7 +81,7 @@ def urban_cooling(lulc_path, workspace_dir, study_area_wkt):
 
 
 def urban_nature_access(lulc_path, workspace_dir, study_area_wkt):
-    search_radius = 2280
+    search_radius = 2000
     aoi_geom = shapely.wkt.loads(study_area_wkt).buffer(search_radius)
     lulc_info = pygeoprocessing.get_raster_info(lulc_path)
     aoi_vector_path = os.path.join(workspace_dir, 'aoi.geojson')
@@ -94,7 +94,7 @@ def urban_nature_access(lulc_path, workspace_dir, study_area_wkt):
         'urban_nature_access_nlcd_simple_nlud_trees.csv')
     population_raster_path = os.path.join(
         INVEST_BASE_PATH,
-        'population_san_antonio_final.tif')
+        'population_san_antonio_updated_02_27.tif')
     args_dict = {
         "workspace_dir": workspace_dir,
         "admin_boundaries_vector_path": aoi_vector_path,

@@ -107,7 +107,8 @@ INVEST_MODELS = {
         "derive_results": invest_results.urban_nature_access
     }
 }
-LARGEST_SERVICESHED = 2280  # meters https://github.com/natcap/urban-online-workflow/issues/79
+# DF: I changed to 2000 to make it a round number, since it is user-facing
+LARGEST_SERVICESHED = 2000  # meters https://github.com/natcap/urban-online-workflow/issues/79
 
 # Quiet logging
 logging.getLogger(f'pygeoprocessing').setLevel(logging.WARNING)
@@ -740,10 +741,11 @@ def do_work(host, port, outputs_location):
                     LOGGER.info(f'Post processing {invest_model} model')
                     model_result_path = model_meta['derive_results'](workspace_dir)
 
-                try:
-                    # For now, we only expect this to work for urban-cooling
+                if invest_model == URBAN_COOLING:
                     serviceshed = args_dict['aoi_vector_path']
-                except KeyError:
+                elif invest_model == URBAN_NATURE_ACCESS:
+                    serviceshed = args_dict['admin_boundaries_vector_path']
+                else:
                     serviceshed = ''
                 data = {
                     'result': {
