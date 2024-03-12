@@ -55,7 +55,7 @@ export function styleServiceshed(feature, label) {
     }),
     text: new Text({
       text: label,
-      font: 'bold 20px "Open Sans", "Arial Unicode MS", "sans-serif"',
+      font: 'bold 18px "Open Sans", "Arial Unicode MS", "sans-serif"',
       placement: 'line',
       fill: new Fill({ color: 'white' }),
       textBaseline: 'bottom',

@@ -466,6 +466,7 @@ export default function MapComponent(props) {
     map.removeLayer(serviceshedLayerUCM);
     map.removeLayer(serviceshedLayerUNA);
     const sources = {};
+    console.log(servicesheds)
     if (Object.keys(servicesheds).length) {
       Object.entries(servicesheds).forEach(([model, path]) => {
         const source = new VectorSource({

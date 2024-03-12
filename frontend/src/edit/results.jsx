@@ -125,7 +125,7 @@ function ResultsDescription(props) {
         <span>
           Nature accessibility is expected to
           <b> {natureDirection} by {Math.abs(natureSupplyPercentChange).toFixed(METRICS.nature_supply_percapita.precision)}%. </b>
-          within 2 kilometers of the selected parcels.
+          within {NATURE_ACCESS_DISTANCE} of the selected parcels.
           In this study area the average person previously had access to {natureBalanceDemandMet.toFixed(METRICS.nature_supply_percapita.precision)}% of
           the natural area that would meet the typical need. Now they have access to {natureBalanceDemandMetScenario.toFixed(METRICS.nature_supply_percapita.precision)}%.
         </span>
@@ -140,6 +140,7 @@ export default function Results(props) {
     scenarioDescriptions,
     setSelectedScenario,
   } = props;
+  console.log(results)
 
   const [scenarioName, setScenarioName] = useState(null);
   const [deltaTable, setDeltaTable] = useState(null);

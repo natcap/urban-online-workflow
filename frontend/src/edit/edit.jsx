@@ -58,12 +58,14 @@ export default function EditMenu(props) {
       scenarios.map(scenario => getInvestResults(scenario.scenario_id))
     );
     const data = {};
+    let servicesheds = {};
     scenarios.forEach((scenario, idx) => {
       if (Object.values(modelResults[idx])[0] !== 'InVEST result not found') {
         data[scenario.name] = modelResults[idx]['results'];
-        setServicesheds(modelResults[idx]['servicesheds']);
+        servicesheds = { ...servicesheds, ...modelResults[idx]['servicesheds'] };
       }
     });
+    setServicesheds(servicesheds);
     setResults(data);
   };
 
