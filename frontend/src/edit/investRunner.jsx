@@ -45,7 +45,7 @@ export default function InvestRunner(props) {
 
   const handleClick = async () => {
     setProgressState('success');
-    setProgress(0.02); // start at > 0 to indicate things are happening
+    setProgress(0);
     const jobs = await Promise.all(
       scenarios.map((scenario) => runInvest(scenario.scenario_id))
     );
