@@ -7,6 +7,11 @@ import {
 } from '@blueprintjs/core';
 
 import ResultsDemographics from './resultsDemographics';
+import {
+  COOLING_DISTANCE_STR,
+  NATURE_ACCESS_DISTANCE_STR,
+  NAT_REQ_PERCAP,
+} from '../constants';
 
 const METRICS = {
   avg_tmp_v: {
@@ -30,9 +35,6 @@ const METRICS = {
     precision: 1,
   },
 };
-const COOLING_DISTANCE = '450 meters';
-const NATURE_ACCESS_DISTANCE = '2 km';
-const NAT_REQ_PERCAP = 16.7; // this is an UNA model paramamter
 
 function LandcoverDescription(props) {
   const {
@@ -99,7 +101,7 @@ function ResultsDescription(props) {
           <span>
             The average daytime high <b>temperature</b> during August is expected to
             <b> {tempDirection} by {Math.abs(temperature).toFixed(METRICS.avg_tmp_v.precision)} &deg;F </b>
-            for areas within {COOLING_DISTANCE} of the selected parcels.
+            for areas within {COOLING_DISTANCE_STR} of the selected parcels.
           </span>
         </p>
         <p>
@@ -125,7 +127,7 @@ function ResultsDescription(props) {
         <span>
           Nature accessibility is expected to
           <b> {natureDirection} by {Math.abs(natureSupplyPercentChange).toFixed(METRICS.nature_supply_percapita.precision)}%. </b>
-          within {NATURE_ACCESS_DISTANCE} of the selected parcels.
+          within {NATURE_ACCESS_DISTANCE_STR} of the selected parcels.
           In this study area the average person previously had access to {natureBalanceDemandMet.toFixed(METRICS.nature_supply_percapita.precision)}% of
           the natural area that would meet the typical need. Now they have access to {natureBalanceDemandMetScenario.toFixed(METRICS.nature_supply_percapita.precision)}%.
         </span>

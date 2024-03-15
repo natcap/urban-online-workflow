@@ -81,7 +81,7 @@ def urban_cooling(lulc_path, workspace_dir, study_area_wkt):
 
 
 def urban_nature_access(lulc_path, workspace_dir, study_area_wkt):
-    search_radius = 2000
+    search_radius = 800
     aoi_geom = shapely.wkt.loads(study_area_wkt).buffer(search_radius)
     lulc_info = pygeoprocessing.get_raster_info(lulc_path)
     aoi_vector_path = os.path.join(workspace_dir, 'aoi.geojson')

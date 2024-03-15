@@ -107,8 +107,10 @@ INVEST_MODELS = {
         "derive_results": invest_results.urban_nature_access
     }
 }
-# DF: I changed to 2000 to make it a round number, since it is user-facing
-LARGEST_SERVICESHED = 2000  # meters https://github.com/natcap/urban-online-workflow/issues/79
+
+# The largest extent LULC needed by invest models is
+# 2x the 800m search radius used by UNA.
+LARGEST_SERVICESHED = 1600
 
 # Quiet logging
 logging.getLogger(f'pygeoprocessing').setLevel(logging.WARNING)

@@ -52,6 +52,10 @@ import {
 } from './styles';
 
 import { publicUrl } from '../utils';
+import {
+  COOLING_DISTANCE_STR,
+  NATURE_ACCESS_DISTANCE_STR,
+} from '../constants';
 
 const GCS_BUCKET = 'https://storage.googleapis.com/natcap-urban-online-datasets-public';
 const BASE_LULC_URL = `${GCS_BUCKET}/lulc_overlay_3857.tif`
@@ -143,14 +147,12 @@ scenarioLayerGroup.set('title', SCENARIO_LAYER_GROUP_NAME);
 scenarioLayerGroup.setZIndex(1);
 
 // Urban Cooling & Urban Nature models each have a serviceshed
-const UCMLabel = '450 meters';
 const serviceshedLayerUCM = new VectorLayer({
-  style: (feature) => styleServiceshed(feature, UCMLabel),
+  style: (feature) => styleServiceshed(feature, COOLING_DISTANCE_STR),
 });
 serviceshedLayerUCM.setZIndex(3);
-const UNALabel = '2 km';
 const serviceshedLayerUNA = new VectorLayer({
-  style: (feature) => styleServiceshed(feature, UNALabel),
+  style: (feature) => styleServiceshed(feature, NATURE_ACCESS_DISTANCE_STR),
 });
 serviceshedLayerUNA.setZIndex(3);
 
