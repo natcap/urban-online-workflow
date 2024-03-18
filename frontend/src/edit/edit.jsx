@@ -201,7 +201,6 @@ export default function EditMenu(props) {
                 title="results"
                 panel={(
                   <Results
-                    // key={studyArea.id}
                     results={results}
                     scenarioDescriptions={scenarioDescriptions}
                     setSelectedScenario={setSelectedScenario}
