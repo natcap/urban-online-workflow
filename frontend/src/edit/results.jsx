@@ -94,14 +94,26 @@ function ResultsDescription(props) {
 
   const natureSupplyBase = results['baseline']['nature_supply_percapita'];
   const natureSupplyDelta = deltaTable[scenarioName]['nature_supply_percapita'];
-  const natureSupplyPercentChange = (natureSupplyDelta / natureSupplyBase) * 100;
+  let natureSupplyChange;
+  if (natureSupplyBase === 0) {
+    natureSupplyChange = `${Math.abs(natureSupplyDelta).toFixed(
+      METRICS.nature_supply_percapita.precision
+    )} square meters`;
+  } else {
+    natureSupplyChange = `${Math.abs((
+      natureSupplyDelta / natureSupplyBase) * 100).toFixed(
+      METRICS.nature_supply_percapita.precision
+    )}%`;
+  }
   const natureDirection = (natureSupplyDelta >= 0) ? 'increase' : 'decrease';
   const natureBalance = results['baseline']['ntr_bal_avg'];
   const natureBalanceScen = results[scenarioName]['ntr_bal_avg'];
   const natureBalanceDemandMet = (
-    (natureBalance + NAT_REQ_PERCAP) / NAT_REQ_PERCAP) * 100;
+    ((natureBalance + NAT_REQ_PERCAP) / NAT_REQ_PERCAP) * 100
+  ).toFixed(METRICS.nature_supply_percapita.precision) + 0;
   const natureBalanceDemandMetScenario = (
-    (natureBalanceScen + NAT_REQ_PERCAP) / NAT_REQ_PERCAP) * 100;
+    ((natureBalanceScen + NAT_REQ_PERCAP) / NAT_REQ_PERCAP) * 100
+  ).toFixed(METRICS.nature_supply_percapita.precision);
 
   return (
     <ul>
@@ -136,10 +148,10 @@ function ResultsDescription(props) {
         <Icon icon="walk" />
         <span>
           Nature accessibility is expected to
-          <b> {natureDirection} by {Math.abs(natureSupplyPercentChange).toFixed(METRICS.nature_supply_percapita.precision)}%. </b>
+          <b> {natureDirection} by {natureSupplyChange}. </b>
           within {NATURE_ACCESS_DISTANCE_STR} of the selected parcels.
-          In this study area the average person previously had access to {natureBalanceDemandMet.toFixed(METRICS.nature_supply_percapita.precision)}% of
-          the natural area that would meet the typical need. Now they have access to {natureBalanceDemandMetScenario.toFixed(METRICS.nature_supply_percapita.precision)}%.
+          In this area the average person previously had access to {natureBalanceDemandMet}% of
+          the natural area that would meet the typical need. Now they have access to {natureBalanceDemandMetScenario}%.
         </span>
       </li>
     </ul>
