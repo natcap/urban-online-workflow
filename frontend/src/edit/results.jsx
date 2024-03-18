@@ -54,26 +54,28 @@ function LandcoverDescription(props) {
 
   return (
     <HTMLTable id="landcover-description">
-      <tr>
-        <th className="col-header">from mostly:</th>
-        <th className="col-header">to:</th>
-        <td />
-      </tr>
-      <tr>
-        <td>{scenarioDescriptions['baseline']['nlcd'].join('\n')}</td>
-        <td>{scenarioDescriptions[scenarioName]['nlcd'].join('\n')}</td>
-        <td className="row-header">(landcover)</td>
-      </tr>
-      <tr>
-        <td>{scenarioDescriptions['baseline']['nlud'].join('\n')}</td>
-        <td>{scenarioDescriptions[scenarioName]['nlud'].join('\n')}</td>
-        <td className="row-header">(landuse)</td>
-      </tr>
-      <tr>
-        <td>{scenarioDescriptions['baseline']['tree']}</td>
-        <td>{scenarioDescriptions[scenarioName]['tree']}</td>
-        <td className="row-header">(tree cover)</td>
-      </tr>
+      <tbody>
+        <tr>
+          <th className="col-header">from mostly:</th>
+          <th className="col-header">to:</th>
+          <td />
+        </tr>
+        <tr>
+          <td>{scenarioDescriptions['baseline']['nlcd'].join('\n')}</td>
+          <td>{scenarioDescriptions[scenarioName]['nlcd'].join('\n')}</td>
+          <td className="row-header">(landcover)</td>
+        </tr>
+        <tr>
+          <td>{scenarioDescriptions['baseline']['nlud'].join('\n')}</td>
+          <td>{scenarioDescriptions[scenarioName]['nlud'].join('\n')}</td>
+          <td className="row-header">(landuse)</td>
+        </tr>
+        <tr>
+          <td>{scenarioDescriptions['baseline']['tree']}</td>
+          <td>{scenarioDescriptions[scenarioName]['tree']}</td>
+          <td className="row-header">(tree cover)</td>
+        </tr>
+      </tbody>
     </HTMLTable>
   );
 }
