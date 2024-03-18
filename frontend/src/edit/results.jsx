@@ -39,6 +39,7 @@ const METRICS = {
     label: 'change in supply of nature per person',
     units: {
       'square meters': (x) => x,
+      'hectares': (x) => x * 1e-4,
       'square feet': (x) => x * 10.764,
       'acres': (x) => x / 4016.856,
     },
