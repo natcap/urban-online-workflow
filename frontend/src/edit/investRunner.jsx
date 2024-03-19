@@ -25,16 +25,17 @@ export default function InvestRunner(props) {
 
   useInterval(async () => {
     const statuses = await Promise.all(jobIDs.map((id) => getJobStatus(id)));
-    const pendingJobs = [...jobIDs];
+    const pendingJobs = [];
     statuses.forEach((status, idx) => {
       if (['success', 'failed'].includes(status)) {
-        pendingJobs.splice(idx, 1);
-        setProgress((nJobs - pendingJobs.length) / nJobs);
         if (status === 'failed') {
           setProgressState('warning');
         }
+      } else {
+        pendingJobs.push(jobIDs[idx]);
       }
     });
+    setProgress((nJobs - pendingJobs.length) / nJobs);
     setJobIDs(pendingJobs);
     if (!pendingJobs.length) {
       setInvestResults();
@@ -44,7 +45,7 @@ export default function InvestRunner(props) {
 
   const handleClick = async () => {
     setProgressState('success');
-    setProgress(0.02); // start at > 0 to indicate things are happening
+    setProgress(0);
     const jobs = await Promise.all(
       scenarios.map((scenario) => runInvest(scenario.scenario_id))
     );

@@ -31,6 +31,8 @@ local path which mounts in container | (bucket where source file can be found)
 - `appdata/invest-data/acs_tract_3857.gpkg` | (natcap-urban-online-datasets)
 - `appdata/invest-data/acs_tract_poverty.csv` | (natcap-urban-online-datasets)
 - `appdata/invest-data/acs_tract_race.csv` | (natcap-urban-online-datasets)
+- `appdata/invest-data/population_san_antonio_updated_02_27.tif` | (natcap-urban-online-datasets)
+
 
 ## Necessary API tokens
 Currently need to add a `.env` file to `frontend/` with necessary API tokens. Please reach out to repository maintainers to get access to these.

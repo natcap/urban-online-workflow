@@ -24,7 +24,7 @@ export default function App() {
   const [patternSamplingMode, setPatternSamplingMode] = useState(false);
   const [patternSampleWKT, setPatternSampleWKT] = useState(null);
   const [selectedScenario, setSelectedScenario] = useState(null);
-  const [serviceshedPath, setServiceshedPath] = useState(null);
+  const [servicesheds, setServicesheds] = useState({});
 
   const switchStudyArea = async (id) => {
     let area;
@@ -34,6 +34,9 @@ export default function App() {
       area = await createStudyArea(sessionID, 'Untitled');
       setSavedStudyAreas([...savedStudyAreas, area]);
     }
+    // Clear scenarios from the previous study area to avoid child
+    // components rendering with them before receiving updated props
+    setScenarios([]);
     setStudyArea(area);
   };
 
@@ -99,7 +102,7 @@ export default function App() {
 
   useEffect(() => {
     refreshScenarios();
-    setServiceshedPath('');
+    setServicesheds({});
   }, [studyArea.id]);
 
   return (
@@ -117,9 +120,10 @@ export default function App() {
               setPatternSampleWKT={setPatternSampleWKT}
               scenarios={scenarios}
               selectedScenario={selectedScenario}
-              serviceshedPath={serviceshedPath}
+              servicesheds={servicesheds}
             />
             <EditMenu
+              key={studyArea.id}
               sessionID={sessionID}
               studyArea={studyArea}
               setHoveredParcel={setHoveredParcel}
@@ -133,7 +137,7 @@ export default function App() {
               togglePatternSamplingMode={togglePatternSamplingMode}
               patternSampleWKT={patternSampleWKT}
               setSelectedScenario={setSelectedScenario}
-              setServiceshedPath={setServiceshedPath}
+              setServicesheds={setServicesheds}
             />
           </div>
         </div>

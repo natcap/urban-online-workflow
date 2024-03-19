@@ -22,6 +22,7 @@ vi.mock('../src/requests', () => {
 function renderEdit(studyArea, scenarios, patternSamplingMode = false) {
   const screen = render(
     <Edit
+      key="A"
       sessionID="A"
       studyArea={studyArea}
       setHoveredParcel={() => {}}
@@ -35,7 +36,7 @@ function renderEdit(studyArea, scenarios, patternSamplingMode = false) {
       togglePatternSamplingMode={() => {}}
       patternSampleWKT={null}
       setSelectedScenario={() => {}}
-      setServiceshedPath={() => {}}
+      setServicesheds={() => {}}
     />
   );
   return screen;

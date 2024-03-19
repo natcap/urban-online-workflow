@@ -46,12 +46,16 @@ import {
   hoveredFeatureStyle,
   patternSamplerBoxStyle,
   selectedFeatureStyle,
-  serviceshedStyle,
   studyAreaStyle,
   styleParcel,
+  styleServiceshed,
 } from './styles';
 
 import { publicUrl } from '../utils';
+import {
+  COOLING_DISTANCE_STR,
+  NATURE_ACCESS_DISTANCE_STR,
+} from '../constants';
 
 const GCS_BUCKET = 'https://storage.googleapis.com/natcap-urban-online-datasets-public';
 const BASE_LULC_URL = `${GCS_BUCKET}/lulc_overlay_3857.tif`
@@ -142,10 +146,15 @@ scenarioLayerGroup.set('type', 'scenario-group');
 scenarioLayerGroup.set('title', SCENARIO_LAYER_GROUP_NAME);
 scenarioLayerGroup.setZIndex(1);
 
-const serviceshedLayer = new VectorLayer({
-  style: serviceshedStyle
+// Urban Cooling & Urban Nature models each have a serviceshed
+const serviceshedLayerUCM = new VectorLayer({
+  style: (feature) => styleServiceshed(feature, COOLING_DISTANCE_STR),
 });
-serviceshedLayer.setZIndex(3);
+serviceshedLayerUCM.setZIndex(3);
+const serviceshedLayerUNA = new VectorLayer({
+  style: (feature) => styleServiceshed(feature, NATURE_ACCESS_DISTANCE_STR),
+});
+serviceshedLayerUNA.setZIndex(3);
 
 // Set a default basemap to be visible
 satelliteLayer.setVisible(true);
@@ -164,7 +173,8 @@ const map = new Map({
     patternSamplerLayer,
     labelLayer,
     scenarioLayerGroup,
-    serviceshedLayer,
+    serviceshedLayerUCM,
+    serviceshedLayerUNA,
   ],
   view: new View({
     center: [-10964048.932711, 3429505.23069662], // San Antonio, TX EPSG:3857
@@ -188,7 +198,7 @@ export default function MapComponent(props) {
     setPatternSampleWKT,
     scenarios,
     selectedScenario,
-    serviceshedPath,
+    servicesheds,
   } = props;
   const [layers, setLayers] = useState([]);
   const [showLayerControl, setShowLayerControl] = useState(false);
@@ -455,18 +465,41 @@ export default function MapComponent(props) {
   }, [scenarios]);
 
   useEffect(() => {
-    map.removeLayer(serviceshedLayer);
-    if (serviceshedPath) {
-      const source = new VectorSource({
-        format: new GeoJSON({
-          dataProjection: 'EPSG:3857'
-        }),
-        url: publicUrl(serviceshedPath),
+    map.removeLayer(serviceshedLayerUCM);
+    map.removeLayer(serviceshedLayerUNA);
+    const sources = {};
+    console.log(servicesheds)
+    if (Object.keys(servicesheds).length) {
+      Object.entries(servicesheds).forEach(([model, path]) => {
+        const source = new VectorSource({
+          format: new GeoJSON({
+            dataProjection: 'EPSG:3857',
+          }),
+          url: publicUrl(path),
+        });
+        sources[model] = source;
       });
-      serviceshedLayer.setSource(source);
-      map.addLayer(serviceshedLayer);
+
+      const serviceshedSource = sources['urban_nature_access'];
+      serviceshedLayerUCM.setSource(sources['urban_cooling_model']);
+      serviceshedLayerUNA.setSource(serviceshedSource);
+
+      serviceshedSource.once('change', () => {
+        if (serviceshedSource.getState() === 'ready'
+          && serviceshedSource.getFeatures().length) {
+          map.getView().fit(
+            serviceshedSource.getExtent(),
+            {
+              padding: [10, 10, 10, 10], // pixels
+              maxZoom: 16,
+            },
+          );
+        }
+      });
+      map.getLayers().extend([serviceshedLayerUCM, serviceshedLayerUNA]);
+      setVisibility('Labels', false)
     }
-  }, [serviceshedPath]);
+  }, [servicesheds]);
 
   // toggle pattern sampler visibility according to the pattern sampling mode
   useEffect(() => {

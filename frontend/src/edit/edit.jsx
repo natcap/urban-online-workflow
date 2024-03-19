@@ -42,7 +42,7 @@ export default function EditMenu(props) {
     switchStudyArea,
     savedStudyAreas,
     setSelectedScenario,
-    setServiceshedPath,
+    setServicesheds,
   } = props;
 
   const [activeTab, setActiveTab] = useState('scenarios');
@@ -58,14 +58,14 @@ export default function EditMenu(props) {
       scenarios.map(scenario => getInvestResults(scenario.scenario_id))
     );
     const data = {};
+    let servicesheds = {};
     scenarios.forEach((scenario, idx) => {
       if (Object.values(modelResults[idx])[0] !== 'InVEST result not found') {
         data[scenario.name] = modelResults[idx]['results'];
-        if (modelResults[idx]['serviceshed']) {
-          setServiceshedPath(modelResults[idx]['serviceshed']);
-        }
+        servicesheds = { ...servicesheds, ...modelResults[idx]['servicesheds'] };
       }
     });
+    setServicesheds(servicesheds);
     setResults(data);
   };
 
@@ -80,8 +80,9 @@ export default function EditMenu(props) {
         descriptions[scenario.name] = {
           nlcd: [],
           nlud: [],
+          tree: [],
         };
-        ['nlcd', 'nlud'].forEach((lulcType) => {
+        ['nlcd', 'nlud', 'tree'].forEach((lulcType) => {
           const sorted = Object.entries(stats[lulcType])
             .sort(([, a], [, b]) => b - a);
           const sortedClasses = sorted.map((x) => x[0]);
@@ -99,9 +100,9 @@ export default function EditMenu(props) {
           );
         });
       });
-      setScenarioDescriptions(descriptions);
       (async () => {
         await setInvestResults();
+        setScenarioDescriptions(descriptions);
       })();
     }
   }, [scenarios]);
@@ -201,7 +202,6 @@ export default function EditMenu(props) {
                 panel={(
                   <Results
                     results={results}
-                    studyAreaName={studyArea.name}
                     scenarioDescriptions={scenarioDescriptions}
                     setSelectedScenario={setSelectedScenario}
                   />

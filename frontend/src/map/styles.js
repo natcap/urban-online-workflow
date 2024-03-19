@@ -1,4 +1,4 @@
-import { Fill, Stroke, Style } from 'ol/style';
+import { Fill, Stroke, Style, Text } from 'ol/style';
 
 const highlightedStrokeColor = 'rgba(3, 186, 252, 0.8)'
 
@@ -46,13 +46,25 @@ export const patternSamplerBoxStyle = new Style({
   }),
 });
 
-export const serviceshedStyle = new Style({
-  stroke: new Stroke({
-    color: 'rgba(255, 255, 255, 0.8)',
-    width: 3,
-    lineDash: [5, 5],
-  })
-});
+export function styleServiceshed(feature, label) {
+  const style = new Style({
+    stroke: new Stroke({
+      color: 'rgba(255, 255, 255, 0.8)',
+      width: 3,
+      lineDash: [5, 5],
+    }),
+    text: new Text({
+      text: label,
+      font: 'bold 18px "Open Sans", "Arial Unicode MS", "sans-serif"',
+      placement: 'line',
+      fill: new Fill({ color: 'white' }),
+      textBaseline: 'bottom',
+      maxAngle: 1,
+      textAlign: 'center'
+    }),
+  });
+  return style;
+}
 
 // dynamic style function for parcels
 export function styleParcel(zoom) {

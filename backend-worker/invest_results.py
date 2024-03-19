@@ -165,18 +165,18 @@ def urban_nature_access(workspace_dir):
 
     Return:
         nature_access_results (dict) : A python dictionary with values for 
-            nature access balance in total and on average for the aggregated
+            nature supply and balance for the aggregated
             area.
 
             keys:
-                'ntr_bal_tot'
+                'nature_supply_percapita'
                 'ntr_bal_avg'
     """
 
     nature_access_output_dir = os.path.join(workspace_dir, 'output')
     nature_access_outputs = {
-        'ntr_bal_tot': os.path.join(
-            nature_access_output_dir, 'urban_nature_balance_totalpop.tif'),
+        'nature_supply_percapita': os.path.join(
+            nature_access_output_dir, 'urban_nature_supply_percapita.tif'),
     }
 
     nature_access_results = {}
@@ -190,8 +190,9 @@ def urban_nature_access(workspace_dir):
     balance_dict = _read_field_from_vector(
         balance_vector_path, 'FID', value_field)
     # Currently only aggregating over one large bounding box, so only one entry
-    feat_key = balance_dict.keys()[0]
+    feat_key = list(balance_dict)[0]
     nature_access_results['ntr_bal_avg'] = balance_dict[feat_key]
+    LOGGER.info(nature_access_results)
 
     results_json_path = os.path.join(workspace_dir, "derived_results.json")
     with open(results_json_path, "w") as fp:

@@ -21,6 +21,7 @@ from osgeo import osr
 from PIL import Image
 
 from natcap.invest import urban_cooling_model
+from natcap.invest import urban_nature_access
 from natcap.invest import utils
 
 import carbon_urban_pools  # Modified from natcap.invest.carbon w/ carbon pools
@@ -88,6 +89,7 @@ PIXELSIZE_X, PIXELSIZE_Y = _LULC_RASTER_INFO['pixel_size']
 
 CARBON = 'carbon'
 URBAN_COOLING = 'urban_cooling_model'
+URBAN_NATURE_ACCESS = 'urban_nature_access'
 INVEST_MODELS = {
     URBAN_COOLING: {
         "api": urban_cooling_model,
@@ -98,9 +100,17 @@ INVEST_MODELS = {
         "api": carbon_urban_pools,
         "build_args": invest_args.carbon,
         "derive_results": invest_results.carbon,
+    },
+    URBAN_NATURE_ACCESS: {
+        "api": urban_nature_access,
+        "build_args": invest_args.urban_nature_access,
+        "derive_results": invest_results.urban_nature_access
     }
 }
-LARGEST_SERVICESHED = 2230  # meters https://github.com/natcap/urban-online-workflow/issues/79
+
+# The largest extent LULC needed by invest models is
+# 2x the 800m search radius used by UNA.
+LARGEST_SERVICESHED = 1600
 
 # Quiet logging
 logging.getLogger(f'pygeoprocessing').setLevel(logging.WARNING)
@@ -733,10 +743,11 @@ def do_work(host, port, outputs_location):
                     LOGGER.info(f'Post processing {invest_model} model')
                     model_result_path = model_meta['derive_results'](workspace_dir)
 
-                try:
-                    # For now, we only expect this to work for urban-cooling
+                if invest_model == URBAN_COOLING:
                     serviceshed = args_dict['aoi_vector_path']
-                except KeyError:
+                elif invest_model == URBAN_NATURE_ACCESS:
+                    serviceshed = args_dict['admin_boundaries_vector_path']
+                else:
                     serviceshed = ''
                 data = {
                     'result': {

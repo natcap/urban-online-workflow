@@ -78,3 +78,34 @@ def urban_cooling(lulc_path, workspace_dir, study_area_wkt):
         'ucm_nlcd_simple_nlud_trees.csv')
 
     return args_dict
+
+
+def urban_nature_access(lulc_path, workspace_dir, study_area_wkt):
+    search_radius = 800
+    aoi_geom = shapely.wkt.loads(study_area_wkt).buffer(search_radius)
+    lulc_info = pygeoprocessing.get_raster_info(lulc_path)
+    aoi_vector_path = os.path.join(workspace_dir, 'aoi.geojson')
+    pygeoprocessing.shapely_geometry_to_vector(
+        [aoi_geom], aoi_vector_path, lulc_info['projection_wkt'], 'GEOJSON')
+
+    lulc_attribute_table_path = os.path.join(
+        INVEST_BASE_PATH,
+        'biophysical_tables',
+        'urban_nature_access_nlcd_simple_nlud_trees.csv')
+    population_raster_path = os.path.join(
+        INVEST_BASE_PATH,
+        'population_san_antonio_updated_02_27.tif')
+    args_dict = {
+        "workspace_dir": workspace_dir,
+        "admin_boundaries_vector_path": aoi_vector_path,
+        "aggregate_by_pop_group": False,
+        "decay_function": "dichotomy",
+        "lulc_attribute_table": lulc_attribute_table_path,
+        "lulc_raster_path": lulc_path,
+        "population_raster_path": population_raster_path,
+        "search_radius": search_radius,
+        "search_radius_mode": "uniform radius",
+        "urban_nature_demand": "16.7"
+    }
+
+    return args_dict

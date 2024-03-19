@@ -46,14 +46,11 @@ LOW_PRIORITY = 3
 MEDIUM_PRIORITY = 2
 HIGH_PRIORITY = 1
 
-# InVEST model list
+# The list of models that run
 INVEST_MODELS = [
-    # "pollination",
-    # "stormwater",
     "urban_cooling_model",
-    "carbon"
-    # "urban_flood_risk_mitigation",
-    # "urban_nature_access"
+    "carbon",
+    "urban_nature_access"
 ]
 
 JOB_TYPES = {
@@ -783,7 +780,7 @@ def get_invest_results(scenario_id: int, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=404, detail="InVEST result not found")
     invest_results = {}
-    serviceshed = ''  # For now, only one model has a serviceshed
+    servicesheds = {}
     for row in invest_db_list:
         invest_results_path = row.result
         LOGGER.debug(invest_results_path)
@@ -791,10 +788,10 @@ def get_invest_results(scenario_id: int, db: Session = Depends(get_db)):
             with open(invest_results_path, 'r') as jfp:
                 invest_results.update(json.loads(jfp.read()))
         if row.serviceshed:
-            serviceshed = row.serviceshed
+            servicesheds[row.model_name] = row.serviceshed
     return {
         'results': invest_results,
-        'serviceshed': serviceshed
+        'servicesheds': servicesheds
     }
 
 
