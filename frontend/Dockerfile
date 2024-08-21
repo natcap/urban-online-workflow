@@ -1,4 +1,4 @@
-FROM node:18-bullseye
+FROM node:20
 
 # Just install the packages; the source code will be loaded in later.
 RUN mkdir /opt/frontend
