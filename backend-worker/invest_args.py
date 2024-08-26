@@ -23,38 +23,53 @@ if INVEST_BASE_PATH is None:
         f"Could not find {INVEST_DATA} at any known locations")
 LOGGER.info(f"Using InVEST data at {INVEST_BASE_PATH}")
 
+EVAPOTRANSPIRATION = os.path.join(
+    INVEST_BASE_PATH, "et0_annual_cgiar_3857.tif")
+CARBON_TABLE_PATH = os.path.join(
+    INVEST_BASE_PATH,
+    'carbon__nlcd_nlud_tree.csv')
+UCM_TABLE_PATH = os.path.join(
+    INVEST_BASE_PATH,
+    'ucm__nlcd_nlud_tree.csv')
+UNA_TABLE_PATH = os.path.join(
+    INVEST_BASE_PATH,
+    'una__nlcd_nlud_tree.csv')
+POPULATION_RASTER_PATH = os.path.join(
+    INVEST_BASE_PATH,
+    'population_per_pixel_2020_3857.tif')
+
 
 def carbon(lulc_path, workspace_dir, study_area_wkt):
     args_dict = {
         "workspace_dir": workspace_dir,
         "calc_sequestration": True,
-        "carbon_pools_path": "",
+        "carbon_pools_path": CARBON_TABLE_PATH,
         "do_redd": False,
         "do_valuation": False,
         "lulc_cur_path": lulc_path
     }
 
-    args_dict['carbon_pools_path'] = os.path.join(
-        INVEST_BASE_PATH,
-        'biophysical_tables',
-        'urban_carbon_nlcd_simple_nlud_trees.csv')
-
     return args_dict
 
 
 def urban_cooling(lulc_path, workspace_dir, study_area_wkt):
+    cooling_distance = 450  # meters
+    lulc_info = pygeoprocessing.get_raster_info(lulc_path)
+    aoi_vector_path = os.path.join(workspace_dir, 'aoi.geojson')
+    aoi_geom = shapely.wkt.loads(study_area_wkt).buffer(cooling_distance)
+    pygeoprocessing.shapely_geometry_to_vector(
+        [aoi_geom], aoi_vector_path, lulc_info['projection_wkt'], 'GEOJSON')
+
     # Parameter values from
     # https://github.com/chrisnootenboom/urban-workflow/blob/master/configs/inputs_config.yaml
-    cooling_distance = 450  # meters
-    aoi_vector_path = os.path.join(workspace_dir, 'aoi.geojson')
     args_dict = {
         "workspace_dir": workspace_dir,
         "aoi_vector_path": aoi_vector_path,
         "lulc_raster_path": lulc_path,
+        "biophysical_table_path": UCM_TABLE_PATH,
         "do_energy_valuation": False,
         "do_productivity_valuation": False,
-        "ref_eto_raster_path": os.path.join(
-            INVEST_BASE_PATH, "CGIAR_et0_annual_epsg_3857.tif"),
+        "ref_eto_raster_path": EVAPOTRANSPIRATION,
         "cc_method": "factors",
         "cc_weight_albedo": "0.2",
         "cc_weight_eti": "0.2",
@@ -65,17 +80,6 @@ def urban_cooling(lulc_path, workspace_dir, study_area_wkt):
         "uhi_max": "11"  # TODO: derive from location
         # "uhi_max": "3.56"  # TODO: derive from location
     }
-
-    lulc_info = pygeoprocessing.get_raster_info(lulc_path)
-
-    aoi_geom = shapely.wkt.loads(study_area_wkt).buffer(cooling_distance)
-    pygeoprocessing.shapely_geometry_to_vector(
-        [aoi_geom], aoi_vector_path, lulc_info['projection_wkt'], 'GEOJSON')
-
-    args_dict['biophysical_table_path'] = os.path.join(
-        INVEST_BASE_PATH,
-        'biophysical_tables',
-        'ucm_nlcd_simple_nlud_trees.csv')
 
     return args_dict
 
@@ -88,21 +92,14 @@ def urban_nature_access(lulc_path, workspace_dir, study_area_wkt):
     pygeoprocessing.shapely_geometry_to_vector(
         [aoi_geom], aoi_vector_path, lulc_info['projection_wkt'], 'GEOJSON')
 
-    lulc_attribute_table_path = os.path.join(
-        INVEST_BASE_PATH,
-        'biophysical_tables',
-        'urban_nature_access_nlcd_simple_nlud_trees.csv')
-    population_raster_path = os.path.join(
-        INVEST_BASE_PATH,
-        'population_san_antonio_updated_02_27.tif')
     args_dict = {
         "workspace_dir": workspace_dir,
         "admin_boundaries_vector_path": aoi_vector_path,
         "aggregate_by_pop_group": False,
         "decay_function": "dichotomy",
-        "lulc_attribute_table": lulc_attribute_table_path,
+        "lulc_attribute_table": UNA_TABLE_PATH,
         "lulc_raster_path": lulc_path,
-        "population_raster_path": population_raster_path,
+        "population_raster_path": POPULATION_RASTER_PATH,
         "search_radius": search_radius,
         "search_radius_mode": "uniform radius",
         "urban_nature_demand": "16.7"
