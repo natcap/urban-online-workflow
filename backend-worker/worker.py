@@ -50,7 +50,7 @@ _ALBERS_EQUAL_AREA_SRS.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
 
 LULC_FILENAME = 'lulc_overlay_3857.tif'
 LULC_RASTER_PATHS = {
-    'vsigs': f'/vsigs/natcap-urban-online-datasets-public/{LULC_FILENAME}',
+    'vsigs': f'/vsigs/natcap-urban-online-datasets-public/{LULC_FILENAME}',  # TODO: does not work
     'docker': f'/opt/appdata/{LULC_FILENAME}',
     'local': os.path.join(os.path.dirname(__file__), '..', 'appdata',
                           LULC_FILENAME)

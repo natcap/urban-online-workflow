@@ -148,4 +148,3 @@ class LulcCrosswalk(Base):
     nlcd_lulc = Column(String)
     tree = Column(Integer)
     tree_canopy_cover = Column(String)
-

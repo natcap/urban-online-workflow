@@ -21,3 +21,8 @@ for idx, row in df.iterrows():
 with open('../appdata/lulc_crosswalk.json', 'w', encoding='utf-8') as file:
     jsonstring = json.dumps(data)
     file.write(jsonstring + '\n')
+
+# We use the CSV as the backend of scenario creation menus.
+# It is safe to drop all "unrealistic" LULC types
+filtered_df = df[df.is_realistic_to_create == 'yes']
+filtered_df.to_csv('../appdata/lulc_crosswalk_filtered.csv')
