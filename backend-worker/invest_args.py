@@ -26,13 +26,13 @@ LOGGER.info(f"Using InVEST data at {INVEST_BASE_PATH}")
 EVAPOTRANSPIRATION = os.path.join(
     INVEST_BASE_PATH, "et0_annual_cgiar_3857.tif")
 CARBON_TABLE_PATH = os.path.join(
-    INVEST_BASE_PATH,
+    INVEST_BASE_PATH, 'biophysical_tables',
     'carbon__nlcd_nlud_tree.csv')
 UCM_TABLE_PATH = os.path.join(
-    INVEST_BASE_PATH,
+    INVEST_BASE_PATH, 'biophysical_tables',
     'ucm__nlcd_nlud_tree.csv')
 UNA_TABLE_PATH = os.path.join(
-    INVEST_BASE_PATH,
+    INVEST_BASE_PATH, 'biophysical_tables',
     'una__nlcd_nlud_tree.csv')
 POPULATION_RASTER_PATH = os.path.join(
     INVEST_BASE_PATH,
