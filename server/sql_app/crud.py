@@ -324,7 +324,8 @@ def update_invest(db: Session, scenario_id: int, job_id: int,
 
 
 def get_nlud_tier_2(db: Session):
-    data = db.query(models.LulcCrosswalk.nlud_simple_class).distinct()
+    data = db.query(models.LulcCrosswalk.nlud_simple_class).filter(
+        models.LulcCrosswalk.is_realistic_to_create == 'yes').distinct()
     LOGGER.info(data)
     return data
 
@@ -332,14 +333,16 @@ def get_nlud_tier_2(db: Session):
 def get_nlud_tier_3(db: Session, nlud_tier_2: str):
     return db.query(
         models.LulcCrosswalk.nlud_simple_subclass).filter(
-        models.LulcCrosswalk.nlud_simple_class == nlud_tier_2).distinct()
+        models.LulcCrosswalk.nlud_simple_class == nlud_tier_2,
+        models.LulcCrosswalk.is_realistic_to_create == 'yes').distinct()
 
 
 def get_nlcd(db: Session, nlud_tier_2: str, nlud_tier_3: str):
     return db.query(
         models.LulcCrosswalk.nlcd_lulc).filter(
         models.LulcCrosswalk.nlud_simple_class == nlud_tier_2,
-        models.LulcCrosswalk.nlud_simple_subclass == nlud_tier_3).distinct()
+        models.LulcCrosswalk.nlud_simple_subclass == nlud_tier_3,
+        models.LulcCrosswalk.is_realistic_to_create == 'yes').distinct()
 
 
 # TODO: this set of queries is not optimal because LulcCrosswalk is
