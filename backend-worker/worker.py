@@ -20,11 +20,11 @@ from osgeo import ogr
 from osgeo import osr
 from PIL import Image
 
+from natcap.invest import carbon
 from natcap.invest import urban_cooling_model
 from natcap.invest import urban_nature_access
 from natcap.invest import utils
 
-import carbon_urban_pools  # Modified from natcap.invest.carbon w/ carbon pools
 import invest_args
 import invest_results
 
@@ -97,7 +97,7 @@ INVEST_MODELS = {
         "derive_results": invest_results.urban_cooling,
     },
     CARBON: {
-        "api": carbon_urban_pools,
+        "api": carbon,
         "build_args": invest_args.carbon,
         "derive_results": invest_results.carbon,
     },
