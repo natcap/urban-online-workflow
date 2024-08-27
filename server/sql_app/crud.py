@@ -326,7 +326,6 @@ def update_invest(db: Session, scenario_id: int, job_id: int,
 def get_nlud_tier_2(db: Session):
     data = db.query(models.LulcCrosswalk.nlud_simple_class).filter(
         models.LulcCrosswalk.is_realistic_to_create == 'yes').distinct()
-    LOGGER.info(data)
     return data
 
 
@@ -342,6 +341,15 @@ def get_nlcd(db: Session, nlud_tier_2: str, nlud_tier_3: str):
         models.LulcCrosswalk.nlcd_lulc).filter(
         models.LulcCrosswalk.nlud_simple_class == nlud_tier_2,
         models.LulcCrosswalk.nlud_simple_subclass == nlud_tier_3,
+        models.LulcCrosswalk.is_realistic_to_create == 'yes').distinct()
+
+
+def get_tree(db: Session, nlud_tier_2: str, nlud_tier_3: str, nlcd: str):
+    return db.query(
+        models.LulcCrosswalk.tree_canopy_cover).filter(
+        models.LulcCrosswalk.nlud_simple_class == nlud_tier_2,
+        models.LulcCrosswalk.nlud_simple_subclass == nlud_tier_3,
+        models.LulcCrosswalk.nlcd_lulc == nlcd,
         models.LulcCrosswalk.is_realistic_to_create == 'yes').distinct()
 
 
