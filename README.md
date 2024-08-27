@@ -27,10 +27,6 @@ These are data used by the python worker. Download these to your local
 
 local path which mounts in container | (bucket where source file can be found)
 - `appdata/lulc_overlay_3857.tif` | (natcap-urban-online-datasets-**public**)
-- `appdata/lulc_overlay_3857.tif` | (natcap-urban-online-datasets-**public**)
-- `appdata/lulc_overlay_3857.tif` | (natcap-urban-online-datasets-**public**)
-- `appdata/lulc_overlay_3857.tif` | (natcap-urban-online-datasets-**public**)
-- `appdata/lulc_overlay_3857.tif` | (natcap-urban-online-datasets-**public**)
 
 - `appdata/invest-data/et0_annual_cgiar_3857.tif` | (natcap-urban-online-datasets)
 - `appdata/invest-data/acs_tract_3857.gpkg` | (natcap-urban-online-datasets)
