@@ -373,6 +373,22 @@ export async function getNLCD(tier2, tier3) {
   );
 }
 
+export async function getTreeCover(tier2, tier3, nlcd) {
+  return (
+    window.fetch(`${apiBaseURL}/lucodes/tree`, {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nlud_tier_2: tier2,
+        nlud_tier_3: tier3,
+        nlcd: nlcd,
+      }),
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
+}
+
 export async function getLucode(tier2, tier3, nlcd, tree) {
   return (
     window.fetch(`${apiBaseURL}/lucodes/lucode`, {
