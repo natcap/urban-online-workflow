@@ -41,6 +41,7 @@ import {
   streetMapLayer,
   labelLayer,
   parcelLayer,
+  heatEquityLayer,
 } from './baseLayers';
 import {
   hoveredFeatureStyle,
@@ -175,6 +176,7 @@ const map = new Map({
     scenarioLayerGroup,
     serviceshedLayerUCM,
     serviceshedLayerUNA,
+    heatEquityLayer,
   ],
   view: new View({
     center: [-10964048.932711, 3429505.23069662], // San Antonio, TX EPSG:3857

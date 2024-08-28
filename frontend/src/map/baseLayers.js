@@ -1,11 +1,15 @@
 import XYZ from 'ol/source/XYZ';
 import TileLayer from 'ol/layer/Tile';
 import MapboxVectorLayer from 'ol/layer/MapboxVector';
+import VectorLayer from 'ol/layer/Vector';
+import VectorSource from 'ol/source/Vector';
 import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
+import GeoJSON from 'ol/format/GeoJSON';
 import MVT from 'ol/format/MVT';
 
 import { labels, nonLabels } from './mapboxLayerNames';
+import { publicUrl } from '../utils';
 
 const satelliteLayer = new TileLayer({
   source: new XYZ({
@@ -55,10 +59,21 @@ const parcelLayer = new VectorTileLayer({
 parcelLayer.set('title', 'Parcels');
 parcelLayer.setZIndex(2);
 
+const heatEquityLayer = new VectorLayer({
+  source: new VectorSource({
+    format: new GeoJSON(),
+    url: publicUrl('/opt/appdata/acs_block_group_equity.geojson'),
+  }),
+  minZoom: 12, // don't display this layer below zoom level 14
+});
+heatEquityLayer.set('title', 'Heat Equity');
+heatEquityLayer.setZIndex(2);
+
 export {
   satelliteLayer,
   lightMapLayer,
   streetMapLayer,
   labelLayer,
   parcelLayer,
+  heatEquityLayer,
 };
