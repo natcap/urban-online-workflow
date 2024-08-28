@@ -7,9 +7,11 @@ import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
 import GeoJSON from 'ol/format/GeoJSON';
 import MVT from 'ol/format/MVT';
+import { Fill, Stroke, Style } from 'ol/style';
 
 import { labels, nonLabels } from './mapboxLayerNames';
 import { publicUrl } from '../utils';
+import HEAT_EQUITY_COLORMAP from '../../../appdata/equity_colormap.json';
 
 const satelliteLayer = new TileLayer({
   source: new XYZ({
@@ -64,7 +66,21 @@ const heatEquityLayer = new VectorLayer({
     format: new GeoJSON(),
     url: publicUrl('/opt/appdata/acs_block_group_equity.geojson'),
   }),
-  minZoom: 12, // don't display this layer below zoom level 14
+  style: (feature) => {
+    console.log(feature);
+    const color = HEAT_EQUITY_COLORMAP[feature.get('bivariate_category')];
+    return new Style({
+      // stroke: new Stroke({
+      //   color: highlightedStrokeColor,
+      //   width: 3,
+      //   lineDash: [5, 5],
+      // }),
+      fill: new Fill({
+        color: color,
+      }),
+    });
+  },
+  minZoom: 9, // don't display this layer below zoom level 14
 });
 heatEquityLayer.set('title', 'Heat Equity');
 heatEquityLayer.setZIndex(2);
