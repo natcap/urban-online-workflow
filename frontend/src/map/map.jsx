@@ -247,7 +247,9 @@ export default function MapComponent(props) {
     map.getLayers().forEach(lyr => {
       if (lyr.get('title') === title) {
         lyr.setVisible(visible);
-        setShowLegendControl(lyr.get('type') === 'scenario-group')
+        if (lyr.get('type') === 'scenario-group') {
+          setShowLegendControl(visible);
+        }
       }
     });
     setMapLayers();
@@ -498,7 +500,7 @@ export default function MapComponent(props) {
         }
       });
       map.getLayers().extend([serviceshedLayerUCM, serviceshedLayerUNA]);
-      setVisibility('Labels', false)
+      setVisibility('Labels', false);
     }
   }, [servicesheds]);
 
