@@ -38,7 +38,7 @@ export default function LegendControl(props) {
       {
         (show)
           ? (
-            <div className="map-lulc-legend lulc-legend">
+            <div className="map-legend map-lulc-legend lulc-legend">
               <HTMLSelect
                 onChange={changeLulc}
                 value={lulcType}

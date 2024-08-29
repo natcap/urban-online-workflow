@@ -34,6 +34,7 @@ import { Button, Icon } from '@blueprintjs/core';
 
 import ParcelControl from './parcelControl';
 import LegendControl from './legendControl';
+import EquityLegend from './equityLegend';
 import { lulcTileLayer, getStyle } from './lulcLayer';
 import LayerPanel from './LayerPanel';
 import {
@@ -59,7 +60,7 @@ import {
 } from '../constants';
 
 const GCS_BUCKET = 'https://storage.googleapis.com/natcap-urban-online-datasets-public';
-const BASE_LULC_URL = `${GCS_BUCKET}/lulc_overlay_3857.tif`
+const BASE_LULC_URL = `${GCS_BUCKET}/lulc_overlay_3857.tif`;
 const SCENARIO_LAYER_GROUP_NAME = 'Scenarios';
 
 // JSTS utilities
@@ -207,6 +208,7 @@ export default function MapComponent(props) {
   const [selectedParcel, setSelectedParcel] = useState(null);
   const [hoveredCode, setHoveredCode] = useState(null);
   const [showLegendControl, setShowLegendControl] = useState(false);
+  const [showEquityLegend, setShowEquityLegend] = useState(true);
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
 
@@ -249,6 +251,9 @@ export default function MapComponent(props) {
         lyr.setVisible(visible);
         if (lyr.get('type') === 'scenario-group') {
           setShowLegendControl(visible);
+        }
+        if (lyr.get('type') === 'equity') {
+          setShowEquityLegend(visible);
         }
       }
     });
@@ -551,11 +556,16 @@ export default function MapComponent(props) {
         refreshStudyArea={refreshStudyArea}
         immutableStudyArea={Boolean(scenarios.length)}
       />
-      <LegendControl
-        show={showLegendControl}
-        lulcCode={hoveredCode}
-        setLulcStyle={setLulcStyle}
-      />
+      <div>
+        <LegendControl
+          show={showLegendControl}
+          lulcCode={hoveredCode}
+          setLulcStyle={setLulcStyle}
+        />
+        <EquityLegend
+          show={showEquityLegend}
+        />
+      </div>
     </div>
   );
 }

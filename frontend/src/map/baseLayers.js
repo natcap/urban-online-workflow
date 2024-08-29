@@ -67,7 +67,6 @@ const heatEquityLayer = new VectorLayer({
     url: publicUrl('/opt/appdata/acs_block_group_equity.geojson'),
   }),
   style: (feature) => {
-    console.log(feature);
     const color = HEAT_EQUITY_COLORMAP[feature.get('bivariate_category')];
     return new Style({
       // stroke: new Stroke({
@@ -83,7 +82,8 @@ const heatEquityLayer = new VectorLayer({
   minZoom: 9, // don't display this layer below zoom level 14
 });
 heatEquityLayer.set('title', 'Heat Equity');
-heatEquityLayer.setZIndex(2);
+heatEquityLayer.set('type', 'equity');
+heatEquityLayer.setZIndex(1);
 
 export {
   satelliteLayer,

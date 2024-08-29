@@ -76,19 +76,58 @@ html, body, #root, .App {
   font-weight: 600;
 }
 
-.map-lulc-legend {
+.map-legend {
   background-color: rgba(255,255,255,0.9);
-  display: flex;
-  /*height: 1rem;/*
-  /*padding-bottom: 2rem;*/
-  width: 350px;
   position: absolute;
   bottom: 1rem;
   right: 1rem;
   border-radius: 5px;
-  padding: 0.5rem;
   font-weight: 600;
   align-items: center;
+  text-align: center;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+/*.map-equity-legend {
+  display: grid;
+  gap: 0.3rem;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 0.5rem;
+}*/
+.map-legend table.bp4-html-table {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 0.2rem;
+}
+
+.map-legend table.bp4-html-table td {
+  padding: 0.2rem;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.map-legend .title {
+  font-size: 1.2rem;
+  vertical-align: middle;
+}
+
+.map-legend .axis-title {
+  padding-left: 40px;
+  padding-bottom: 3rem;
+}
+
+.map-lulc-legend {
+  display: flex;
+  /*height: 1rem;/*
+  /*padding-bottom: 2rem;*/
+  width: 350px;
+  padding: 0.5rem;
+}
+
+/*de-saturate to match saturation adjustment in lulcLayer.js*/
+.lulc-legend {
+  filter: saturate(60%);
 }
 
 /*.edit-wallpaper {
@@ -273,11 +312,6 @@ html, body, #root, .App {
 #scenario-table .table-note {
   font-style: italic;
   text-align: center;
-}
-
-/*de-saturate to match saturation adjustment in lulcLayer.js*/
-.lulc-legend {
-  filter: saturate(60%);
 }
 
 #invest-runner {
