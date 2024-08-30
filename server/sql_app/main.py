@@ -88,7 +88,7 @@ event.listen(models.LulcCrosswalk.__table__, 'after_create', insert_lulc_data)
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-origins = ["http://localhost:3000"]
+origins = ["http://localhost:3000", "http://localhost:8080"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
