@@ -42,7 +42,7 @@ import {
   streetMapLayer,
   labelLayer,
   parcelLayer,
-  heatEquityLayer,
+  enviroLayerGroup,
 } from './baseLayers';
 import {
   hoveredFeatureStyle,
@@ -59,8 +59,8 @@ import {
   NATURE_ACCESS_DISTANCE_STR,
 } from '../constants';
 
-const GCS_BUCKET = 'https://storage.googleapis.com/natcap-urban-online-datasets-public';
-const BASE_LULC_URL = `${GCS_BUCKET}/lulc_overlay_3857.tif`;
+// const GCS_BUCKET = 'https://storage.googleapis.com/natcap-urban-online-datasets-public';
+// const BASE_LULC_URL = `${GCS_BUCKET}/lulc_overlay_3857.tif`;
 const SCENARIO_LAYER_GROUP_NAME = 'Scenarios';
 
 // JSTS utilities
@@ -161,13 +161,13 @@ serviceshedLayerUNA.setZIndex(3);
 // Set a default basemap to be visible
 satelliteLayer.setVisible(true);
 
-const lulcLayer = lulcTileLayer(BASE_LULC_URL, 'Landcover', 'base');
+// const lulcLayer = lulcTileLayer(BASE_LULC_URL, 'Landcover', 'enviro');
 
 const map = new Map({
   layers: [
     satelliteLayer,
     streetMapLayer,
-    lulcLayer,
+    // lulcLayer,
     parcelLayer,
     selectionLayer,
     hoveredLayer,
@@ -177,7 +177,7 @@ const map = new Map({
     scenarioLayerGroup,
     serviceshedLayerUCM,
     serviceshedLayerUNA,
-    heatEquityLayer,
+    enviroLayerGroup,
   ],
   view: new View({
     center: [-10964048.932711, 3429505.23069662], // San Antonio, TX EPSG:3857
@@ -233,6 +233,13 @@ export default function MapComponent(props) {
         scenarioLayerGroup.getVisible(),
       ],
     );
+    lyrs.push(
+      [
+        enviroLayerGroup.get('type'),
+        enviroLayerGroup.get('title'),
+        enviroLayerGroup.getVisible(),
+      ],
+    );
     setLayers(lyrs);
   };
 
@@ -266,7 +273,17 @@ export default function MapComponent(props) {
         layer.setVisible(layer.get('title') === title);
       }
     });
-    setShowLegendControl(title === 'Landcover');
+    // setShowLegendControl(title === 'Landcover');
+    setMapLayers();
+  };
+
+  const switchEnviro = (title) => {
+    map.getAllLayers().forEach((layer) => {
+      if (layer.get('type') === 'enviro') {
+        layer.setVisible(layer.get('title') === title);
+      }
+    });
+    // setShowLegendControl(title === 'Landcover');
     setMapLayers();
   };
 
@@ -544,6 +561,7 @@ export default function MapComponent(props) {
           layers={layers}
           setVisibility={setVisibility}
           switchBasemap={switchBasemap}
+          switchEnviro={switchEnviro}
           switchScenario={switchScenario}
           selectedScenario={selectedScenario}
         />

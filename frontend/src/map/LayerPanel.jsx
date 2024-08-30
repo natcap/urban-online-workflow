@@ -30,11 +30,13 @@ export default function LayerPanel(props) {
     setVisibility,
     show,
     switchBasemap,
+    switchEnviro,
     switchScenario,
     selectedScenario,
   } = props;
 
   const [scenario, setScenario] = useState(null);
+  const [enviro, setEnviro] = useState(null);
   const [basemap, setBasemap] = useState(null);
 
   useEffect(() => {
@@ -42,6 +44,11 @@ export default function LayerPanel(props) {
       if (type === 'base') {
         if (isVisible) {
           setBasemap(title);
+        }
+      }
+      if (type === 'enviro') {
+        if (isVisible) {
+          setEnviro(title);
         }
       } else if (type === 'scenario') {
         if (isVisible) {
@@ -65,6 +72,12 @@ export default function LayerPanel(props) {
     setBasemap(title);
   };
 
+  const handleChangeEnviro = (event) => {
+    const title = event.target.value;
+    switchEnviro(title);
+    setEnviro(title);
+  };
+
   const handleChangeScenario = (event) => {
     const title = event.target.value;
     switchScenario(title);
@@ -73,7 +86,9 @@ export default function LayerPanel(props) {
 
   const checkboxes = [];
   const basemaps = [];
+  const enviros = [];
   const scenarios = [];
+  let enviroGroupCheckbox;
   let scenarioGroupCheckbox;
   layers.forEach(([type, title, isVisible]) => {
     if (!title) {
@@ -95,8 +110,26 @@ export default function LayerPanel(props) {
           value={title}
         />
       );
+    } else if (type === 'enviro') {
+      enviros.push(
+        <Radio
+          key={title}
+          label={title}
+          value={title}
+        />
+      );
     } else if (type === 'scenario-group') {
       scenarioGroupCheckbox = (
+        <LayerCheckbox
+          className="subheader"
+          key={title}
+          label={title}
+          checked={isVisible}
+          toggle={() => setVisibility(title, !isVisible)}
+        />
+      );
+    } else if (type === 'enviro-group') {
+      enviroGroupCheckbox = (
         <LayerCheckbox
           className="subheader"
           key={title}
@@ -135,6 +168,13 @@ export default function LayerPanel(props) {
           )
           : <div />
       }
+      {enviroGroupCheckbox}
+      <RadioGroup
+        onChange={handleChangeEnviro}
+        selectedValue={enviro}
+      >
+        {enviros}
+      </RadioGroup>
       <p
         htmlFor="basemaps-group"
         className="subheader"

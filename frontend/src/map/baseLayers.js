@@ -1,4 +1,6 @@
+import Collection from 'ol/Collection';
 import XYZ from 'ol/source/XYZ';
+import LayerGroup from 'ol/layer/Group';
 import TileLayer from 'ol/layer/Tile';
 import MapboxVectorLayer from 'ol/layer/MapboxVector';
 import VectorLayer from 'ol/layer/Vector';
@@ -10,8 +12,13 @@ import MVT from 'ol/format/MVT';
 import { Fill, Stroke, Style } from 'ol/style';
 
 import { labels, nonLabels } from './mapboxLayerNames';
+import { lulcTileLayer, getStyle } from './lulcLayer';
 import { publicUrl } from '../utils';
 import HEAT_EQUITY_COLORMAP from '../../../appdata/equity_colormap.json';
+
+const GCS_BUCKET = 'https://storage.googleapis.com/natcap-urban-online-datasets-public';
+const BASE_LULC_URL = `${GCS_BUCKET}/lulc_overlay_3857.tif`;
+const lulcLayer = lulcTileLayer(BASE_LULC_URL, 'Landcover', 'enviro');
 
 const satelliteLayer = new TileLayer({
   source: new XYZ({
@@ -61,6 +68,7 @@ const parcelLayer = new VectorTileLayer({
 parcelLayer.set('title', 'Parcels');
 parcelLayer.setZIndex(2);
 
+
 const heatEquityLayer = new VectorLayer({
   source: new VectorSource({
     format: new GeoJSON(),
@@ -82,8 +90,14 @@ const heatEquityLayer = new VectorLayer({
   minZoom: 9, // don't display this layer below zoom level 14
 });
 heatEquityLayer.set('title', 'Heat Equity');
-heatEquityLayer.set('type', 'equity');
+heatEquityLayer.set('type', 'enviro');
 heatEquityLayer.setZIndex(1);
+
+const enviroLayerGroup = new LayerGroup({});
+enviroLayerGroup.set('type', 'enviro-group');
+enviroLayerGroup.set('title', 'Environment');
+enviroLayerGroup.setZIndex(1);
+enviroLayerGroup.setLayers(new Collection([lulcLayer, heatEquityLayer]));
 
 export {
   satelliteLayer,
@@ -91,5 +105,5 @@ export {
   streetMapLayer,
   labelLayer,
   parcelLayer,
-  heatEquityLayer,
+  enviroLayerGroup,
 };
