@@ -820,9 +820,17 @@ def get_nlcd(nlud_dict: dict[str, str],
     return [row.nlcd_lulc for row in db_list]
 
 
-# TODO: will all 3 tree cover classes always be present for each category?
-# or do we need another query to find out which are present?
-# related to https://github.com/natcap/urban-online-workflow/issues/124
+@app.post("/lucodes/tree")
+def get_tree(lulc_dict: dict[str, str],
+             db: Session = Depends(get_db)) -> list[str]:
+    db_list = crud.get_tree(
+        db,
+        nlud_tier_2=lulc_dict['nlud_tier_2'],
+        nlud_tier_3=lulc_dict['nlud_tier_3'],
+        nlcd=lulc_dict['nlcd'])
+    return [row.tree_canopy_cover for row in db_list]
+
+
 @app.post("/lucodes/lucode")
 def get_lucode(lulc_dict: schemas.LulcRequest,
                db: Session = Depends(get_db)) -> Optional[int]:

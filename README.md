@@ -27,11 +27,16 @@ These are data used by the python worker. Download these to your local
 
 local path which mounts in container | (bucket where source file can be found)
 - `appdata/lulc_overlay_3857.tif` | (natcap-urban-online-datasets-**public**)
-- `appdata/invest-data/CGIAR_et0_annual_epsg_3857.tif` | (natcap-urban-online-datasets)
+
+- `appdata/invest-data/et0_annual_cgiar_3857.tif` | (natcap-urban-online-datasets)
 - `appdata/invest-data/acs_tract_3857.gpkg` | (natcap-urban-online-datasets)
 - `appdata/invest-data/acs_tract_poverty.csv` | (natcap-urban-online-datasets)
 - `appdata/invest-data/acs_tract_race.csv` | (natcap-urban-online-datasets)
-- `appdata/invest-data/population_san_antonio_updated_02_27.tif` | (natcap-urban-online-datasets)
+- `appdata/invest-data/population_per_pixel_2020_3857.tif` | (natcap-urban-online-datasets)
+
+Data Documentation:
+https://drive.google.com/drive/u/1/folders/1FxlHVWFfICc5j-f7z9sWUBrVJj1Lw1zQ
+https://drive.google.com/drive/u/1/folders/1ZUF_RLc2L-fglFdsJOVg-xSD7J9Gz1BF
 
 
 ## Necessary API tokens

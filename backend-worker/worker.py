@@ -20,11 +20,11 @@ from osgeo import ogr
 from osgeo import osr
 from PIL import Image
 
+from natcap.invest import carbon
 from natcap.invest import urban_cooling_model
 from natcap.invest import urban_nature_access
 from natcap.invest import utils
 
-import carbon_urban_pools  # Modified from natcap.invest.carbon w/ carbon pools
 import invest_args
 import invest_results
 
@@ -50,7 +50,7 @@ _ALBERS_EQUAL_AREA_SRS.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
 
 LULC_FILENAME = 'lulc_overlay_3857.tif'
 LULC_RASTER_PATHS = {
-    'vsigs': f'/vsigs/natcap-urban-online-datasets-public/{LULC_FILENAME}',
+    'vsigs': f'/vsigs/natcap-urban-online-datasets-public/{LULC_FILENAME}',  # TODO: does not work
     'docker': f'/opt/appdata/{LULC_FILENAME}',
     'local': os.path.join(os.path.dirname(__file__), '..', 'appdata',
                           LULC_FILENAME)
@@ -97,7 +97,7 @@ INVEST_MODELS = {
         "derive_results": invest_results.urban_cooling,
     },
     CARBON: {
-        "api": carbon_urban_pools,
+        "api": carbon,
         "build_args": invest_args.carbon,
         "derive_results": invest_results.carbon,
     },

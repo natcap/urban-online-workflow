@@ -8,19 +8,19 @@ import {
   getNLUDTier2,
   getNLUDTier3,
   getNLCD,
+  getTreeCover,
   getLucode,
 } from '../requests';
-
-const treeOptions = ['none', 'low', 'medium', 'high'];
 
 export default function LulcMenu(props) {
   const [nlud2Options, setNlud2Options] = useState([]);
   const [nlud3Options, setNlud3Options] = useState([]);
   const [nlcdOptions, setNlcdOptions] = useState([]);
+  const [treeOptions, setTreeOptions] = useState([]);
   const [nlud2, setNlud2] = useState(null);
   const [nlud3, setNlud3] = useState(null);
   const [nlcd, setNlcd] = useState(null);
-  const [tree, setTree] = useState(treeOptions[0]);
+  const [tree, setTree] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -48,7 +48,17 @@ export default function LulcMenu(props) {
         setNlcd(options[0]);
       }
     })();
-  }, [nlud3]);
+  }, [nlud2, nlud3]);
+
+  useEffect(() => {
+    (async () => {
+      if ([nlud2, nlud3, nlcd].every((x) => typeof x === 'string')) {
+        const options = await getTreeCover(nlud2, nlud3, nlcd);
+        setTreeOptions(options);
+        setTree(options[0]);
+      }
+    })();
+  }, [nlud2, nlud3, nlcd]);
 
   useEffect(() => {
     if ([nlud2, nlud3, nlcd, tree].every((x) => typeof x === 'string')) {

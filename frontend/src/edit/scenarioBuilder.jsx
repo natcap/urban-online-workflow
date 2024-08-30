@@ -50,6 +50,7 @@ export default function ScenarioBuilder(props) {
   }, (jobID && scenarioID) ? 1000 : null);
 
   const submitScenario = async (event) => {
+    event.preventDefault();
     if (!scenarioNames.includes('baseline')) {
       const sid = await createScenario(activeStudyAreaID, 'baseline', 'crop');
       await lulcCrop(sid);
@@ -75,7 +76,9 @@ export default function ScenarioBuilder(props) {
   }
 
   return (
-    <form className="panel">
+    <form className="panel"
+      onSubmit={submitScenario}
+    >
       <label className="sidebar-subheading">
         Create a scenario:
       </label>
