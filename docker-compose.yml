@@ -1,4 +1,14 @@
 services:
+    nginx-proxy:
+      build: nginx-proxy
+      ports:
+        #- 80:80
+        - 8080:80
+      depends_on:
+        - frontend
+        - api
+        - worker
+        - fileserver
     frontend:
         build: frontend
         command: yarn start-docker
