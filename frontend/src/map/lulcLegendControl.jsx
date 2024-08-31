@@ -19,7 +19,7 @@ const LULC_TYPES = {
   tree: 'tree cover',
 };
 
-export default function LegendControl(props) {
+export default function LULCLegendControl(props) {
   const {
     lulcCode,
     setLulcStyle,

@@ -33,7 +33,7 @@ import OverlayOp from 'jsts/org/locationtech/jts/operation/overlay/OverlayOp';
 import { Button, Icon } from '@blueprintjs/core';
 
 import ParcelControl from './parcelControl';
-import LegendControl from './legendControl';
+import LULCLegendControl from './legendControl';
 import EquityLegend from './equityLegend';
 import { lulcTileLayer, getStyle } from './lulcLayer';
 import LayerPanel from './LayerPanel';
@@ -207,8 +207,8 @@ export default function MapComponent(props) {
   const [showLayerControl, setShowLayerControl] = useState(false);
   const [selectedParcel, setSelectedParcel] = useState(null);
   const [hoveredCode, setHoveredCode] = useState(null);
-  const [showLegendControl, setShowLegendControl] = useState(false);
-  const [showEquityLegend, setShowEquityLegend] = useState(true);
+  const [showLULCLegend, setShowLULCLegend] = useState(false);
+  const [showEquityLegend, setShowEquityLegend] = useState(false);
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
 
@@ -240,6 +240,22 @@ export default function MapComponent(props) {
         enviroLayerGroup.getVisible(),
       ],
     );
+    let landcoverVis = false;
+    const landcoverLayer = map.getAllLayers().find(
+      (layer) => layer.get('title') === 'Landcover'
+    );
+    if (landcoverLayer) {
+      landcoverVis = landcoverLayer.getVisible();
+    }
+    let equityLayers = [];
+    equityLayers = equityLayers.concat(map.getAllLayers().find(
+      (layer) => Boolean(layer.get('title')) && layer.get('title').includes('Equity')
+    ));
+    const equityVis = equityLayers.some((x => x.getVisible()));
+    setShowLULCLegend(
+      (landcoverVis && enviroLayerGroup.getVisible()) || scenarioLayerGroup.getVisible()
+    );
+    setShowEquityLegend(equityVis && enviroLayerGroup.getVisible());
     setLayers(lyrs);
   };
 
@@ -252,16 +268,12 @@ export default function MapComponent(props) {
   const setVisibility = (title, visible) => {
     // Use getLayers instead of getAllLayers
     // so that this can work for Layers and LayerGroups.
-    // But note this will not reach Layers w/in Groups.
+    // But note this will not reach Layers within Groups.
+    // For Layers within groups, we use the dedicated
+    // switch* methods below.
     map.getLayers().forEach(lyr => {
       if (lyr.get('title') === title) {
         lyr.setVisible(visible);
-        if (lyr.get('type') === 'scenario-group') {
-          setShowLegendControl(visible);
-        }
-        if (lyr.get('type') === 'equity') {
-          setShowEquityLegend(visible);
-        }
       }
     });
     setMapLayers();
@@ -273,7 +285,6 @@ export default function MapComponent(props) {
         layer.setVisible(layer.get('title') === title);
       }
     });
-    // setShowLegendControl(title === 'Landcover');
     setMapLayers();
   };
 
@@ -283,7 +294,6 @@ export default function MapComponent(props) {
         layer.setVisible(layer.get('title') === title);
       }
     });
-    // setShowLegendControl(title === 'Landcover');
     setMapLayers();
   };
 
@@ -575,8 +585,8 @@ export default function MapComponent(props) {
         immutableStudyArea={Boolean(scenarios.length)}
       />
       <div>
-        <LegendControl
-          show={showLegendControl}
+        <LULCLegendControl
+          show={showLULCLegend}
           lulcCode={hoveredCode}
           setLulcStyle={setLulcStyle}
         />
