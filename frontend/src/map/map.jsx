@@ -427,7 +427,7 @@ export default function MapComponent(props) {
       map.getAllLayers().forEach((layer) => {
         // Need to check base Landcover vs Scenario layers since scenario
         // layers will be in front of base Landcover
-        if (layer.get('title') === 'Landcover' && layer.get('type') === 'base') {
+        if (layer.get('title') === 'Landcover') {
           if (layer.getVisible()) {
             baseData = layer.getData(event.pixel);
           }
@@ -440,13 +440,14 @@ export default function MapComponent(props) {
       if (scenarioData && scenarioData[1]) { // check band [1] for nodata
         // Get here if a Scenario LULC is visible
         setHoveredCode(scenarioData[0].toString());
-      } else if (baseData && baseData[1]) {
+        return;
+      }
+      if (baseData && baseData[1]) {
         // Base LULC visible but no Scenario LULC visible
         setHoveredCode(baseData[0].toString());
-      } else {
-        // No scenario LULC or base LULC selected / visible
-        setHoveredCode(null);
+        return;
       }
+      setHoveredCode(null);
     });
 
     // Some layers have style dependent on zoom level
@@ -491,6 +492,7 @@ export default function MapComponent(props) {
     // A naive approach where we don't need to know if scenarios changed
     // because a new one was created, or because the study area was switched.
     map.removeLayer(scenarioLayerGroup);
+    scenarioLayerGroup.setVisible(false);
     if (scenarios.length) {
       const scenarioLayers = [];
       scenarios.forEach((scene) => {
@@ -502,8 +504,8 @@ export default function MapComponent(props) {
       mostRecentLyr.setVisible(true);
       scenarioLayers.push(mostRecentLyr);
       scenarioLayerGroup.setLayers(new Collection(scenarioLayers));
+      scenarioLayerGroup.setVisible(true);
       map.addLayer(scenarioLayerGroup);
-      setShowLULCLegend(true);
     }
     clearSelection();
   }, [scenarios]);
@@ -592,14 +594,14 @@ export default function MapComponent(props) {
         refreshStudyArea={refreshStudyArea}
         immutableStudyArea={Boolean(scenarios.length)}
       />
-      <div>
+      <div className="legend-container">
+        <EquityLegend
+          show={showEquityLegend}
+        />
         <LULCLegendControl
           show={showLULCLegend}
           lulcCode={hoveredCode}
           setLulcStyle={setLulcStyle}
-        />
-        <EquityLegend
-          show={showEquityLegend}
         />
       </div>
     </div>
