@@ -91,7 +91,7 @@ const heatEquityLayer = new VectorLayer({
 });
 heatEquityLayer.set('title', 'Heat Equity');
 heatEquityLayer.set('type', 'enviro');
-// heatEquityLayer.setZIndex(1);
+heatEquityLayer.setOpacity(0.7);
 
 const enviroLayerGroup = new LayerGroup({});
 enviroLayerGroup.set('type', 'enviro-group');

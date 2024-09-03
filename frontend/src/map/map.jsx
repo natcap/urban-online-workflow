@@ -24,7 +24,7 @@ import {
   Translate,
   defaults as defaultInteractions,
 } from 'ol/interaction';
-import { defaults } from 'ol/control';
+import { defaults, ZoomToExtent } from 'ol/control';
 
 import OL3Parser from 'jsts/org/locationtech/jts/io/OL3Parser';
 import WKTWriter from 'jsts/org/locationtech/jts/io/WKTWriter';
@@ -33,13 +33,14 @@ import OverlayOp from 'jsts/org/locationtech/jts/operation/overlay/OverlayOp';
 import { Button, Icon } from '@blueprintjs/core';
 
 import ParcelControl from './parcelControl';
-import LULCLegendControl from './legendControl';
+import LULCLegendControl from './lulcLegendControl';
 import EquityLegend from './equityLegend';
 import { lulcTileLayer, getStyle } from './lulcLayer';
 import LayerPanel from './LayerPanel';
 import {
   satelliteLayer,
   streetMapLayer,
+  lightMapLayer,
   labelLayer,
   parcelLayer,
   enviroLayerGroup,
@@ -166,6 +167,7 @@ satelliteLayer.setVisible(true);
 const map = new Map({
   layers: [
     satelliteLayer,
+    lightMapLayer,
     streetMapLayer,
     // lulcLayer,
     parcelLayer,
@@ -187,7 +189,13 @@ const map = new Map({
   controls: defaults({
     rotate: false,
     attribution: true,
-  }),
+  }).extend([
+    new ZoomToExtent({
+      extent: [
+        -11009102, 3400218, -10932324, 3471028
+      ],
+    }),
+  ]),
 });
 
 export default function MapComponent(props) {
@@ -495,7 +503,7 @@ export default function MapComponent(props) {
       scenarioLayers.push(mostRecentLyr);
       scenarioLayerGroup.setLayers(new Collection(scenarioLayers));
       map.addLayer(scenarioLayerGroup);
-      setShowLegendControl(true);
+      setShowLULCLegend(true);
     }
     clearSelection();
   }, [scenarios]);
