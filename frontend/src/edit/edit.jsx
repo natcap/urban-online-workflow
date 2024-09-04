@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 import {
   FocusStyleManager,
+  Section,
   Tab,
   Tabs,
 } from '@blueprintjs/core';
@@ -13,6 +14,7 @@ import StudyAreaTable from './studyAreaTable';
 import InputStudyAreaName from './inputStudyAreaName';
 import InvestRunner from './investRunner';
 import Results from './results';
+import Explore from './explore';
 import { getInvestResults } from '../requests';
 
 import nlcdLookup from '../../../appdata/nlcd_colormap.json';
@@ -43,9 +45,12 @@ export default function EditMenu(props) {
     savedStudyAreas,
     setSelectedScenario,
     setServicesheds,
+    setActiveTab,
+    activeTab,
+    startBuilding,
   } = props;
 
-  const [activeTab, setActiveTab] = useState('scenarios');
+  // const [activeTab, setActiveTab] = useState('explore');
   const [results, setResults] = useState({});
   const [scenarioDescriptions, setScenarioDescriptions] = useState(null);
 
@@ -115,6 +120,15 @@ export default function EditMenu(props) {
         selectedTabId={activeTab}
       >
         <Tab
+          id="explore"
+          title="explore"
+          panel={(
+            <Explore
+              startBuilding={startBuilding}
+            />
+          )}
+        />
+        <Tab
           id="scenarios"
           title="scenarios"
           panel={(
@@ -148,9 +162,14 @@ export default function EditMenu(props) {
                     />
                   )
                   : (
-                    <p className="sidebar-subheading">
-                      <span>Click on the map to add parcels</span>
-                    </p>
+                    <Section
+                      title="Get Started"
+                    >
+                      <ol>
+                        <li>Click on the map to select a parcel</li>
+                        <li>Add any number of parcels to a study area</li>
+                      </ol>
+                    </Section>
                   )
               }
               <ScenarioBuilder

@@ -25,6 +25,8 @@ export default function App() {
   const [patternSampleWKT, setPatternSampleWKT] = useState(null);
   const [selectedScenario, setSelectedScenario] = useState(null);
   const [servicesheds, setServicesheds] = useState({});
+  const [activeTab, setActiveTab] = useState('explore');
+  const [start, setStart] = useState(0);
 
   const switchStudyArea = async (id) => {
     let area;
@@ -65,6 +67,11 @@ export default function App() {
 
   const togglePatternSamplingMode = () => {
     setPatternSamplingMode((mode) => !mode);
+  };
+
+  const startBuilding = () => {
+    setStart((start) => start + 1);
+    setActiveTab('scenarios');
   };
 
   useEffect(() => {
@@ -121,6 +128,8 @@ export default function App() {
               scenarios={scenarios}
               selectedScenario={selectedScenario}
               servicesheds={servicesheds}
+              activeTab={activeTab}
+              start={start}
             />
             <EditMenu
               key={studyArea.id}
@@ -138,6 +147,9 @@ export default function App() {
               patternSampleWKT={patternSampleWKT}
               setSelectedScenario={setSelectedScenario}
               setServicesheds={setServicesheds}
+              setActiveTab={setActiveTab}
+              activeTab={activeTab}
+              startBuilding={startBuilding}
             />
           </div>
         </div>

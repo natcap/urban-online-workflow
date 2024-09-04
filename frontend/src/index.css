@@ -77,17 +77,26 @@ html, body, #root, .App {
   font-weight: 600;
 }
 
-.legend-container {
+.layer-info div {
+  display: flex;
+}
+
+.layer-info button:first-child {
+  flex-grow: 1;
+}
+
+/*.legend-container {
   position: absolute;
   bottom: 1rem;
   right: 1rem;
-}
+}*/
 
-.map-legend {
+/*.map-legend {*/
+.legend-container {
   background-color: rgba(255,255,255,0.9);
-  /*position: absolute;
+  position: absolute;
   bottom: 1rem;
-  right: 1rem;*/
+  right: 1rem;
   border-radius: 5px;
   font-weight: 600;
   align-items: center;
@@ -102,24 +111,24 @@ html, body, #root, .App {
   grid-template-columns: repeat(3, 1fr);
   padding: 0.5rem;
 }*/
-.map-legend table.bp4-html-table {
+.equity-legend table.bp4-html-table {
   padding-left: 1rem;
   padding-right: 1rem;
   padding-top: 0.2rem;
 }
 
-.map-legend table.bp4-html-table td {
+.equity-legend table.bp4-html-table td {
   padding: 0.2rem;
   text-align: center;
   vertical-align: middle;
 }
 
-.map-legend .title {
+.equity-legend .title {
   font-size: 1.2rem;
   vertical-align: middle;
 }
 
-.map-legend .axis-title {
+.equity-legend .axis-title {
   padding-left: 40px;
   padding-bottom: 3rem;
 }

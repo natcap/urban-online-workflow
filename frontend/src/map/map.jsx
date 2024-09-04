@@ -210,7 +210,10 @@ export default function MapComponent(props) {
     scenarios,
     selectedScenario,
     servicesheds,
+    activeTab,
+    start,
   } = props;
+  console.log(activeTab)
   const [layers, setLayers] = useState([]);
   const [showLayerControl, setShowLayerControl] = useState(false);
   const [selectedParcel, setSelectedParcel] = useState(null);
@@ -349,6 +352,18 @@ export default function MapComponent(props) {
   };
 
   useEffect(() => {
+    const center = [-10968819.475036152, 3423289.328458109];
+    if (start) {
+      setVisibility('Environment', false);
+      const view = map.getView();
+      view.animate({
+        center: center,
+        zoom: 17,
+      });
+    }
+  }, [start]);
+
+  useEffect(() => {
     if (selectedScenario) { switchScenario(selectedScenario); }
   }, [selectedScenario]);
 
@@ -387,6 +402,7 @@ export default function MapComponent(props) {
     );
 
     map.on(['click'], async (event) => {
+      console.log(map.getCoordinateFromPixel(event.pixel));
       // NOTE that a feature's geometry can change with the tile/zoom level and
       // view position and so its coordinates will change slightly.
       parcelLayer.getFeatures(event.pixel).then(async (features) => {
@@ -596,7 +612,7 @@ export default function MapComponent(props) {
       />
       <div className="legend-container">
         <EquityLegend
-          show={showEquityLegend}
+          show={showEquityLegend && (activeTab != 'explore')}
         />
         <LULCLegendControl
           show={showLULCLegend}

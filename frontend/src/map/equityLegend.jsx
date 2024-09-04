@@ -44,9 +44,9 @@ export default function EquityLegend(props) {
 
   if (show) {
     return (
-        <div className="map-legend">
+        <div className="equity-legend">
           <span className="title">Heat Equity</span>
-          <HTMLTable compact className="equity-legend">
+          <HTMLTable compact>
             <tbody>
               {colorBlocks}
             </tbody>
