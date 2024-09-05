@@ -74,6 +74,7 @@ export default function LayerPanel(props) {
 
   const handleChangeEnviro = (event) => {
     const title = event.target.value;
+    console.log(title)
     switchEnviro(title);
     setEnviro(title);
   };

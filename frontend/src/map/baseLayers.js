@@ -68,36 +68,52 @@ const parcelLayer = new VectorTileLayer({
 parcelLayer.set('title', 'Parcels');
 parcelLayer.setZIndex(2);
 
-
-const heatEquityLayer = new VectorLayer({
+const incomeEquityLayer = new VectorLayer({
   source: new VectorSource({
     format: new GeoJSON(),
     url: publicUrl('/opt/appdata/acs_block_group_equity.geojson'),
   }),
   style: (feature) => {
-    const color = HEAT_EQUITY_COLORMAP[feature.get('bivariate_category')];
+    const color = HEAT_EQUITY_COLORMAP[feature.get('bivariate_income_temperature')];
     return new Style({
-      // stroke: new Stroke({
-      //   color: highlightedStrokeColor,
-      //   width: 3,
-      //   lineDash: [5, 5],
-      // }),
       fill: new Fill({
         color: color,
       }),
     });
   },
-  minZoom: 9, // don't display this layer below zoom level 14
+  minZoom: 9,
 });
-heatEquityLayer.set('title', 'Heat Equity');
-heatEquityLayer.set('type', 'enviro');
-heatEquityLayer.setOpacity(0.7);
+incomeEquityLayer.set('title', 'Heat-Income Equity');
+incomeEquityLayer.set('type', 'enviro');
+incomeEquityLayer.setOpacity(0.7);
+
+const bipocEquityLayer = new VectorLayer({
+  source: new VectorSource({
+    format: new GeoJSON(),
+    url: publicUrl('/opt/appdata/acs_block_group_equity.geojson'),
+  }),
+  style: (feature) => {
+    const color = HEAT_EQUITY_COLORMAP[feature.get('bivariate_bipoc_temperature')];
+    return new Style({
+      fill: new Fill({
+        color: color,
+      }),
+    });
+  },
+  minZoom: 9,
+});
+bipocEquityLayer.set('title', 'Heat-Race Equity');
+bipocEquityLayer.set('type', 'enviro');
+bipocEquityLayer.setOpacity(0.7);
+bipocEquityLayer.setVisible(false);
 
 const enviroLayerGroup = new LayerGroup({});
 enviroLayerGroup.set('type', 'enviro-group');
 enviroLayerGroup.set('title', 'Environment');
 enviroLayerGroup.setZIndex(1);
-enviroLayerGroup.setLayers(new Collection([lulcLayer, heatEquityLayer]));
+enviroLayerGroup.setLayers(
+  new Collection([lulcLayer, incomeEquityLayer, bipocEquityLayer])
+);
 
 export {
   satelliteLayer,

@@ -6,9 +6,15 @@ import {
 
 import colormap from '../../../appdata/equity_colormap.json';
 
+const LABELS = {
+  'Heat-Income Equity': 'Income',
+  'Heat-Race Equity': '% Black, Indigenous, and People of Color',
+};
+
 export default function EquityLegend(props) {
   const {
     show,
+    equityLayerTitle,
   } = props;
 
   const matrix = [
@@ -45,13 +51,13 @@ export default function EquityLegend(props) {
   if (show) {
     return (
         <div className="equity-legend">
-          <span className="title">Heat Equity</span>
+          <span className="title">{equityLayerTitle}</span>
           <HTMLTable compact>
             <tbody>
               {colorBlocks}
             </tbody>
           </HTMLTable>
-          <span className="axis-title">% BIPOC</span>
+          <span className="axis-title">{LABELS[equityLayerTitle]}</span>
         </div>
     );
   }

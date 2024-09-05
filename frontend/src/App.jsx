@@ -24,6 +24,7 @@ export default function App() {
   const [patternSamplingMode, setPatternSamplingMode] = useState(false);
   const [patternSampleWKT, setPatternSampleWKT] = useState(null);
   const [selectedScenario, setSelectedScenario] = useState(null);
+  const [selectedEquityLayer, setSelectedEquityLayer] = useState(null);
   const [servicesheds, setServicesheds] = useState({});
   const [activeTab, setActiveTab] = useState('explore');
   const [start, setStart] = useState(0);
@@ -130,6 +131,8 @@ export default function App() {
               setPatternSampleWKT={setPatternSampleWKT}
               scenarios={scenarios}
               selectedScenario={selectedScenario}
+              setSelectedEquityLayer={setSelectedEquityLayer}
+              selectedEquityLayer={selectedEquityLayer}
               servicesheds={servicesheds}
               activeTab={activeTab}
               start={start}
@@ -150,6 +153,7 @@ export default function App() {
               patternSampleWKT={patternSampleWKT}
               setSelectedScenario={setSelectedScenario}
               setServicesheds={setServicesheds}
+              selectedEquityLayer={selectedEquityLayer}
               setActiveTab={setActiveTab}
               activeTab={activeTab}
               startBuilding={startBuilding}

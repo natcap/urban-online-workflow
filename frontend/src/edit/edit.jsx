@@ -45,6 +45,7 @@ export default function EditMenu(props) {
     savedStudyAreas,
     setSelectedScenario,
     setServicesheds,
+    selectedEquityLayer,
     setActiveTab,
     activeTab,
     startBuilding,
@@ -125,6 +126,7 @@ export default function EditMenu(props) {
           panel={(
             <Explore
               startBuilding={startBuilding}
+              equityLayerTitle={selectedEquityLayer}
             />
           )}
         />

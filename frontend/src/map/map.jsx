@@ -210,10 +210,11 @@ export default function MapComponent(props) {
     scenarios,
     selectedScenario,
     servicesheds,
+    setSelectedEquityLayer,
+    selectedEquityLayer,
     activeTab,
     start,
   } = props;
-  console.log(activeTab)
   const [layers, setLayers] = useState([]);
   const [showLayerControl, setShowLayerControl] = useState(false);
   const [selectedParcel, setSelectedParcel] = useState(null);
@@ -251,6 +252,7 @@ export default function MapComponent(props) {
         enviroLayerGroup.getVisible(),
       ],
     );
+
     let landcoverVis = false;
     const landcoverLayer = map.getAllLayers().find(
       (layer) => layer.get('title') === 'Landcover'
@@ -258,15 +260,24 @@ export default function MapComponent(props) {
     if (landcoverLayer) {
       landcoverVis = landcoverLayer.getVisible();
     }
+
     let equityLayers = [];
-    equityLayers = equityLayers.concat(map.getAllLayers().find(
-      (layer) => Boolean(layer.get('title')) && layer.get('title').includes('Equity')
+    equityLayers = equityLayers.concat(map.getAllLayers().filter(
+      (layer) => (
+        Boolean(layer.get('title'))
+        && layer.get('title').includes('Equity')
+        && layer.getVisible()
+      )
     ));
-    const equityVis = equityLayers.some((x => x.getVisible()));
+    // only 0 or 1 equity layer can be visible at a time
+    if (equityLayers.length) {
+      setSelectedEquityLayer(equityLayers[0].get('title'));
+    }
+
     setShowLULCLegend(
       (landcoverVis && enviroLayerGroup.getVisible()) || scenarioLayerGroup.getVisible()
     );
-    setShowEquityLegend(equityVis && enviroLayerGroup.getVisible());
+    setShowEquityLegend(equityLayers.length && enviroLayerGroup.getVisible());
     setLayers(lyrs);
   };
 
@@ -614,6 +625,7 @@ export default function MapComponent(props) {
       <div className="legend-container">
         <EquityLegend
           show={showEquityLegend && (activeTab != 'explore')}
+          equityLayerTitle={selectedEquityLayer}
         />
         <LULCLegendControl
           show={showLULCLegend}

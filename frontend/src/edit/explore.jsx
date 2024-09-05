@@ -25,8 +25,10 @@ how these scenarios impact urban heating, access to nature, and
 carbon sequestration.`;
 
 export default function Explore(props) {
-
-  const { startBuilding } = props;
+  const {
+    startBuilding,
+    equityLayerTitle,
+  } = props;
   return (
     <div id="explore" data-testid="explore">
       <Section>
@@ -34,6 +36,7 @@ export default function Explore(props) {
         <SectionCard>
           <EquityLegend
             show={true}
+            equityLayerTitle={equityLayerTitle}
           />
         </SectionCard>
         <SectionCard>{ECO_TEXT}</SectionCard>
