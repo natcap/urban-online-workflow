@@ -36,41 +36,41 @@ export default function EquityLegend(props) {
     equityLayerTitle,
   } = props;
 
-  const colorBlocks = [];
-  MATRICES[equityLayerTitle].forEach((row) => {
-    const blocks = [];
-    row.forEach((idx) => {
-      if (typeof idx === 'number') {
-        const color = colormap[idx];
-        blocks.push(
-          <td>
-            <div
-              style={{
-                backgroundColor: color,
-                width: '40px',
-                height: '40px',
-              }}
-            />
-          </td>,
-        );
-      } else {
-        blocks.push(<td>{idx}</td>);
-      }
+  if (show && equityLayerTitle) {
+    const colorBlocks = [];
+    MATRICES[equityLayerTitle].forEach((row) => {
+      const blocks = [];
+      row.forEach((idx) => {
+        if (typeof idx === 'number') {
+          const color = colormap[idx];
+          blocks.push(
+            <td>
+              <div
+                style={{
+                  backgroundColor: color,
+                  width: '40px',
+                  height: '40px',
+                }}
+              />
+            </td>,
+          );
+        } else {
+          blocks.push(<td>{idx}</td>);
+        }
+      });
+      colorBlocks.push(<tr>{blocks}</tr>);
     });
-    colorBlocks.push(<tr>{blocks}</tr>);
-  });
 
-  if (show) {
     return (
-        <div className="equity-legend">
-          <span className="title">{equityLayerTitle}</span>
-          <HTMLTable compact>
-            <tbody>
-              {colorBlocks}
-            </tbody>
-          </HTMLTable>
-          <span className="axis-title">{LABELS[equityLayerTitle]}</span>
-        </div>
+      <div className="equity-legend">
+        <span className="title">{equityLayerTitle}</span>
+        <HTMLTable compact>
+          <tbody>
+            {colorBlocks}
+          </tbody>
+        </HTMLTable>
+        <span className="axis-title">{LABELS[equityLayerTitle]}</span>
+      </div>
     );
   }
   return <div />;

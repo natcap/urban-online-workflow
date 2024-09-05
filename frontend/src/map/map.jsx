@@ -357,7 +357,7 @@ export default function MapComponent(props) {
       studyAreaSource.getExtent(),
       {
         padding: [10, 10, 10, 10], // pixels
-        maxZoom: 16,
+        maxZoom: 18,
       },
     );
   };
@@ -413,7 +413,7 @@ export default function MapComponent(props) {
     );
 
     map.on(['click'], async (event) => {
-      console.log(map.getCoordinateFromPixel(event.pixel));
+      // console.log(map.getCoordinateFromPixel(event.pixel));
       // NOTE that a feature's geometry can change with the tile/zoom level and
       // view position and so its coordinates will change slightly.
       parcelLayer.getFeatures(event.pixel).then(async (features) => {
