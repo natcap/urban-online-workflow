@@ -9,10 +9,12 @@ import {
 import EquityLegend from '../map/equityLegend';
 
 const INTRO_TEXT = `
-San Antonio, TX is hot. Some neighborhoods are hotter than others.
-Explore environmental inequalities with respect to concentrations of
-Black, Indigenous, and People of Color (BIPOC) and to
-income levels.`;
+San Antonio, TX faces the challenge of staying cool in its hot climate, 
+but not all neighborhoods receive equal help from nature. Some areas benefit 
+more from natural cooling than others, highlighting environmental inequities, 
+especially in neighborhoods with higher concentrations of Black, Indigenous, 
+and People of Color (BIPOC) and lower income levels. Explore how these 
+disparities affect the city’s ability to cope with rising temperatures.`;
 
 const ECO_TEXT = `
 Characteristics of the natural and built environment influence

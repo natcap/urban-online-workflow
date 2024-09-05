@@ -11,21 +11,33 @@ const LABELS = {
   'Heat-Race Equity': '% BIPOC',
 };
 
+const bipocMatrix = [
+  ['hotter', 2, 12, 22],
+  ['', 1, 11, 21],
+  ['cooler', 0, 10, 20],
+  ['', 'less', '', 'more'],
+];
+
+const incomeMatrix = [
+  ['hotter', 22, 12, 2],
+  ['', 21, 11, 1],
+  ['cooler', 20, 10, 0],
+  ['', 'less', '', 'more'],
+];
+
+const MATRICES = {
+  'Heat-Income Equity': incomeMatrix,
+  'Heat-Race Equity': bipocMatrix,
+};
+
 export default function EquityLegend(props) {
   const {
     show,
     equityLayerTitle,
   } = props;
 
-  const matrix = [
-    ['hotter', 2, 12, 22],
-    ['', 1, 11, 21],
-    ['cooler', 0, 10, 20],
-    ['', 'less', '', 'more'],
-  ];
-
   const colorBlocks = [];
-  matrix.forEach((row) => {
+  MATRICES[equityLayerTitle].forEach((row) => {
     const blocks = [];
     row.forEach((idx) => {
       if (typeof idx === 'number') {
