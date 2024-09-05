@@ -8,7 +8,7 @@ import colormap from '../../../appdata/equity_colormap.json';
 
 const LABELS = {
   'Heat-Income Equity': 'Income',
-  'Heat-Race Equity': '% Black, Indigenous, and People of Color',
+  'Heat-Race Equity': '% BIPOC',
 };
 
 export default function EquityLegend(props) {

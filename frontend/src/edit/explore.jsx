@@ -10,7 +10,9 @@ import EquityLegend from '../map/equityLegend';
 
 const INTRO_TEXT = `
 San Antonio, TX is hot. Some neighborhoods are hotter than others.
-Explore racial and income inequalities with respect to urban heat.`;
+Explore environmental inequalities with respect to concentrations of
+Black, Indigenous, and People of Color (BIPOC) and to
+income levels.`;
 
 const ECO_TEXT = `
 Characteristics of the natural and built environment influence
