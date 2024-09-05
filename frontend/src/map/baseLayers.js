@@ -68,17 +68,24 @@ const parcelLayer = new VectorTileLayer({
 parcelLayer.set('title', 'Parcels');
 parcelLayer.setZIndex(2);
 
+const equitySource = new VectorSource({
+  format: new GeoJSON(),
+  url: publicUrl('/opt/appdata/acs_block_group_equity.geojson'),
+});
+const equityStroke = new Stroke({
+  color: 'rgba(0, 0, 0, 0.8)',
+  width: 0.5,
+});
+
 const incomeEquityLayer = new VectorLayer({
-  source: new VectorSource({
-    format: new GeoJSON(),
-    url: publicUrl('/opt/appdata/acs_block_group_equity.geojson'),
-  }),
+  source: equitySource,
   style: (feature) => {
     const color = HEAT_EQUITY_COLORMAP[feature.get('bivariate_income_temperature')];
     return new Style({
       fill: new Fill({
         color: color,
       }),
+      stroke: equityStroke,
     });
   },
   minZoom: 9,
@@ -88,16 +95,14 @@ incomeEquityLayer.set('type', 'enviro');
 incomeEquityLayer.setOpacity(0.7);
 
 const bipocEquityLayer = new VectorLayer({
-  source: new VectorSource({
-    format: new GeoJSON(),
-    url: publicUrl('/opt/appdata/acs_block_group_equity.geojson'),
-  }),
+  source: equitySource,
   style: (feature) => {
     const color = HEAT_EQUITY_COLORMAP[feature.get('bivariate_bipoc_temperature')];
     return new Style({
       fill: new Fill({
         color: color,
       }),
+      stroke: equityStroke,
     });
   },
   minZoom: 9,
