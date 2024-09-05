@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 
 import {
-  HTMLTable,
   Button,
-  Section,
 } from '@blueprintjs/core';
 
 import useInterval from '../hooks/useInterval';

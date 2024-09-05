@@ -521,6 +521,7 @@ export default function MapComponent(props) {
       scenarioLayers.push(mostRecentLyr);
       scenarioLayerGroup.setLayers(new Collection(scenarioLayers));
       scenarioLayerGroup.setVisible(true);
+      enviroLayerGroup.setVisible(false); // if scenarios are on, hide enviros.
       map.addLayer(scenarioLayerGroup);
     }
     clearSelection();

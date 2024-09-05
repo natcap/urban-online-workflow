@@ -70,7 +70,9 @@ export default function App() {
   };
 
   const startBuilding = () => {
-    setStart((start) => start + 1);
+    if (!studyArea.parcels.length) {
+      setStart((start) => start + 1);
+    }
     setActiveTab('scenarios');
   };
 
@@ -98,6 +100,7 @@ export default function App() {
           area.parcels.length > 0
         ));
         if (areas.length) {
+          setActiveTab('scenarios');
           setSavedStudyAreas(areas);
           await switchStudyArea(areas[0].id); // TODO: switch to most recently created
         } else {
