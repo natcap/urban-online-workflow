@@ -123,7 +123,6 @@ html, body, #root, .App {
 
 .equity-legend .axis-title {
   padding-left: 40px;
-  padding-bottom: 3rem;
   font-weight: 600;
 }
 
@@ -177,24 +176,20 @@ html, body, #root, .App {
 }
 
 .lulc-select {
+  display: flex;
+  justify-content: space-between;
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
 }
 
-.lulc-select p {
-  display: inline-block;
-  white-space: nowrap;
-  width: 16%;
+.lulc-select div {
+  flex-basis: 70%;
 }
 
-.lulc-select #nlud-subtype {
-  display:inline-block;
+#nlud-subtype span {
   font-style: italic;
-}
-
-.lulc-select .bp4-html-select {
-  margin-left: 1rem;
-  margin-right: 1rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .wallpaper-options {

@@ -73,37 +73,41 @@ export default function LulcMenu(props) {
     return (
       <div id="landuse-select-form">
         <label className="lulc-select">
-          <p>Landuse type:</p>
+          Landuse type:
           <HTMLSelect
             onChange={(event) => setNlud2(event.target.value)}
             value={nlud2}
+            iconName="caret-down"
           >
             {nlud2Options.map((name) => <option key={name} value={name}>{name}</option>)}
           </HTMLSelect>
-          <label id="nlud-subtype">
-            subtype:
-            <HTMLSelect
-              onChange={(event) => setNlud3(event.target.value)}
-              value={nlud3}
-            >
-              {nlud3Options.map((name) => <option key={name} value={name}>{name}</option>)}
-            </HTMLSelect>
-          </label>
+        </label>
+        <label className="lulc-select" id="nlud-subtype">
+          Landuse subtype:
+          <HTMLSelect
+            onChange={(event) => setNlud3(event.target.value)}
+            value={nlud3}
+            iconName="caret-down"
+          >
+            {nlud3Options.map((name) => <option key={name} value={name}>{name}</option>)}
+          </HTMLSelect>
         </label>
         <label className="lulc-select">
-          <p>Landcover:</p>
+          Landcover:
           <HTMLSelect
             onChange={(event) => setNlcd(event.target.value)}
             value={nlcd}
+            iconName="caret-down"
           >
             {nlcdOptions.map((name) => <option key={name} value={name}>{name}</option>)}
           </HTMLSelect>
         </label>
         <label className="lulc-select">
-          <p>Tree Cover:</p>
+          Tree Cover:
           <HTMLSelect
             onChange={(event) => setTree(event.target.value)}
             value={tree}
+            iconName="caret-down"
           >
             {treeOptions.map((name) => <option key={name} value={name}>{name}</option>)}
           </HTMLSelect>
