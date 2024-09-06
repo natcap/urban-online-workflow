@@ -216,7 +216,7 @@ export default function MapComponent(props) {
     start,
   } = props;
   const [layers, setLayers] = useState([]);
-  const [showLayerControl, setShowLayerControl] = useState(false);
+  const [showLayerControl, setShowLayerControl] = useState(true);
   const [selectedParcel, setSelectedParcel] = useState(null);
   const [hoveredCode, setHoveredCode] = useState(null);
   const [showLULCLegend, setShowLULCLegend] = useState(false);
@@ -366,6 +366,7 @@ export default function MapComponent(props) {
     const center = [-10968819.475036152, 3423289.328458109];
     if (start) {
       setVisibility('Environment', false);
+      setShowLayerControl(false);
       const view = map.getView();
       view.animate({
         center: center,

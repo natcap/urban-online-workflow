@@ -28,6 +28,7 @@ export default function App() {
   const [servicesheds, setServicesheds] = useState({});
   const [activeTab, setActiveTab] = useState('explore');
   const [start, setStart] = useState(0);
+  const [firstVisit, setFirstVisit] = useState(true);
 
   const switchStudyArea = async (id) => {
     let area;
@@ -81,6 +82,7 @@ export default function App() {
     (async () => {
       let SID = localStorage.getItem('sessionID');
       if (SID) {
+        setFirstVisit(false);
         const session = await getSession(SID);
         if (session && session.id) {
           setSessionID(SID);
@@ -138,6 +140,7 @@ export default function App() {
               start={start}
             />
             <EditMenu
+              firstVisit={firstVisit}
               key={studyArea.id}
               sessionID={sessionID}
               studyArea={studyArea}

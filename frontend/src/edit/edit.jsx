@@ -31,6 +31,7 @@ FocusStyleManager.onlyShowFocusOnTabs();
 
 export default function EditMenu(props) {
   const {
+    firstVisit,
     nameStudyArea,
     refreshStudyArea,
     refreshScenarios,
@@ -133,6 +134,7 @@ export default function EditMenu(props) {
         <Tab
           id="scenarios"
           title="scenarios"
+          disabled={firstVisit}
           panel={(
             <div>
               {
