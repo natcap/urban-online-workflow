@@ -87,32 +87,15 @@ html, body, #root, .App {
   flex-grow: 1;
 }
 
-/*.legend-container {
-  position: absolute;
-  bottom: 1rem;
-  right: 1rem;
-}*/
-
-/*.map-legend {*/
 .legend-container {
   background-color: rgba(255,255,255,0.9);
   position: absolute;
   bottom: 1rem;
   right: 1rem;
   border-radius: 5px;
-  /*font-weight: 600;
-  align-items: center;
-  text-align: center;*/
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
 }
-
-/*.map-equity-legend {
-  display: grid;
-  gap: 0.3rem;
-  grid-template-columns: repeat(3, 1fr);
-  padding: 0.5rem;
-}*/
 
 .equity-legend {
   text-align: center;
@@ -146,8 +129,6 @@ html, body, #root, .App {
 
 .map-lulc-legend {
   display: flex;
-  /*height: 1rem;/*
-  /*padding-bottom: 2rem;*/
   font-weight: 600;
   align-items: center;
   text-align: center;
@@ -171,7 +152,6 @@ html, body, #root, .App {
 
 .sidebar-subheading {
   padding-top: 1rem;
-  /*font-weight: 600;*/
   font-size: 1.2rem;
 }
 
@@ -309,20 +289,9 @@ html, body, #root, .App {
   width: 120px;
 }
 
-/*.study-area-table .parcel-block {
-  display: flex;
-  flex-wrap:  wrap;
-}*/
-
 .study-area-table .hidden-row {
   display: none;
 }
-
-/*.study-area-table-legend {
-  display: flex;
-  height: 1rem;
-  padding-bottom: 2rem;
-}*/
 
 #scenario-table {
   padding-top: 1rem;
