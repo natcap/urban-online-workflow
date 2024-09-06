@@ -6,6 +6,7 @@ import '@testing-library/jest-dom/extend-expect';
 
 import TileLayer from 'ol/layer/Tile';
 import VectorTileLayer from 'ol/layer/VectorTile';
+import VectorLayer from 'ol/layer/Vector';
 import Source from 'ol/source/Source';
 
 import App from '../src/App';
@@ -48,6 +49,7 @@ vi.mock('../src/map/baseLayers', () => {
     streetMapLayer: new TileLayer(),
     labelLayer: new TileLayer(),
     parcelLayer: new VectorTileLayer(),
+    enviroLayerGroup: new VectorLayer(),
   };
 });
 
@@ -68,8 +70,7 @@ test('results panel is linked to map layers', async () => {
   expect(resultsTab).toBeEnabled();
 
   // Scenarios layers should be enabled
-  const layersBtn = await screen.findByRole('button', { name: 'open map layers panel' });
-  await user.click(layersBtn);
+  // The map's layer panel is open by default, look for it's checkbox.
   const scenarioCheckbox = await screen.getByRole('checkbox', { name: /scenarios/i });
   expect(scenarioCheckbox).toBeChecked();
 

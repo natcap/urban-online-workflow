@@ -22,6 +22,7 @@ vi.mock('../src/requests', () => {
 function renderEdit(studyArea, scenarios, patternSamplingMode = false) {
   const screen = render(
     <Edit
+      firstVisit={false}
       key="A"
       sessionID="A"
       studyArea={studyArea}
@@ -37,6 +38,10 @@ function renderEdit(studyArea, scenarios, patternSamplingMode = false) {
       patternSampleWKT={null}
       setSelectedScenario={() => {}}
       setServicesheds={() => {}}
+      selectedEquityLayer={null}
+      setActiveTab={() => {}}
+      activeTab="scenarios"
+      startBuilding={() => {}}
     />
   );
   return screen;
