@@ -22,7 +22,7 @@ const incomeMatrix = [
   ['hotter', 22, 12, 2],
   ['', 21, 11, 1],
   ['cooler', 20, 10, 0],
-  ['', 'less', '', 'more'],
+  ['', 'lower', '', 'higher'],
 ];
 
 const MATRICES = {

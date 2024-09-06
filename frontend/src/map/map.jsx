@@ -503,6 +503,7 @@ export default function MapComponent(props) {
     // A naive approach where we don't need to know if studyAreaParcels changed
     // because a study area was modified, or because the study area was switched.
     studyAreaSource.clear();
+    map.removeLayer(studyAreaLayer);
     if (studyAreaParcels.length) {
       const features = studyAreaParcels.map((parcel) => {
         const feature = wktFormat.readFeature(parcel.wkt, {
@@ -512,6 +513,7 @@ export default function MapComponent(props) {
         return feature;
       });
       studyAreaSource.addFeatures(features);
+      map.addLayer(studyAreaLayer);
       zoomToStudyArea();
     }
   }, [studyAreaParcels]);
