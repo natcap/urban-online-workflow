@@ -60,8 +60,6 @@ import {
   NATURE_ACCESS_DISTANCE_STR,
 } from '../constants';
 
-// const GCS_BUCKET = 'https://storage.googleapis.com/natcap-urban-online-datasets-public';
-// const BASE_LULC_URL = `${GCS_BUCKET}/lulc_overlay_3857.tif`;
 const SCENARIO_LAYER_GROUP_NAME = 'Scenarios';
 
 // JSTS utilities
@@ -162,14 +160,11 @@ serviceshedLayerUNA.setZIndex(3);
 // Set a default basemap to be visible
 satelliteLayer.setVisible(true);
 
-// const lulcLayer = lulcTileLayer(BASE_LULC_URL, 'Landcover', 'enviro');
-
 const map = new Map({
   layers: [
     satelliteLayer,
     lightMapLayer,
     streetMapLayer,
-    // lulcLayer,
     parcelLayer,
     selectionLayer,
     hoveredLayer,
@@ -627,7 +622,7 @@ export default function MapComponent(props) {
       />
       <div className="legend-container">
         <EquityLegend
-          show={showEquityLegend && (activeTab != 'explore')}
+          show={showEquityLegend && (activeTab !== 'explore')}
           equityLayerTitle={selectedEquityLayer}
         />
         <LULCLegendControl
