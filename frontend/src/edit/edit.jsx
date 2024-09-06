@@ -16,6 +16,7 @@ import InvestRunner from './investRunner';
 import Results from './results';
 import Explore from './explore';
 import { getInvestResults } from '../requests';
+import { publicUrl } from '../utils';
 
 import nlcdLookup from '../../../appdata/nlcd_colormap.json';
 import nludLookup from '../../../appdata/nlud_colormap.json';
@@ -170,7 +171,13 @@ export default function EditMenu(props) {
                       title="Get Started"
                     >
                       <ol>
-                        <li>Click on the map to select a parcel</li>
+                        <li>
+                          <p>Click on the map to select a parcel</p>
+                          <img
+                            src={publicUrl('/opt/appdata/parcel_select_crop.gif')}
+                            width="100"
+                          />
+                        </li>
                         <li>Add any number of parcels to a study area</li>
                       </ol>
                     </Section>
