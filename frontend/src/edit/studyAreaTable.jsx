@@ -36,6 +36,7 @@ export default function StudyAreaTable(props) {
   const [lulcType, setLulcType] = useState('nlcd');
 
   const deleteParcel = async (parcelID) => {
+    setHoveredParcel(null);
     await removeParcel(parcelID, studyAreaID);
     refreshStudyArea();
   };
