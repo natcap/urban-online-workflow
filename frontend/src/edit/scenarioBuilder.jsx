@@ -3,10 +3,7 @@ import React, { useState } from 'react';
 import {
   Button,
   InputGroup,
-  Radio,
-  RadioGroup,
-  Section,
-  Spinner
+  Spinner,
 } from '@blueprintjs/core';
 
 import useInterval from '../hooks/useInterval';

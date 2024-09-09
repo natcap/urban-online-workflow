@@ -72,6 +72,9 @@ export default function App() {
   };
 
   const startBuilding = () => {
+    // If the session already contains a study area
+    // it means the user already knows how to use the app
+    // and we should skip the starting map scene.
     if (!studyArea.parcels.length) {
       setStart((start) => start + 1);
     }

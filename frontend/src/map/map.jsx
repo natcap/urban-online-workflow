@@ -358,6 +358,9 @@ export default function MapComponent(props) {
   };
 
   useEffect(() => {
+    // This is basically a listener for the "Get Started" button.
+    // New users will start with this map scene, intended to make
+    // it easy to select a parcel and start building a scenario.
     const center = [-10968819.475036152, 3423289.328458109];
     if (start) {
       setVisibility('Environment', false);

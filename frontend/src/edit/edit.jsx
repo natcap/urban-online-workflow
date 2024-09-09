@@ -53,7 +53,6 @@ export default function EditMenu(props) {
     startBuilding,
   } = props;
 
-  // const [activeTab, setActiveTab] = useState('explore');
   const [results, setResults] = useState({});
   const [scenarioDescriptions, setScenarioDescriptions] = useState(null);
 
