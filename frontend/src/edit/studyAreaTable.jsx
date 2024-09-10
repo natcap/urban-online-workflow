@@ -36,6 +36,7 @@ export default function StudyAreaTable(props) {
   const [lulcType, setLulcType] = useState('nlcd');
 
   const deleteParcel = async (parcelID) => {
+    setHoveredParcel(null);
     await removeParcel(parcelID, studyAreaID);
     refreshStudyArea();
   };
@@ -57,7 +58,7 @@ export default function StudyAreaTable(props) {
     <tr key="header">
       <td>
         <Button
-          icon={hiddenRowClass ? 'Maximize' : 'Minimize'}
+          icon={hiddenRowClass ? 'maximize' : 'minimize'}
           onClick={toggleRows}
         />
       </td>
