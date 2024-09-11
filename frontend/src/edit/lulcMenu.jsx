@@ -64,6 +64,7 @@ export default function LulcMenu(props) {
     if ([nlud2, nlud3, nlcd, tree].every((x) => typeof x === 'string')) {
       (async () => {
         const code = await getLucode(nlud2, nlud3, nlcd, tree);
+        console.log(code)
         props.setLucode(code);
       })();
     }

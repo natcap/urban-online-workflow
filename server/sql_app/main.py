@@ -66,7 +66,7 @@ JOB_TYPES = {
 def insert_lulc_data(target, connection, **kw):
     LOGGER.info('importing LULC Crosswalk table')
     # https://docs.sqlalchemy.org/en/20/_modules/examples/performance/bulk_inserts.html
-    with open(LULC_CSV_PATH, 'r') as file:
+    with open(LULC_CSV_PATH, 'r', encoding='utf-8-sig') as file:
         reader = csv.DictReader(file)
         connection.execute(
             models.LulcCrosswalk.__table__.insert(),
