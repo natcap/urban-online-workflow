@@ -3,9 +3,7 @@ import React, { useState } from 'react';
 import {
   Button,
   InputGroup,
-  Radio,
-  RadioGroup,
-  Spinner
+  Spinner,
 } from '@blueprintjs/core';
 
 import useInterval from '../hooks/useInterval';
@@ -41,7 +39,6 @@ export default function ScenarioBuilder(props) {
   useInterval(async () => {
     // There are sometimes two jobs submitted concurrently.
     // They are in a priority queue, so for now monitor the lower priority one.
-    console.log('checking status for job', jobID);
     const status = await getJobStatus(jobID);
     if (status === 'success') {
       refreshScenarios();
@@ -83,7 +80,7 @@ export default function ScenarioBuilder(props) {
         Create a scenario:
       </label>
       <p><em>choose new landuse and landcover for the study area</em></p>
-      <RadioGroup
+      {/*<RadioGroup
         className="conversion-radio"
         inline
         onChange={(event) => setConversionOption(event.target.value)}
@@ -91,7 +88,7 @@ export default function ScenarioBuilder(props) {
       >
         <Radio key="fill" value="fill" label="fill" />
         <Radio key="wallpaper" value="wallpaper" label="wallpaper" disabled/>
-      </RadioGroup>
+      </RadioGroup>*/}
       <div>
         {
           (conversionOption === 'fill')
@@ -113,9 +110,6 @@ export default function ScenarioBuilder(props) {
         }
       </div>
       <div id="scenario-input-label">
-        {/*TODO: This subscript is a note to self, related to
-        https://github.com/natcap/urban-online-workflow/issues/124*/}
-        <sub>{singleLULC}</sub>
         {
           (jobID)
             ? <Spinner size="20" />

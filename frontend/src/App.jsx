@@ -24,7 +24,11 @@ export default function App() {
   const [patternSamplingMode, setPatternSamplingMode] = useState(false);
   const [patternSampleWKT, setPatternSampleWKT] = useState(null);
   const [selectedScenario, setSelectedScenario] = useState(null);
+  const [selectedEquityLayer, setSelectedEquityLayer] = useState(null);
   const [servicesheds, setServicesheds] = useState({});
+  const [activeTab, setActiveTab] = useState('explore');
+  const [start, setStart] = useState(0);
+  const [firstVisit, setFirstVisit] = useState(true);
 
   const switchStudyArea = async (id) => {
     let area;
@@ -67,10 +71,21 @@ export default function App() {
     setPatternSamplingMode((mode) => !mode);
   };
 
+  const startBuilding = () => {
+    // If the session already contains a study area
+    // it means the user already knows how to use the app
+    // and we should skip the starting map scene.
+    if (!studyArea.parcels.length) {
+      setStart((start) => start + 1);
+    }
+    setActiveTab('scenarios');
+  };
+
   useEffect(() => {
     (async () => {
       let SID = localStorage.getItem('sessionID');
       if (SID) {
+        setFirstVisit(false);
         const session = await getSession(SID);
         if (session && session.id) {
           setSessionID(SID);
@@ -91,6 +106,7 @@ export default function App() {
           area.parcels.length > 0
         ));
         if (areas.length) {
+          setActiveTab('scenarios');
           setSavedStudyAreas(areas);
           await switchStudyArea(areas[0].id); // TODO: switch to most recently created
         } else {
@@ -120,9 +136,14 @@ export default function App() {
               setPatternSampleWKT={setPatternSampleWKT}
               scenarios={scenarios}
               selectedScenario={selectedScenario}
+              setSelectedEquityLayer={setSelectedEquityLayer}
+              selectedEquityLayer={selectedEquityLayer}
               servicesheds={servicesheds}
+              activeTab={activeTab}
+              start={start}
             />
             <EditMenu
+              firstVisit={firstVisit}
               key={studyArea.id}
               sessionID={sessionID}
               studyArea={studyArea}
@@ -138,6 +159,10 @@ export default function App() {
               patternSampleWKT={patternSampleWKT}
               setSelectedScenario={setSelectedScenario}
               setServicesheds={setServicesheds}
+              selectedEquityLayer={selectedEquityLayer}
+              setActiveTab={setActiveTab}
+              activeTab={activeTab}
+              startBuilding={startBuilding}
             />
           </div>
         </div>

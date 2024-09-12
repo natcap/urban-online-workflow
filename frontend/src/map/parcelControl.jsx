@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 
 import {
-  HTMLTable,
   Button,
 } from '@blueprintjs/core';
 
@@ -46,33 +45,28 @@ export default function ParcelControl(props) {
     setJobID(jid.job_id);
   };
 
-  return (
-    <div className="layer-info">
-      {(!parcel)
-        ? <p>Select a parcel</p>
-        : (
-          <>
-            <HTMLTable bordered>
-              <tbody>
-                <tr key="parcel">
-                  <td key="id">{parcel.parcelID}</td>
-                  <td key="address">{parcel.address || '123 Main St'}</td>
-                </tr>
-              </tbody>
-            </HTMLTable>
-            <Button
-              onClick={() => handleClick(parcel)}
-              icon="Add"
-              disabled={immutableStudyArea}
-            >
-              Add to study area
-            </Button>
-            <Button
-              onClick={clearSelection}
-              icon="remove"
-            />
-          </>
-        )}
-    </div>
-  );
+  if (parcel) {
+    return (
+      <div className="layer-info">
+        <p>{parcel.address}</p>
+        <div>
+          <Button
+            onClick={() => handleClick(parcel)}
+            icon="add"
+            disabled={immutableStudyArea}
+            intent="primary"
+          >
+            Add to study area
+          </Button>
+          <Button
+            onClick={clearSelection}
+            icon="remove"
+          >
+            Clear
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  return <div />;
 }

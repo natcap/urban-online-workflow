@@ -121,7 +121,7 @@ function ResultsDescription(props) {
   return (
     <ul>
       <li>
-        <Icon icon="Flash" />
+        <Icon icon="flash" />
         <p>
           <span>
             The average daytime high <b>temperature</b> during August is expected to
