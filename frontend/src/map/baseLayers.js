@@ -18,6 +18,7 @@ import HEAT_EQUITY_COLORMAP from './equity_colormap.json';
 
 const GCS_BUCKET = 'https://storage.googleapis.com/natcap-urban-online-datasets-public';
 const BASE_LULC_URL = `${GCS_BUCKET}/lulc_overlay_3857.tif`;
+const HEAT_EQUITY_URL = `${GCS_BUCKET}/acs_block_group_equity.geojson`;
 const lulcLayer = lulcTileLayer(BASE_LULC_URL, 'Landcover', 'enviro');
 
 const satelliteLayer = new TileLayer({
@@ -70,7 +71,7 @@ parcelLayer.setZIndex(2);
 
 const equitySource = new VectorSource({
   format: new GeoJSON(),
-  url: publicUrl('/opt/appdata/acs_block_group_equity.geojson'),
+  url: HEAT_EQUITY_URL,
 });
 const equityStroke = new Stroke({
   color: 'rgba(0, 0, 0, 0.8)',
