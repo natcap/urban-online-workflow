@@ -88,10 +88,11 @@ event.listen(models.LulcCrosswalk.__table__, 'after_create', insert_lulc_data)
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-origins = ["http://localhost:3000", "http://localhost:8080"]
+origins = ["http://localhost:3000", "http://35.238.129.2", "http://35.238.129.2:8000"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    #allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],  # despite this *, PATCH does not pass CORS
     allow_headers=["*"],
@@ -147,6 +148,7 @@ def create_session(db: Session = Depends(get_db)):
 @app.get("/session/{session_id}", response_model=schemas.Session)
 def read_session(session_id: str, db: Session = Depends(get_db)):
     db_session = crud.get_session(db, session_id=session_id)
+    print(db_session)
     if db_session is None:
         raise HTTPException(status_code=404, detail="Session not found")
     return db_session

@@ -1,6 +1,7 @@
 import patternsTable from './edit/patternsTable'; // TODO: this is temp
 
-const apiBaseURL = 'http://127.0.0.1:8000';
+//const apiBaseURL = 'http://127.0.0.1:8000';
+const apiBaseURL = 'http://35.238.129.2:8000';
 
 
 /**
