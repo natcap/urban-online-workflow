@@ -79,6 +79,10 @@ export default function App() {
       setStart((start) => start + 1);
     }
     setActiveTab('scenarios');
+    // First visitors should have no other choice but to
+    // click Get Started, after which we can remove
+    // the "firstVisit" guardrails.
+    setFirstVisit(false);
   };
 
   useEffect(() => {
