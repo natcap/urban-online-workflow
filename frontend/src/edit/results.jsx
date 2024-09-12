@@ -266,24 +266,24 @@ export default function Results(props) {
   return (
     <div id="results" data-testid="results">
       <div className="panel" key={scenarioName}>
-        <h4>
-          In scenario,
-          <HTMLSelect
-            aria-label="select scenario"
-            onChange={(event) => changeScenario(event.currentTarget.value)}
-            value={scenarioName || ''}
-          >
-            {scenarioNames
-              .map((name) => <option key={name} value={name}>{name}</option>)}
-          </HTMLSelect>
-          <span style={{ 'paddingLeft': '2rem' }}>
-            the landscape changed:
-          </span>
-        </h4>
         {
           (scenarioName && deltaTable)
             ? (
               <>
+                <h4>
+                  In scenario,
+                  <HTMLSelect
+                    aria-label="select scenario"
+                    onChange={(event) => changeScenario(event.currentTarget.value)}
+                    value={scenarioName || ''}
+                  >
+                    {scenarioNames
+                      .map((name) => <option key={name} value={name}>{name}</option>)}
+                  </HTMLSelect>
+                  <span style={{ 'paddingLeft': '2rem' }}>
+                    the landscape changed:
+                  </span>
+                </h4>
                 <LandcoverDescription
                   scenarioDescriptions={scenarioDescriptions}
                   scenarioName={scenarioName}
