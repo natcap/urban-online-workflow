@@ -4,17 +4,7 @@ import {
   HTMLTable,
 } from '@blueprintjs/core';
 
-const COLORMAP = {
-  0: '#c3b3d8',
-  1: '#7b67ab',
-  2: '#240d5e',
-  10: '#e6e6e6',
-  11: '#bfbfbf',
-  12: '#7f7f7f',
-  20: '#ffcc80',
-  21: '#f35926',
-  22: '#b30000',
-};
+import COLORMAP from './equity_colormap.json';
 
 const LABELS = {
   'Heat-Income Equity': 'Income',
