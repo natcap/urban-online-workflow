@@ -14,7 +14,7 @@ import { Fill, Stroke, Style } from 'ol/style';
 import { labels, nonLabels } from './mapboxLayerNames';
 import { lulcTileLayer, getStyle } from './lulcLayer';
 import { publicUrl } from '../utils';
-import HEAT_EQUITY_COLORMAP from '../../../appdata/equity_colormap.json';
+import HEAT_EQUITY_COLORMAP from './equity_colormap.json';
 
 const GCS_BUCKET = 'https://storage.googleapis.com/natcap-urban-online-datasets-public';
 const BASE_LULC_URL = `${GCS_BUCKET}/lulc_overlay_3857.tif`;
