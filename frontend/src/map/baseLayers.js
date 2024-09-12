@@ -1,11 +1,24 @@
+import Collection from 'ol/Collection';
 import XYZ from 'ol/source/XYZ';
+import LayerGroup from 'ol/layer/Group';
 import TileLayer from 'ol/layer/Tile';
 import MapboxVectorLayer from 'ol/layer/MapboxVector';
+import VectorLayer from 'ol/layer/Vector';
+import VectorSource from 'ol/source/Vector';
 import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
+import GeoJSON from 'ol/format/GeoJSON';
 import MVT from 'ol/format/MVT';
+import { Fill, Stroke, Style } from 'ol/style';
 
 import { labels, nonLabels } from './mapboxLayerNames';
+import { lulcTileLayer, getStyle } from './lulcLayer';
+import { publicUrl } from '../utils';
+import HEAT_EQUITY_COLORMAP from '../../../appdata/equity_colormap.json';
+
+const GCS_BUCKET = 'https://storage.googleapis.com/natcap-urban-online-datasets-public';
+const BASE_LULC_URL = `${GCS_BUCKET}/lulc_overlay_3857.tif`;
+const lulcLayer = lulcTileLayer(BASE_LULC_URL, 'Landcover', 'enviro');
 
 const satelliteLayer = new TileLayer({
   source: new XYZ({
@@ -55,10 +68,63 @@ const parcelLayer = new VectorTileLayer({
 parcelLayer.set('title', 'Parcels');
 parcelLayer.setZIndex(2);
 
+const equitySource = new VectorSource({
+  format: new GeoJSON(),
+  url: publicUrl('/opt/appdata/acs_block_group_equity.geojson'),
+});
+const equityStroke = new Stroke({
+  color: 'rgba(0, 0, 0, 0.8)',
+  width: 0.5,
+});
+
+const incomeEquityLayer = new VectorLayer({
+  source: equitySource,
+  style: (feature) => {
+    const color = HEAT_EQUITY_COLORMAP[feature.get('bivariate_income_temperature')];
+    return new Style({
+      fill: new Fill({
+        color: color,
+      }),
+      stroke: equityStroke,
+    });
+  },
+  minZoom: 9,
+});
+incomeEquityLayer.set('title', 'Heat-Income Equity');
+incomeEquityLayer.set('type', 'enviro');
+incomeEquityLayer.setOpacity(0.7);
+
+const bipocEquityLayer = new VectorLayer({
+  source: equitySource,
+  style: (feature) => {
+    const color = HEAT_EQUITY_COLORMAP[feature.get('bivariate_bipoc_temperature')];
+    return new Style({
+      fill: new Fill({
+        color: color,
+      }),
+      stroke: equityStroke,
+    });
+  },
+  minZoom: 9,
+});
+bipocEquityLayer.set('title', 'Heat-Race Equity');
+bipocEquityLayer.set('type', 'enviro');
+bipocEquityLayer.setOpacity(0.7);
+bipocEquityLayer.setVisible(false);
+
+const enviroLayerGroup = new LayerGroup({});
+enviroLayerGroup.set('type', 'enviro-group');
+enviroLayerGroup.set('title', 'Environment');
+enviroLayerGroup.setZIndex(1);
+enviroLayerGroup.setLayers(
+  new Collection([lulcLayer, incomeEquityLayer, bipocEquityLayer])
+);
+
 export {
   satelliteLayer,
   lightMapLayer,
   streetMapLayer,
   labelLayer,
   parcelLayer,
+  enviroLayerGroup,
 };

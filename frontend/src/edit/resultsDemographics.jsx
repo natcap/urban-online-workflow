@@ -60,7 +60,7 @@ export default function ResultsDemographics(props) {
     <div>
       <h2 id="demographics-header">
         <Icon icon="people" size="30"/>
-        Demographics of the impacted area:
+        Demographics of the area influenced by the change:
       </h2>
       <div id="demographics-body">
         {populationTable}

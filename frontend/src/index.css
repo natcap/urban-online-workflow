@@ -38,8 +38,9 @@ html, body, #root, .App {
 }
 
 .layers-control {
+  display: grid;
   position: absolute;
-  top: 3.5rem;
+  top: 5.5rem;
   left: 0.5rem;
 }
 
@@ -54,12 +55,14 @@ html, body, #root, .App {
   padding: 0.5rem;
   margin: 0;
   filter: drop-shadow(2px 2px 2px grey);
+  font-size: 0.75rem;
 }
 
 .layers-panel .subheader {
   border-top: dotted;
   border-width: thin;
   padding-top: 0.5rem;
+  font-weight: 600;
 }
 
 .layer-info {
@@ -76,19 +79,65 @@ html, body, #root, .App {
   font-weight: 600;
 }
 
-.map-lulc-legend {
-  background-color: rgba(255,255,255,0.9);
+.layer-info div {
   display: flex;
-  /*height: 1rem;/*
-  /*padding-bottom: 2rem;*/
-  width: 350px;
+}
+
+.layer-info button:first-child {
+  flex-grow: 1;
+}
+
+.legend-container {
+  background-color: rgba(255,255,255,0.9);
   position: absolute;
   bottom: 1rem;
   right: 1rem;
   border-radius: 5px;
-  padding: 0.5rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.equity-legend {
+  text-align: center;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.equity-legend table.bp5-html-table {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 0.2rem;
+}
+
+.equity-legend table.bp5-html-table td {
+  padding: 0.2rem;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.equity-legend .title {
+  font-size: 1.2rem;
+  vertical-align: middle;
+  font-weight: 600;
+}
+
+.equity-legend .axis-title {
+  padding-left: 40px;
+  font-weight: 600;
+}
+
+.map-lulc-legend {
+  display: flex;
   font-weight: 600;
   align-items: center;
+  text-align: center;
+  width: 350px;
+  padding-left: 0.5rem;
+}
+
+/*de-saturate to match saturation adjustment in lulcLayer.js*/
+.lulc-legend {
+  filter: saturate(60%);
 }
 
 /*.edit-wallpaper {
@@ -102,7 +151,6 @@ html, body, #root, .App {
 
 .sidebar-subheading {
   padding-top: 1rem;
-  /*font-weight: 600;*/
   font-size: 1.2rem;
 }
 
@@ -128,24 +176,20 @@ html, body, #root, .App {
 }
 
 .lulc-select {
+  display: flex;
+  justify-content: space-between;
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
 }
 
-.lulc-select p {
-  display: inline-block;
-  white-space: nowrap;
-  width: 16%;
+.lulc-select div {
+  flex-basis: 70%;
 }
 
-.lulc-select #nlud-subtype {
-  display:inline-block;
+#nlud-subtype span {
   font-style: italic;
-}
-
-.lulc-select .bp4-html-select {
-  margin-left: 1rem;
-  margin-right: 1rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .wallpaper-options {
@@ -240,20 +284,9 @@ html, body, #root, .App {
   width: 120px;
 }
 
-/*.study-area-table .parcel-block {
-  display: flex;
-  flex-wrap:  wrap;
-}*/
-
 .study-area-table .hidden-row {
   display: none;
 }
-
-/*.study-area-table-legend {
-  display: flex;
-  height: 1rem;
-  padding-bottom: 2rem;
-}*/
 
 #scenario-table {
   padding-top: 1rem;
@@ -273,11 +306,6 @@ html, body, #root, .App {
 #scenario-table .table-note {
   font-style: italic;
   text-align: center;
-}
-
-/*de-saturate to match saturation adjustment in lulcLayer.js*/
-.lulc-legend {
-  filter: saturate(60%);
 }
 
 #invest-runner {
