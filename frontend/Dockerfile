@@ -5,7 +5,10 @@ RUN mkdir /opt/frontend
 WORKDIR /opt/frontend
 
 ADD ./package.json /opt/frontend/
-RUN yarn install --production=false
+ADD ./yarn.lock /opt/frontend/
+RUN yarn --version
+#RUN yarn install --production=false
+RUN yarn install --frozen-lockfile
 
 EXPOSE 3000
 
