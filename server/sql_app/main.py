@@ -10,6 +10,7 @@ import shapely.geometry
 import shapely.wkt
 
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -87,8 +88,8 @@ event.listen(models.LulcCrosswalk.__table__, 'after_create', insert_lulc_data)
 # in the db, add a new column, a new table, etc.
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
-origins = ["http://localhost:3000", "http://35.238.129.2", "http://35.238.129.2:8000"]
+app = FastAPI(redirect_slashes=False)
+origins = ["http://localhost:3000", "http://35.238.129.2", "http://35.238.129.2:8000", "https://35.238.129.2:8000", "http://urbanonline.naturalcapitalproject.org", "https://urbanonline.naturalcapitalproject.org"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -97,6 +98,9 @@ app.add_middleware(
     allow_methods=["*"],  # despite this *, PATCH does not pass CORS
     allow_headers=["*"],
 )
+#app.add_middleware(
+#    HTTPSRedirectMiddleware,
+#)
 
 # Get feedback on 422 errors. Taken wholesale from
 # https://github.com/tiangolo/fastapi/issues/3361
@@ -134,8 +138,10 @@ def get_db():
     finally:
         db.close()
 
-
-@app.post("/sessions/", response_model=schemas.SessionResponse)
+# Removed trailing slash from "/sessions/" because nginx proxy_pass
+# was dropping it, which caused FastAPI to do a 307 redirect,
+# which was using 'http' causing a MixedContent error.
+@app.post("/sessions", response_model=schemas.SessionResponse)
 def create_session(db: Session = Depends(get_db)):
     # Notice that the values returned are SQLA models. But as all path
     # operations have a 'response_model' with Pydantic models / schemas using
