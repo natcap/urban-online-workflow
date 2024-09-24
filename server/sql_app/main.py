@@ -138,7 +138,7 @@ def get_db():
     finally:
         db.close()
 
-# Removed trailing slash from "/sessions/" because nginx proxy_pass
+# Removed trailing slash from "/sessions/" and other endpoints because nginx proxy_pass
 # was dropping it, which caused FastAPI to do a 307 redirect,
 # which was using 'http' causing a MixedContent error.
 @app.post("/sessions", response_model=schemas.SessionResponse)
@@ -154,7 +154,7 @@ def create_session(db: Session = Depends(get_db)):
 @app.get("/session/{session_id}", response_model=schemas.Session)
 def read_session(session_id: str, db: Session = Depends(get_db)):
     db_session = crud.get_session(db, session_id=session_id)
-    print(db_session)
+    LOGGER.info(db_session)
     if db_session is None:
         raise HTTPException(status_code=404, detail="Session not found")
     return db_session
@@ -467,7 +467,7 @@ def worker_pattern_response(
         pattern_id=pattern_job.server_attrs['pattern_id'])
 
 
-@app.post("/jobs/", response_model=schemas.Job)
+@app.post("/jobs", response_model=schemas.Job)
 def create_job(
     job: schemas.JobBase, db: Session = Depends(get_db)
 ):
@@ -483,7 +483,7 @@ def read_job(job_id: int, db: Session = Depends(get_db)):
     return db_job
 
 
-@app.get("/jobs/", response_model=list[schemas.Job])
+@app.get("/jobs", response_model=list[schemas.Job])
 def read_jobs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     jobs = crud.get_jobs(db, skip=skip, limit=limit)
     return jobs
@@ -522,7 +522,7 @@ def create_pattern(session_id: str, pattern: schemas.PatternBase,
     return {**worker_task['server_attrs'], "label": pattern.label}
 
 
-@app.get("/pattern/", response_model=list[schemas.Pattern])
+@app.get("/pattern", response_model=list[schemas.Pattern])
 def get_patterns(db: Session = Depends(get_db)):
     """Get a list of the wallpapering patterns saved in the db."""
     pattern_db = crud.get_patterns(db=db)
@@ -544,7 +544,7 @@ def _get_study_area_geometry(study_area_db):
     return parcels_combined_wkt
 
 
-@app.post("/wallpaper/", response_model=schemas.JobResponse)
+@app.post("/wallpaper", response_model=schemas.JobResponse)
 def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
     # Get Scenario details from scenario_id
     scenario_db = crud.get_scenario(db, wallpaper.scenario_id)
@@ -581,7 +581,7 @@ def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
     return job_db
 
 
-@app.post("/lulc_fill/", response_model=schemas.JobResponse)
+@app.post("/lulc_fill", response_model=schemas.JobResponse)
 def lulc_fill(lulc_fill: schemas.ParcelFill,
               db: Session = Depends(get_db)):
     # Get Scenario details from scenario_id
@@ -655,14 +655,14 @@ def lulc_crop(scenario_id: int, db: Session = Depends(get_db)):
     return job_db
 
 
-@app.post("/remove_parcel/")
+@app.post("/remove_parcel")
 def remove_parcel(delete_parcel_request: schemas.ParcelDeleteRequest,
                   db: Session = Depends(get_db)):
     status = crud.delete_parcel(db=db, **delete_parcel_request.dict())
     return status
 
 
-@app.post("/add_parcel/", response_model=schemas.JobResponse)
+@app.post("/add_parcel", response_model=schemas.JobResponse)
 def add_parcel(create_parcel_request: schemas.ParcelCreateRequest,
                db: Session = Depends(get_db)):
 
