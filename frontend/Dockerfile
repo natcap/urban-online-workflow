@@ -5,10 +5,9 @@ RUN mkdir /opt/frontend
 WORKDIR /opt/frontend
 
 ADD ./package.json /opt/frontend/
-ADD ./yarn.lock /opt/frontend/
-RUN yarn --version
-#RUN yarn install --production=false
-RUN yarn install --frozen-lockfile
+RUN yarn add puppeteer --ignore-scripts
+RUN yarn install --production=false
+#RUN yarn cache clean && yarn install --production=false
 
 EXPOSE 3000
 
