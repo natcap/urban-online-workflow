@@ -93,14 +93,10 @@ origins = ["http://localhost:3000", "http://35.238.129.2", "http://35.238.129.2:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    #allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],  # despite this *, PATCH does not pass CORS
     allow_headers=["*"],
 )
-#app.add_middleware(
-#    HTTPSRedirectMiddleware,
-#)
 
 # Get feedback on 422 errors. Taken wholesale from
 # https://github.com/tiangolo/fastapi/issues/3361

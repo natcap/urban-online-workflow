@@ -7,9 +7,6 @@
  */
 export function publicUrl(filepath) {
   if (filepath.startsWith('/opt/appdata/')) {
-    //return filepath.replace('/opt/appdata/', 'http://localhost:9000/')
-    //return filepath.replace('/opt/appdata/', 'http://35.238.129.2:9000/')
-    //return filepath.replace('/opt/appdata/', 'https://urbanonline.naturalcapitalproject.org:9000/')
     return filepath.replace('/opt/appdata/', 'https://urbanonline.naturalcapitalproject.org/9000/')
   }
   return filepath;

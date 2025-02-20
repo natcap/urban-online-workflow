@@ -10,7 +10,6 @@ ENV UVICORN_APP_DIR /opt/server
 # Needed in order to expose networking outside of container.
 # equivalent to --host 0.0.0.0
 ENV UVICORN_HOST 0.0.0.0
-#ENV UVICORN_PORT 8000
 
 # Setting directory which will then be where DB lives.
 WORKDIR /opt/server
