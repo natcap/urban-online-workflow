@@ -1,7 +1,7 @@
 import patternsTable from './edit/patternsTable'; // TODO: this is temp
  
 let apiBaseURL;
-if (process.env.isDevMode) {
+if (import.meta.env.DEVMODE === 'true') {
   apiBaseURL = 'https://localhost/8000';
 }
 else {

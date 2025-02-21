@@ -8,7 +8,7 @@ services:
         - 80:80
         - 443:443
       depends_on:
-        - frontend
+        - frontend-prod
         - api
         - worker
         - fileserver
@@ -24,69 +24,69 @@ services:
       ports:
         - 80:80
       depends_on:
-        - frontend
+        - frontend-dev
         - api
         - worker
         - fileserver
       profiles: [dev]
     frontend-prod:
-        build: frontend
-        command: yarn start-docker-prod
-        ports:
-            - 3000:3000
-        restart: on-failure
-        volumes:
-            - ./frontend/src:/opt/frontend/src
-            - ./appdata:/opt/appdata
-            - ./frontend/vite.config.js:/opt/frontend/vite.config.js
-            - ./frontend/index.html:/opt/frontend/index.html
-        secrets:
-            - source: frontend-api-keys
-              target: .env
+      build: frontend
+      command: yarn start-docker-prod
+      ports:
+        - 3000:3000
+      restart: on-failure
+      volumes:
+        - ./frontend/src:/opt/frontend/src
+        - ./appdata:/opt/appdata
+        - ./frontend/vite.config.js:/opt/frontend/vite.config.js
+        - ./frontend/index.html:/opt/frontend/index.html
+      secrets:
+        - source: frontend-api-keys
+          target: .env
       profiles: [prod]
     frontend-dev:
-        build: frontend
-        command: yarn start-docker-dev
-        ports:
-            - 3000:3000
-        restart: on-failure
-        volumes:
-            - ./frontend/src:/opt/frontend/src
-            - ./appdata:/opt/appdata
-            - ./frontend/vite.config.js:/opt/frontend/vite.config.js
-            - ./frontend/index.html:/opt/frontend/index.html
-        secrets:
-            - source: frontend-api-keys
-              target: .env
+      build: frontend
+      command: yarn start-docker-dev
+      ports:
+        - 3000:3000
+      restart: on-failure
+      volumes:
+        - ./frontend/src:/opt/frontend/src
+        - ./appdata:/opt/appdata
+        - ./frontend/vite.config.js:/opt/frontend/vite.config.js
+        - ./frontend/index.html:/opt/frontend/index.html
+      secrets:
+        - source: frontend-api-keys
+          target: .env
       profiles: [dev]
     api:
         build: server
         ports:
-            - 8000:8000
+          - 8000:8000
         restart: on-failure
         volumes:
-            - ./server:/opt/server
-            - ./appdata:/opt/appdata
+          - ./server:/opt/server
+          - ./appdata:/opt/appdata
     worker:
         build: backend-worker
         command: /opt/conda/bin/python /opt/worker/worker.py api 8000 /opt/appdata
         restart: on-failure
         volumes:
-            - ./backend-worker:/opt/worker
-            - ./appdata:/opt/appdata
+          - ./backend-worker:/opt/worker
+          - ./appdata:/opt/appdata
     fileserver:
         image: nginx:mainline
         restart: on-failure
         ports:
-            - 9000:9000
+          - 9000:9000
         volumes:
-            - ./fileserver/app.conf:/etc/nginx/conf.d/default.conf
-            - ./appdata:/opt/appdata
+          - ./fileserver/app.conf:/etc/nginx/conf.d/default.conf
+          - ./appdata:/opt/appdata
     certbot:
       image: certbot/certbot:latest
       volumes:
-          - ./certbot/www/:/var/www/certbot/:rw
-          - ./certbot/conf/:/etc/letsencrypt/:rw
+        - ./certbot/www/:/var/www/certbot/:rw
+        - ./certbot/conf/:/etc/letsencrypt/:rw
       profiles: [prod]
 
 secrets:
