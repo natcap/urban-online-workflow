@@ -1,6 +1,9 @@
 services:
-    nginx-proxy:
-      build: nginx-proxy
+    nginx-proxy-prod:
+      build: 
+        context: nginx-proxy
+        args:
+          ENV: "prod"
       ports:
         - 80:80
         - 443:443
@@ -12,9 +15,23 @@ services:
       volumes:
         - ./certbot/www/:/var/www/certbot/
         - ./certbot/conf/:/etc/letsencrypt/
-    frontend:
+      profiles: [prod]
+    nginx-proxy-dev:
+      build:
+        context: nginx-proxy
+        args:
+          ENV: "dev"
+      ports:
+        - 80:80
+      depends_on:
+        - frontend
+        - api
+        - worker
+        - fileserver
+      profiles: [dev]
+    frontend-prod:
         build: frontend
-        command: yarn start-docker
+        command: yarn start-docker-prod
         ports:
             - 3000:3000
         restart: on-failure
@@ -26,6 +43,22 @@ services:
         secrets:
             - source: frontend-api-keys
               target: .env
+      profiles: [prod]
+    frontend-dev:
+        build: frontend
+        command: yarn start-docker-dev
+        ports:
+            - 3000:3000
+        restart: on-failure
+        volumes:
+            - ./frontend/src:/opt/frontend/src
+            - ./appdata:/opt/appdata
+            - ./frontend/vite.config.js:/opt/frontend/vite.config.js
+            - ./frontend/index.html:/opt/frontend/index.html
+        secrets:
+            - source: frontend-api-keys
+              target: .env
+      profiles: [dev]
     api:
         build: server
         ports:
@@ -54,6 +87,7 @@ services:
       volumes:
           - ./certbot/www/:/var/www/certbot/:rw
           - ./certbot/conf/:/etc/letsencrypt/:rw
+      profiles: [prod]
 
 secrets:
     frontend-api-keys:

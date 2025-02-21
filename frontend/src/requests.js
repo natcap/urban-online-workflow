@@ -1,6 +1,12 @@
 import patternsTable from './edit/patternsTable'; // TODO: this is temp
-
-const apiBaseURL = 'https://urbanonline.naturalcapitalproject.org/8000';
+ 
+let apiBaseURL;
+if (process.env.isDevMode) {
+  apiBaseURL = 'https://localhost/8000';
+}
+else {
+  apiBaseURL = 'https://urbanonline.naturalcapitalproject.org/8000';
+}
 
 
 /**

@@ -6,8 +6,14 @@
  * @return {string}
  */
 export function publicUrl(filepath) {
+  let apiBaseURL;
+  if (process.env.isDevMode) {
+    apiBaseURL = 'https://localhost/9000';
+  } else {
+    apiBaseURL = 'https://urbanonline.naturalcapitalproject.org/9000';
+  }
   if (filepath.startsWith('/opt/appdata/')) {
-    return filepath.replace('/opt/appdata/', 'https://urbanonline.naturalcapitalproject.org/9000/')
+    return filepath.replace('/opt/appdata/', apiBaseURL)
   }
   return filepath;
 }
