@@ -1,9 +1,8 @@
 import patternsTable from './edit/patternsTable'; // TODO: this is temp
  
 let apiBaseURL;
-if (import.meta.env.DEVMODE === 'true') {
-  console.log("dev mode");
-  apiBaseURL = 'https://localhost/8000';
+if (import.meta.env.VITE_DEVMODE === 'true') {
+  apiBaseURL = 'http://localhost/8000';
 }
 else {
   apiBaseURL = 'https://urbanonline.naturalcapitalproject.org/8000';

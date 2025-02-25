@@ -7,9 +7,8 @@
  */
 export function publicUrl(filepath) {
   let apiBaseURL;
-  if (import.meta.env.DEVMODE === 'true') {
-    console.log("dev mode");
-    apiBaseURL = 'https://localhost/9000';
+  if (import.meta.env.VITE_DEVMODE === 'true') {
+    apiBaseURL = 'http://localhost/9000/';
   } else {
     apiBaseURL = 'https://urbanonline.naturalcapitalproject.org/9000';
   }
