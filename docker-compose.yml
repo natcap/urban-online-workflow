@@ -11,7 +11,7 @@ services:
         - frontend-prod
         - api
         - worker
-        - fileserver
+        - fileserver-prod
       volumes:
         - ./certbot/www/:/var/www/certbot/
         - ./certbot/conf/:/etc/letsencrypt/
@@ -27,7 +27,7 @@ services:
         - frontend-dev
         - api
         - worker
-        - fileserver
+        - fileserver-dev
       profiles: [dev]
     frontend-prod:
       build: frontend
@@ -74,14 +74,24 @@ services:
         volumes:
           - ./backend-worker:/opt/worker
           - ./appdata:/opt/appdata
-    fileserver:
+    fileserver-prod:
         image: nginx:mainline
         restart: on-failure
         ports:
           - 9000:9000
         volumes:
-          - ./fileserver/app.conf:/etc/nginx/conf.d/default.conf
+          - ./fileserver/app-prod.conf:/etc/nginx/conf.d/default.conf
           - ./appdata:/opt/appdata
+        profiles: [prod]
+    fileserver-dev:
+        image: nginx:mainline
+        restart: on-failure
+        ports:
+          - 9000:9000
+        volumes:
+          - ./fileserver/app-dev.conf:/etc/nginx/conf.d/default.conf
+          - ./appdata:/opt/appdata
+        profiles: [dev]
     certbot:
       image: certbot/certbot:latest
       volumes:
