@@ -1,7 +1,7 @@
 import patternsTable from './edit/patternsTable'; // TODO: this is temp
  
 let apiBaseURL;
-if (import.meta.env.VITE_DEVMODE === 'true') {
+if (import.meta.env.VITE_URBANONLINE_DEVMODE === 'true') {
   apiBaseURL = 'http://localhost/8000';
 }
 else {
