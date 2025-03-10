@@ -80,9 +80,9 @@ def carbon(workspace_dir):
 
     carbon_results = {}
     for output, output_path in carbon_outputs.items():
-        carbon_results[output] = pygeoprocessing.raster_reduce(
-            lambda total, block: total + numpy.sum(block), (output_path, 1), 0)
-        carbon_results[output] = f"{carbon_results[output]}"
+        # Cast to float because numpy.float32 is not JSON serializable
+        carbon_results[output] = float(pygeoprocessing.raster_reduce(
+            lambda total, block: total + numpy.sum(block), (output_path, 1), 0))
 
     results_json_path = os.path.join(workspace_dir, "derived_results.json")
     with open(results_json_path, "w") as fp:
