@@ -5,8 +5,10 @@ RUN mkdir /opt/frontend
 WORKDIR /opt/frontend
 
 ADD ./package.json /opt/frontend/
+RUN yarn add puppeteer --ignore-scripts
 RUN yarn install --production=false
+#RUN yarn cache clean && yarn install --production=false
 
 EXPOSE 3000
 
-CMD yarn start-docker
+CMD yarn start-docker-dev

@@ -61,6 +61,8 @@ for LULC_RASTER_PATH in LULC_RASTER_PATHS.values():
         _LULC_RASTER_INFO = pygeoprocessing.get_raster_info(LULC_RASTER_PATH)
     except ValueError:
         LOGGER.info(f"Could not open raster path {LULC_RASTER_PATH}")
+    except RuntimeError:
+        LOGGER.info(f"Could not open raster path {LULC_RASTER_PATH}")
 if _LULC_RASTER_INFO is None:
     raise AssertionError(
         f"Could not open {LULC_FILENAME} at any known locations")

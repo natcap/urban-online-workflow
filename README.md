@@ -5,18 +5,33 @@ scenarios using InVEST Urban models.
 
 ## Setup with docker compose
 
+The application can be run in dev and production mode using docker compose
+profiles. Production mode is meant to be run on a preconfigured GCE Linux VM.
+
+### Dev mode
 ```shell
-$ docker compose up
+$ docker compose --profile dev up
 ```
 
 or if you want to force a rebuild of the containers,
 
 ```shell
-$ docker compose up --build
+$ docker compose --profile dev up --build
 ```
 
-## App runs on
-`http://localhost:3000`
+### Prod mode
+```shell
+$ docker compose --profile prod up
+```
+
+or if you want to force a rebuild of the containers,
+
+```shell
+$ docker compose --profile prod up --build
+```
+
+## App runs on (dev mode)
+`http://localhost:80`
 
 ## View fastapi endpoint documentation
 `http://localhost:8000/docs`

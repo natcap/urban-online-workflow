@@ -1,6 +1,12 @@
 import patternsTable from './edit/patternsTable'; // TODO: this is temp
-
-const apiBaseURL = 'http://127.0.0.1:8000';
+ 
+let apiBaseURL;
+if (import.meta.env.VITE_URBANONLINE_DEVMODE === 'true') {
+  apiBaseURL = 'http://localhost/8000';
+}
+else {
+  apiBaseURL = 'https://urbanonline.naturalcapitalproject.org/8000';
+}
 
 
 /**
