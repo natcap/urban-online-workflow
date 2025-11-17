@@ -38,3 +38,11 @@ Currently need to add a `.env` file to `frontend/` with necessary API tokens. Pl
 ## Necessary software for development
 - Docker
 - Git
+
+## Project Contributors
+- @lingling-liu
+- @chrisnootenboom
+- @dcdenu4
+- @davemfish
+- Eric Londsdorf
+- Anne Guerry
