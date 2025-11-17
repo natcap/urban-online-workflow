@@ -41,6 +41,7 @@ Currently need to add a `.env` file to `frontend/` with necessary API tokens. Pl
 
 ## Project Contributors
 - @lingling-liu
+  - Tree Canopy data is one of the components of the LULC used in this app. https://github.com/lingling-liu/tree-canopy
 - @chrisnootenboom
 - @dcdenu4
 - @davemfish
