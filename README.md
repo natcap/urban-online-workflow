@@ -44,5 +44,5 @@ Currently need to add a `.env` file to `frontend/` with necessary API tokens. Pl
 - @chrisnootenboom
 - @dcdenu4
 - @davemfish
-- Eric Londsdorf
+- Eric Lonsdorf
 - Anne Guerry
