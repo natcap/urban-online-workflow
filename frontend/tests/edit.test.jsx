@@ -2,7 +2,7 @@ import { test, expect, vi } from 'vitest';
 import React from 'react';
 import { render, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom/vitest';
 
 import Edit from '../src/edit/edit';
 import STUDY_AREA from './fixtures/studyArea.json';
