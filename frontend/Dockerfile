@@ -8,9 +8,7 @@ WORKDIR /opt/frontend
 
 ADD ./package.json /opt/frontend/
 ADD ./yarn.lock /opt/frontend/
-#RUN yarn add puppeteer --ignore-scripts
 RUN yarn install --production=${PROD}
-#RUN yarn cache clean && yarn install --production=false
 
 EXPOSE 3000
 
