@@ -30,7 +30,10 @@ services:
         - fileserver-dev
       profiles: [dev]
     frontend-prod:
-      build: frontend
+      build:
+        context: frontend
+        args:
+          PROD: true
       command: yarn start-docker-prod
       ports:
         - 3000:3000
@@ -45,7 +48,10 @@ services:
           target: .env
       profiles: [prod]
     frontend-dev:
-      build: frontend
+      build:
+        context: frontend
+        args:
+          PROD: false
       command: yarn start-docker-dev
       ports:
         - 3000:3000
