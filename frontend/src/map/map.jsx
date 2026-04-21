@@ -24,7 +24,7 @@ import {
   Translate,
   defaults as defaultInteractions,
 } from 'ol/interaction';
-import { defaults } from 'ol/control';
+import { defaults, ZoomToExtent } from 'ol/control';
 
 import OL3Parser from 'jsts/org/locationtech/jts/io/OL3Parser';
 import WKTWriter from 'jsts/org/locationtech/jts/io/WKTWriter';
@@ -33,28 +33,33 @@ import OverlayOp from 'jsts/org/locationtech/jts/operation/overlay/OverlayOp';
 import { Button, Icon } from '@blueprintjs/core';
 
 import ParcelControl from './parcelControl';
-import LegendControl from './legendControl';
+import LULCLegendControl from './lulcLegendControl';
+import EquityLegend from './equityLegend';
 import { lulcTileLayer, getStyle } from './lulcLayer';
 import LayerPanel from './LayerPanel';
 import {
   satelliteLayer,
   streetMapLayer,
+  lightMapLayer,
   labelLayer,
   parcelLayer,
+  enviroLayerGroup,
 } from './baseLayers';
 import {
   hoveredFeatureStyle,
   patternSamplerBoxStyle,
   selectedFeatureStyle,
-  serviceshedStyle,
   studyAreaStyle,
   styleParcel,
+  styleServiceshed,
 } from './styles';
 
 import { publicUrl } from '../utils';
+import {
+  COOLING_DISTANCE_STR,
+  NATURE_ACCESS_DISTANCE_STR,
+} from '../constants';
 
-const GCS_BUCKET = 'https://storage.googleapis.com/natcap-urban-online-datasets-public';
-const BASE_LULC_URL = `${GCS_BUCKET}/lulc_overlay_3857.tif`
 const SCENARIO_LAYER_GROUP_NAME = 'Scenarios';
 
 // JSTS utilities
@@ -142,21 +147,24 @@ scenarioLayerGroup.set('type', 'scenario-group');
 scenarioLayerGroup.set('title', SCENARIO_LAYER_GROUP_NAME);
 scenarioLayerGroup.setZIndex(1);
 
-const serviceshedLayer = new VectorLayer({
-  style: serviceshedStyle
+// Urban Cooling & Urban Nature models each have a serviceshed
+const serviceshedLayerUCM = new VectorLayer({
+  style: (feature) => styleServiceshed(feature, COOLING_DISTANCE_STR),
 });
-serviceshedLayer.setZIndex(3);
+serviceshedLayerUCM.setZIndex(3);
+const serviceshedLayerUNA = new VectorLayer({
+  style: (feature) => styleServiceshed(feature, NATURE_ACCESS_DISTANCE_STR),
+});
+serviceshedLayerUNA.setZIndex(3);
 
 // Set a default basemap to be visible
 satelliteLayer.setVisible(true);
 
-const lulcLayer = lulcTileLayer(BASE_LULC_URL, 'Landcover', 'base');
-
 const map = new Map({
   layers: [
     satelliteLayer,
+    lightMapLayer,
     streetMapLayer,
-    lulcLayer,
     parcelLayer,
     selectionLayer,
     hoveredLayer,
@@ -164,7 +172,9 @@ const map = new Map({
     patternSamplerLayer,
     labelLayer,
     scenarioLayerGroup,
-    serviceshedLayer,
+    serviceshedLayerUCM,
+    serviceshedLayerUNA,
+    enviroLayerGroup,
   ],
   view: new View({
     center: [-10964048.932711, 3429505.23069662], // San Antonio, TX EPSG:3857
@@ -174,7 +184,13 @@ const map = new Map({
   controls: defaults({
     rotate: false,
     attribution: true,
-  }),
+  }).extend([
+    new ZoomToExtent({
+      extent: [
+        -11009102, 3400218, -10932324, 3471028
+      ],
+    }),
+  ]),
 });
 
 export default function MapComponent(props) {
@@ -188,13 +204,18 @@ export default function MapComponent(props) {
     setPatternSampleWKT,
     scenarios,
     selectedScenario,
-    serviceshedPath,
+    servicesheds,
+    setSelectedEquityLayer,
+    selectedEquityLayer,
+    activeTab,
+    start,
   } = props;
   const [layers, setLayers] = useState([]);
-  const [showLayerControl, setShowLayerControl] = useState(false);
+  const [showLayerControl, setShowLayerControl] = useState(true);
   const [selectedParcel, setSelectedParcel] = useState(null);
   const [hoveredCode, setHoveredCode] = useState(null);
-  const [showLegendControl, setShowLegendControl] = useState(false);
+  const [showLULCLegend, setShowLULCLegend] = useState(false);
+  const [showEquityLegend, setShowEquityLegend] = useState(false);
   // refs for elements to insert openlayers-controlled nodes into the dom
   const mapElementRef = useRef();
 
@@ -219,6 +240,39 @@ export default function MapComponent(props) {
         scenarioLayerGroup.getVisible(),
       ],
     );
+    lyrs.push(
+      [
+        enviroLayerGroup.get('type'),
+        enviroLayerGroup.get('title'),
+        enviroLayerGroup.getVisible(),
+      ],
+    );
+
+    let landcoverVis = false;
+    const landcoverLayer = map.getAllLayers().find(
+      (layer) => layer.get('title') === 'Landcover'
+    );
+    if (landcoverLayer) {
+      landcoverVis = landcoverLayer.getVisible();
+    }
+
+    let equityLayers = [];
+    equityLayers = equityLayers.concat(map.getAllLayers().filter(
+      (layer) => (
+        Boolean(layer.get('title'))
+        && layer.get('title').includes('Equity')
+        && layer.getVisible()
+      )
+    ));
+    // only 0 or 1 equity layer can be visible at a time
+    if (equityLayers.length) {
+      setSelectedEquityLayer(equityLayers[0].get('title'));
+    }
+
+    setShowLULCLegend(
+      (landcoverVis && enviroLayerGroup.getVisible()) || scenarioLayerGroup.getVisible()
+    );
+    setShowEquityLegend(equityLayers.length && enviroLayerGroup.getVisible());
     setLayers(lyrs);
   };
 
@@ -231,11 +285,12 @@ export default function MapComponent(props) {
   const setVisibility = (title, visible) => {
     // Use getLayers instead of getAllLayers
     // so that this can work for Layers and LayerGroups.
-    // But note this will not reach Layers w/in Groups.
+    // But note this will not reach Layers within Groups.
+    // For Layers within groups, we use the dedicated
+    // switch* methods below.
     map.getLayers().forEach(lyr => {
       if (lyr.get('title') === title) {
         lyr.setVisible(visible);
-        setShowLegendControl(lyr.get('type') === 'scenario-group')
       }
     });
     setMapLayers();
@@ -247,7 +302,15 @@ export default function MapComponent(props) {
         layer.setVisible(layer.get('title') === title);
       }
     });
-    setShowLegendControl(title === 'Landcover');
+    setMapLayers();
+  };
+
+  const switchEnviro = (title) => {
+    map.getAllLayers().forEach((layer) => {
+      if (layer.get('type') === 'enviro') {
+        layer.setVisible(layer.get('title') === title);
+      }
+    });
     setMapLayers();
   };
 
@@ -289,10 +352,26 @@ export default function MapComponent(props) {
       studyAreaSource.getExtent(),
       {
         padding: [10, 10, 10, 10], // pixels
-        maxZoom: 16,
+        maxZoom: 18,
       },
     );
   };
+
+  useEffect(() => {
+    // This is basically a listener for the "Get Started" button.
+    // New users will start with this map scene, intended to make
+    // it easy to select a parcel and start building a scenario.
+    const center = [-10968819.475036152, 3423289.328458109];
+    if (start) {
+      setVisibility('Environment', false);
+      setShowLayerControl(false);
+      const view = map.getView();
+      view.animate({
+        center: center,
+        zoom: 17,
+      });
+    }
+  }, [start]);
 
   useEffect(() => {
     if (selectedScenario) { switchScenario(selectedScenario); }
@@ -333,6 +412,7 @@ export default function MapComponent(props) {
     );
 
     map.on(['click'], async (event) => {
+      // console.log(map.getCoordinateFromPixel(event.pixel));
       // NOTE that a feature's geometry can change with the tile/zoom level and
       // view position and so its coordinates will change slightly.
       parcelLayer.getFeatures(event.pixel).then(async (features) => {
@@ -373,7 +453,7 @@ export default function MapComponent(props) {
       map.getAllLayers().forEach((layer) => {
         // Need to check base Landcover vs Scenario layers since scenario
         // layers will be in front of base Landcover
-        if (layer.get('title') === 'Landcover' && layer.get('type') === 'base') {
+        if (layer.get('title') === 'Landcover') {
           if (layer.getVisible()) {
             baseData = layer.getData(event.pixel);
           }
@@ -386,13 +466,14 @@ export default function MapComponent(props) {
       if (scenarioData && scenarioData[1]) { // check band [1] for nodata
         // Get here if a Scenario LULC is visible
         setHoveredCode(scenarioData[0].toString());
-      } else if (baseData && baseData[1]) {
+        return;
+      }
+      if (baseData && baseData[1]) {
         // Base LULC visible but no Scenario LULC visible
         setHoveredCode(baseData[0].toString());
-      } else {
-        // No scenario LULC or base LULC selected / visible
-        setHoveredCode(null);
+        return;
       }
+      setHoveredCode(null);
     });
 
     // Some layers have style dependent on zoom level
@@ -420,6 +501,7 @@ export default function MapComponent(props) {
     // A naive approach where we don't need to know if studyAreaParcels changed
     // because a study area was modified, or because the study area was switched.
     studyAreaSource.clear();
+    map.removeLayer(studyAreaLayer);
     if (studyAreaParcels.length) {
       const features = studyAreaParcels.map((parcel) => {
         const feature = wktFormat.readFeature(parcel.wkt, {
@@ -429,6 +511,7 @@ export default function MapComponent(props) {
         return feature;
       });
       studyAreaSource.addFeatures(features);
+      map.addLayer(studyAreaLayer);
       zoomToStudyArea();
     }
   }, [studyAreaParcels]);
@@ -437,6 +520,7 @@ export default function MapComponent(props) {
     // A naive approach where we don't need to know if scenarios changed
     // because a new one was created, or because the study area was switched.
     map.removeLayer(scenarioLayerGroup);
+    scenarioLayerGroup.setVisible(false);
     if (scenarios.length) {
       const scenarioLayers = [];
       scenarios.forEach((scene) => {
@@ -448,25 +532,48 @@ export default function MapComponent(props) {
       mostRecentLyr.setVisible(true);
       scenarioLayers.push(mostRecentLyr);
       scenarioLayerGroup.setLayers(new Collection(scenarioLayers));
+      scenarioLayerGroup.setVisible(true);
+      enviroLayerGroup.setVisible(false); // if scenarios are on, hide enviros.
       map.addLayer(scenarioLayerGroup);
-      setShowLegendControl(true);
     }
     clearSelection();
   }, [scenarios]);
 
   useEffect(() => {
-    map.removeLayer(serviceshedLayer);
-    if (serviceshedPath) {
-      const source = new VectorSource({
-        format: new GeoJSON({
-          dataProjection: 'EPSG:3857'
-        }),
-        url: publicUrl(serviceshedPath),
+    map.removeLayer(serviceshedLayerUCM);
+    map.removeLayer(serviceshedLayerUNA);
+    const sources = {};
+    if (Object.keys(servicesheds).length) {
+      Object.entries(servicesheds).forEach(([model, path]) => {
+        const source = new VectorSource({
+          format: new GeoJSON({
+            dataProjection: 'EPSG:3857',
+          }),
+          url: publicUrl(path),
+        });
+        sources[model] = source;
       });
-      serviceshedLayer.setSource(source);
-      map.addLayer(serviceshedLayer);
+
+      const serviceshedSource = sources['urban_nature_access'];
+      serviceshedLayerUCM.setSource(sources['urban_cooling_model']);
+      serviceshedLayerUNA.setSource(serviceshedSource);
+
+      serviceshedSource.once('change', () => {
+        if (serviceshedSource.getState() === 'ready'
+          && serviceshedSource.getFeatures().length) {
+          map.getView().fit(
+            serviceshedSource.getExtent(),
+            {
+              padding: [10, 10, 10, 10], // pixels
+              maxZoom: 16,
+            },
+          );
+        }
+      });
+      map.getLayers().extend([serviceshedLayerUCM, serviceshedLayerUNA]);
+      setVisibility('Labels', false);
     }
-  }, [serviceshedPath]);
+  }, [servicesheds]);
 
   // toggle pattern sampler visibility according to the pattern sampling mode
   useEffect(() => {
@@ -503,6 +610,7 @@ export default function MapComponent(props) {
           layers={layers}
           setVisibility={setVisibility}
           switchBasemap={switchBasemap}
+          switchEnviro={switchEnviro}
           switchScenario={switchScenario}
           selectedScenario={selectedScenario}
         />
@@ -515,11 +623,17 @@ export default function MapComponent(props) {
         refreshStudyArea={refreshStudyArea}
         immutableStudyArea={Boolean(scenarios.length)}
       />
-      <LegendControl
-        show={showLegendControl}
-        lulcCode={hoveredCode}
-        setLulcStyle={setLulcStyle}
-      />
+      <div className="legend-container">
+        <EquityLegend
+          show={showEquityLegend && (activeTab !== 'explore')}
+          equityLayerTitle={selectedEquityLayer}
+        />
+        <LULCLegendControl
+          show={showLULCLegend}
+          lulcCode={hoveredCode}
+          setLulcStyle={setLulcStyle}
+        />
+      </div>
     </div>
   );
 }

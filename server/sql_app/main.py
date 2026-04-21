@@ -10,6 +10,7 @@ import shapely.geometry
 import shapely.wkt
 
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -46,14 +47,11 @@ LOW_PRIORITY = 3
 MEDIUM_PRIORITY = 2
 HIGH_PRIORITY = 1
 
-# InVEST model list
+# The list of models that run
 INVEST_MODELS = [
-    # "pollination",
-    # "stormwater",
     "urban_cooling_model",
-    "carbon"
-    # "urban_flood_risk_mitigation",
-    # "urban_nature_access"
+    "carbon",
+    "urban_nature_access"
 ]
 
 JOB_TYPES = {
@@ -69,7 +67,7 @@ JOB_TYPES = {
 def insert_lulc_data(target, connection, **kw):
     LOGGER.info('importing LULC Crosswalk table')
     # https://docs.sqlalchemy.org/en/20/_modules/examples/performance/bulk_inserts.html
-    with open(LULC_CSV_PATH, 'r') as file:
+    with open(LULC_CSV_PATH, 'r', encoding='utf-8-sig') as file:
         reader = csv.DictReader(file)
         connection.execute(
             models.LulcCrosswalk.__table__.insert(),
@@ -90,8 +88,8 @@ event.listen(models.LulcCrosswalk.__table__, 'after_create', insert_lulc_data)
 # in the db, add a new column, a new table, etc.
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
-origins = ["http://localhost:3000"]
+app = FastAPI(redirect_slashes=False)
+origins = ["http://localhost", "http://localhost:80", "http://localhost:3000", "http://urbanonline.naturalcapitalproject.org", "https://urbanonline.naturalcapitalproject.org"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -136,8 +134,10 @@ def get_db():
     finally:
         db.close()
 
-
-@app.post("/sessions/", response_model=schemas.SessionResponse)
+# Removed trailing slash from "/sessions/" and other endpoints because nginx proxy_pass
+# was dropping it, which caused FastAPI to do a 307 redirect,
+# which was using 'http' causing a MixedContent error.
+@app.post("/sessions", response_model=schemas.SessionResponse)
 def create_session(db: Session = Depends(get_db)):
     # Notice that the values returned are SQLA models. But as all path
     # operations have a 'response_model' with Pydantic models / schemas using
@@ -150,6 +150,7 @@ def create_session(db: Session = Depends(get_db)):
 @app.get("/session/{session_id}", response_model=schemas.Session)
 def read_session(session_id: str, db: Session = Depends(get_db)):
     db_session = crud.get_session(db, session_id=session_id)
+    LOGGER.info(db_session)
     if db_session is None:
         raise HTTPException(status_code=404, detail="Session not found")
     return db_session
@@ -462,7 +463,7 @@ def worker_pattern_response(
         pattern_id=pattern_job.server_attrs['pattern_id'])
 
 
-@app.post("/jobs/", response_model=schemas.Job)
+@app.post("/jobs", response_model=schemas.Job)
 def create_job(
     job: schemas.JobBase, db: Session = Depends(get_db)
 ):
@@ -478,7 +479,7 @@ def read_job(job_id: int, db: Session = Depends(get_db)):
     return db_job
 
 
-@app.get("/jobs/", response_model=list[schemas.Job])
+@app.get("/jobs", response_model=list[schemas.Job])
 def read_jobs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     jobs = crud.get_jobs(db, skip=skip, limit=limit)
     return jobs
@@ -517,7 +518,7 @@ def create_pattern(session_id: str, pattern: schemas.PatternBase,
     return {**worker_task['server_attrs'], "label": pattern.label}
 
 
-@app.get("/pattern/", response_model=list[schemas.Pattern])
+@app.get("/pattern", response_model=list[schemas.Pattern])
 def get_patterns(db: Session = Depends(get_db)):
     """Get a list of the wallpapering patterns saved in the db."""
     pattern_db = crud.get_patterns(db=db)
@@ -539,7 +540,7 @@ def _get_study_area_geometry(study_area_db):
     return parcels_combined_wkt
 
 
-@app.post("/wallpaper/", response_model=schemas.JobResponse)
+@app.post("/wallpaper", response_model=schemas.JobResponse)
 def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
     # Get Scenario details from scenario_id
     scenario_db = crud.get_scenario(db, wallpaper.scenario_id)
@@ -576,7 +577,7 @@ def wallpaper(wallpaper: schemas.Wallpaper, db: Session = Depends(get_db)):
     return job_db
 
 
-@app.post("/lulc_fill/", response_model=schemas.JobResponse)
+@app.post("/lulc_fill", response_model=schemas.JobResponse)
 def lulc_fill(lulc_fill: schemas.ParcelFill,
               db: Session = Depends(get_db)):
     # Get Scenario details from scenario_id
@@ -650,14 +651,14 @@ def lulc_crop(scenario_id: int, db: Session = Depends(get_db)):
     return job_db
 
 
-@app.post("/remove_parcel/")
+@app.post("/remove_parcel")
 def remove_parcel(delete_parcel_request: schemas.ParcelDeleteRequest,
                   db: Session = Depends(get_db)):
     status = crud.delete_parcel(db=db, **delete_parcel_request.dict())
     return status
 
 
-@app.post("/add_parcel/", response_model=schemas.JobResponse)
+@app.post("/add_parcel", response_model=schemas.JobResponse)
 def add_parcel(create_parcel_request: schemas.ParcelCreateRequest,
                db: Session = Depends(get_db)):
 
@@ -783,7 +784,7 @@ def get_invest_results(scenario_id: int, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=404, detail="InVEST result not found")
     invest_results = {}
-    serviceshed = ''  # For now, only one model has a serviceshed
+    servicesheds = {}
     for row in invest_db_list:
         invest_results_path = row.result
         LOGGER.debug(invest_results_path)
@@ -791,10 +792,10 @@ def get_invest_results(scenario_id: int, db: Session = Depends(get_db)):
             with open(invest_results_path, 'r') as jfp:
                 invest_results.update(json.loads(jfp.read()))
         if row.serviceshed:
-            serviceshed = row.serviceshed
+            servicesheds[row.model_name] = row.serviceshed
     return {
         'results': invest_results,
-        'serviceshed': serviceshed
+        'servicesheds': servicesheds
     }
 
 
@@ -823,9 +824,17 @@ def get_nlcd(nlud_dict: dict[str, str],
     return [row.nlcd_lulc for row in db_list]
 
 
-# TODO: will all 3 tree cover classes always be present for each category?
-# or do we need another query to find out which are present?
-# related to https://github.com/natcap/urban-online-workflow/issues/124
+@app.post("/lucodes/tree")
+def get_tree(lulc_dict: dict[str, str],
+             db: Session = Depends(get_db)) -> list[str]:
+    db_list = crud.get_tree(
+        db,
+        nlud_tier_2=lulc_dict['nlud_tier_2'],
+        nlud_tier_3=lulc_dict['nlud_tier_3'],
+        nlcd=lulc_dict['nlcd'])
+    return [row.tree_canopy_cover for row in db_list]
+
+
 @app.post("/lucodes/lucode")
 def get_lucode(lulc_dict: schemas.LulcRequest,
                db: Session = Depends(get_db)) -> Optional[int]:

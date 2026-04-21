@@ -1,6 +1,12 @@
 import patternsTable from './edit/patternsTable'; // TODO: this is temp
-
-const apiBaseURL = 'http://127.0.0.1:8000';
+ 
+let apiBaseURL;
+if (import.meta.env.VITE_URBANONLINE_DEVMODE === 'true') {
+  apiBaseURL = 'http://localhost/8000';
+}
+else {
+  apiBaseURL = 'https://urbanonline.naturalcapitalproject.org/8000';
+}
 
 
 /**
@@ -366,6 +372,22 @@ export async function getNLCD(tier2, tier3) {
       body: JSON.stringify({
         nlud_tier_2: tier2,
         nlud_tier_3: tier3,
+      }),
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error))
+  );
+}
+
+export async function getTreeCover(tier2, tier3, nlcd) {
+  return (
+    window.fetch(`${apiBaseURL}/lucodes/tree`, {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nlud_tier_2: tier2,
+        nlud_tier_3: tier3,
+        nlcd: nlcd,
       }),
     })
       .then((response) => response.json())

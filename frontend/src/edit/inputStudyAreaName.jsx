@@ -16,20 +16,25 @@ export default function InputStudyAreaName(props) {
     setStudyAreaName(name);
   }, [name]);
 
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    nameStudyArea(studyAreaName);
+  };
+
   return (
-    <div>
+    <form onSubmit={handleSubmit}>
       <InputGroup
         placeholder={name}
         value={studyAreaName}
         onChange={(event) => setStudyAreaName(event.currentTarget.value)}
         rightElement={(
           <Button
-            onClick={() => nameStudyArea(studyAreaName)}
+            onClick={handleSubmit}
           >
             Rename
           </Button>
         )}
       />
-    </div>
+    </form>
   );
 }

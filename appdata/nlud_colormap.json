@@ -11,6 +11,10 @@
         "color": "#3690eb",
         "name": "Waterbody  (Artificial)"
     },
+    "4": {
+        "color": "#d1def8",
+        "name": "Waterbody  (Perennial Ice/Snow)"
+    },
     "11": {
         "color": "#645CBB",
         "name": "Residential (Dense urban)"
@@ -42,6 +46,14 @@
     "40": {
         "color": "#df73ff",
         "name": "Institutional"
+    },
+    "41": {
+        "color": "#df73ff",
+        "name": "Institutional (Private)"
+    },
+    "42": {
+        "color": "#df73ff",
+        "name": "Institutional (Public)"
     },
     "51": {
         "color": "#9c9c9c",
@@ -83,9 +95,17 @@
         "color": "#4ce600",
         "name": "Undifferentiated park"
     },
+    "131": {
+        "color": "#4ce600",
+        "name": "Developed park (Urban park)"
+    },
     "132": {
         "color": "#55ff00",
         "name": "Developed park (Golf course)"
+    },
+    "133": {
+        "color": "#55ff00",
+        "name": "Developed park (Resort/ski area)"
     },
     "134": {
         "color": "#4ce600",
@@ -95,8 +115,16 @@
         "color": "#057548",
         "name": "Natural park"
     },
+    "151": {
+        "color": "#267300",
+        "name": "Conservation (Public)"
+    },
     "152": {
         "color": "#267300",
         "name": "Conservation (Public-limited access)"
+    },
+    "153": {
+        "color": "#267300",
+        "name": "Conservation (Private easement)"
     }
 }

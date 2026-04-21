@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 import {
   FocusStyleManager,
+  Section,
   Tab,
   Tabs,
 } from '@blueprintjs/core';
@@ -13,7 +14,9 @@ import StudyAreaTable from './studyAreaTable';
 import InputStudyAreaName from './inputStudyAreaName';
 import InvestRunner from './investRunner';
 import Results from './results';
+import Explore from './explore';
 import { getInvestResults } from '../requests';
+import { publicUrl } from '../utils';
 
 import nlcdLookup from '../../../appdata/nlcd_colormap.json';
 import nludLookup from '../../../appdata/nlud_colormap.json';
@@ -29,6 +32,7 @@ FocusStyleManager.onlyShowFocusOnTabs();
 
 export default function EditMenu(props) {
   const {
+    firstVisit,
     nameStudyArea,
     refreshStudyArea,
     refreshScenarios,
@@ -42,10 +46,12 @@ export default function EditMenu(props) {
     switchStudyArea,
     savedStudyAreas,
     setSelectedScenario,
-    setServiceshedPath,
+    setServicesheds,
+    selectedEquityLayer,
+    setActiveTab,
+    activeTab,
+    startBuilding,
   } = props;
-
-  const [activeTab, setActiveTab] = useState('scenarios');
   const [results, setResults] = useState({});
   const [scenarioDescriptions, setScenarioDescriptions] = useState(null);
 
@@ -58,14 +64,14 @@ export default function EditMenu(props) {
       scenarios.map(scenario => getInvestResults(scenario.scenario_id))
     );
     const data = {};
+    let servicesheds = {};
     scenarios.forEach((scenario, idx) => {
       if (Object.values(modelResults[idx])[0] !== 'InVEST result not found') {
         data[scenario.name] = modelResults[idx]['results'];
-        if (modelResults[idx]['serviceshed']) {
-          setServiceshedPath(modelResults[idx]['serviceshed']);
-        }
+        servicesheds = { ...servicesheds, ...modelResults[idx]['servicesheds'] };
       }
     });
+    setServicesheds(servicesheds);
     setResults(data);
   };
 
@@ -80,8 +86,9 @@ export default function EditMenu(props) {
         descriptions[scenario.name] = {
           nlcd: [],
           nlud: [],
+          tree: [],
         };
-        ['nlcd', 'nlud'].forEach((lulcType) => {
+        ['nlcd', 'nlud', 'tree'].forEach((lulcType) => {
           const sorted = Object.entries(stats[lulcType])
             .sort(([, a], [, b]) => b - a);
           const sortedClasses = sorted.map((x) => x[0]);
@@ -99,9 +106,9 @@ export default function EditMenu(props) {
           );
         });
       });
-      setScenarioDescriptions(descriptions);
       (async () => {
         await setInvestResults();
+        setScenarioDescriptions(descriptions);
       })();
     }
   }, [scenarios]);
@@ -114,8 +121,19 @@ export default function EditMenu(props) {
         selectedTabId={activeTab}
       >
         <Tab
+          id="explore"
+          title="explore"
+          panel={(
+            <Explore
+              startBuilding={startBuilding}
+              equityLayerTitle={selectedEquityLayer}
+            />
+          )}
+        />
+        <Tab
           id="scenarios"
           title="scenarios"
+          disabled={firstVisit}
           panel={(
             <div>
               {
@@ -147,9 +165,20 @@ export default function EditMenu(props) {
                     />
                   )
                   : (
-                    <p className="sidebar-subheading">
-                      <span>Click on the map to add parcels</span>
-                    </p>
+                    <Section
+                      title="Get Started"
+                    >
+                      <ol>
+                        <li>
+                          <p>Click on the map to select a parcel</p>
+                          <img
+                            src={publicUrl('/opt/appdata/parcel_select_crop.gif')}
+                            width="100"
+                          />
+                        </li>
+                        <li>Add any number of parcels to a study area</li>
+                      </ol>
+                    </Section>
                   )
               }
               <ScenarioBuilder
@@ -201,7 +230,6 @@ export default function EditMenu(props) {
                 panel={(
                   <Results
                     results={results}
-                    studyAreaName={studyArea.name}
                     scenarioDescriptions={scenarioDescriptions}
                     setSelectedScenario={setSelectedScenario}
                   />

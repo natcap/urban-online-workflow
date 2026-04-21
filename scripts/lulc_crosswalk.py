@@ -21,3 +21,4 @@ for idx, row in df.iterrows():
 with open('../appdata/lulc_crosswalk.json', 'w', encoding='utf-8') as file:
     jsonstring = json.dumps(data)
     file.write(jsonstring + '\n')
+

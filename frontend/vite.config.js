@@ -17,6 +17,9 @@ const CONFIG = {
     globals: true,
     environment: 'jsdom',
   },
+  server: {
+    allowedHosts: true,
+  },
 };
 
 // https://vitejs.dev/config/
